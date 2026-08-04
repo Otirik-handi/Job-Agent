@@ -1,4 +1,4 @@
-import { generateObject } from 'ai';
+import { generateObject, JSONParseError, NoObjectGeneratedError, TypeValidationError } from 'ai';
 import type { LanguageModel } from 'ai';
 import type { ZodType } from 'zod';
 import { getTemperature } from './model';
@@ -37,13 +37,11 @@ export async function callStructured<T>(options: {
       }
       return { ok: true, data: result.object as T };
     } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      const isSchemaFailure =
-        message.includes('output') && (message.includes('schema') || message.includes('JSON') || message.includes('parse'));
-      if (isSchemaFailure) {
-        lastError = message;
+      if (err instanceof TypeValidationError || err instanceof JSONParseError || err instanceof NoObjectGeneratedError) {
+        lastError = err.message;
         continue;
       }
+      const message = err instanceof Error ? err.message : String(err);
       return { ok: false, error: { code: 'LLM_CALL_FAILED', message: `模型调用失败（${task}）：${message}` } };
     }
   }
