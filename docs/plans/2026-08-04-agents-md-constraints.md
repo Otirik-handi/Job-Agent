@@ -1,6 +1,6 @@
 # AGENTS.md 硬约束增补计划
 
-> **元信息**：日期 2026-08-04 · 状态：生效 · 目标：从 find-work AGENTS.md 评估迁移硬约束并增补本项目 AGENTS.md · 关联规范：spec-autonomy.md（修订流程：先改规范文档再改代码）
+> **元信息**：日期 2026-08-04 · 状态：完成 · 目标：从 find-work AGENTS.md 评估迁移硬约束并增补本项目 AGENTS.md · 关联规范：spec-autonomy.md（修订流程：先改规范文档再改代码）
 
 **背景**：评估了 find-work AGENTS.md 的全部硬约束（2026-08-04 用户决策：直接迁移 11 条全部采纳，其中"不承诺伪造""不把历史设计/历史计划当作实现依据"已在本项目 AGENTS.md 中覆盖，无需重复；改造迁移仅采纳 #13"API key 只存于本地环境变量"）。共新增 10 条，新增"关键硬约束"章节。
 
@@ -12,14 +12,14 @@
 
 ## 任务
 
-- [ ] **Step 1: 创建本计划文档并提交**
+- [x] **Step 1: 创建本计划文档并提交**
 
 ```bash
 git add docs/plans/2026-08-04-agents-md-constraints.md
 git commit -m "docs: AGENTS.md 硬约束增补计划"
 ```
 
-- [ ] **Step 2: 更新 AGENTS.md**
+- [x] **Step 2: 更新 AGENTS.md**
 
 在 `## 目录索引` 章节之前插入 `## 关键硬约束` 章节，内容如下（10 条，与现有"不能做什么"中已覆盖的"不承诺伪造经历""不把历史设计/历史计划当作当前实现依据"不重复）：
 
@@ -45,7 +45,7 @@ git add AGENTS.md
 git commit -m "docs: AGENTS.md 增补关键硬约束（迁移自 find-work 评估结论）"
 ```
 
-- [ ] **Step 3: 计划归档**
+- [x] **Step 3: 计划归档**
 
 将本文件头部状态改为 `完成`，本清单全部打勾，提交：
 
