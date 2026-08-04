@@ -50,7 +50,7 @@ job-helper 是一个从零重写的个人求职助手 Agent 应用，前身项�
 
 前身项目的领域经验已整理为独立文档，作为后续设计阶段的输入：
 
-`docs/superpowers/specs/2026-08-04-find-work-experience-borrowing.md`
+`docs/designs/2026-08-04-find-work-experience-borrowing.md`
 
 ## 5. 规范体系设计（本阶段产物之一）
 
@@ -84,7 +84,7 @@ job-helper 是一个从零重写的个人求职助手 Agent 应用，前身项�
 
 1. **工程初始化**：Next.js（App Router + TypeScript + Tailwind CSS v4）可运行骨架；基础工程配置（ESLint、tsconfig、.gitignore）；git 仓库（已初始化）
 2. **规范体系落地**：AGENTS.md（薄）+ `.agents/specs/00-governance/spec-autonomy.md` + `plan-document.md` + `docs/plans/` 目录
-3. **文档目录**：`docs/superpowers/specs/`（设计文档 + 经验借鉴文档）
+3. **文档目录**：设计文档存放于 `docs/designs/`（约定：不使用 superpowers 默认的 `docs/superpowers/specs/`——ZCode 客户端对该路径下的文件显示层级有 bug，点击打开会报"文件不存在"；本约定覆盖 superpowers 生态的默认路径，如无特殊原因后续设计文档一律写入 `docs/designs/`）
 
 ### 6.2 本阶段不包含（脚手架完成后另行设计）
 
