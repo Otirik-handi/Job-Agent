@@ -99,8 +99,10 @@ job-helper 是一个从零重写的个人求职助手 Agent 应用，前身项�
 
 ## 7. 本阶段验收标准
 
-- [ ] `next dev` 可启动，首页可访问（可运行的空壳）
-- [ ] `next build` 通过
-- [ ] 三份规范文件（AGENTS.md、spec-autonomy.md、plan-document.md）就位
-- [ ] git 仓库干净、提交记录清晰
-- [ ] 无任何业务功能实现（范围守住的证明）
+- [x] `next dev` 可启动，首页可访问（可运行的空壳）
+- [x] `next build` 通过
+- [x] 三份规范文件（AGENTS.md、spec-autonomy.md、plan-document.md）就位
+- [x] git 仓库干净、提交记录清晰
+- [x] 无任何业务功能实现（范围守住的证明）
+
+> 状态：2026-08-04 已验收完成（脚手架搭建计划 docs/plans/2026-08-04-scaffold-setup.md 归档为"完成"）。
