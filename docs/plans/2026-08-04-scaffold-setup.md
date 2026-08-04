@@ -1,5 +1,7 @@
 # job-helper 脚手架搭建实施计划
 
+> **元信息**：日期 2026-08-04 · 状态：完成 · 目标：脚手架搭建 · 关联规范：spec-autonomy.md、plan-document.md
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** 搭建 job-helper 可运行工程骨架（Next.js 全栈 + TS + Tailwind v4），落地三份规范文件（AGENTS.md、spec-autonomy.md、plan-document.md），git 整洁提交。
@@ -19,7 +21,7 @@
 **Files:**
 - Create: `package.json`、`app/`、`public/`、`next.config.ts`、`tsconfig.json`、`eslint.config.mjs`、`postcss.config.mjs`、`.gitignore` 等（由 create-next-app 生成）
 
-- [ ] **Step 1: 确认环境**
+- [x] **Step 1: 确认环境**
 
 Run:
 ```bash
@@ -27,7 +29,7 @@ node -v && npm -v
 ```
 Expected: `v24.x.x` 与 `11.x.x`（Node ≥ 18.18 即可）
 
-- [ ] **Step 2: 运行 create-next-app（非交互）**
+- [x] **Step 2: 运行 create-next-app（非交互）**
 
 Run（在 `C:\Users\Otirik\Desktop\WorkStation\job-helper` 下）:
 ```bash
@@ -36,7 +38,7 @@ npx --yes create-next-app@latest . --typescript --tailwind --eslint --app --src-
 Expected: 输出 `Success! Created job-helper at ...`，不报错。
 说明：目录已有 `.git` 时 create-next-app 自动跳过 git init；`docs/` 目录不受影响。
 
-- [ ] **Step 3: 确认生成结果与 git 状态**
+- [x] **Step 3: 确认生成结果与 git 状态**
 
 Run:
 ```bash
@@ -44,7 +46,7 @@ git status --short | head -20 && ls app/ && cat package.json | head -30
 ```
 Expected: 看到 create-next-app 生成的文件（未提交）；`app/` 下有 `layout.tsx`、`page.tsx`、`globals.css`；package.json 含 next/react/typescript/tailwindcss 依赖。
 
-- [ ] **Step 4: 提交**
+- [x] **Step 4: 提交**
 
 ```bash
 git add -A && git commit -m "chore: create-next-app 初始化工程骨架"
@@ -56,12 +58,12 @@ git add -A && git commit -m "chore: create-next-app 初始化工程骨架"
 - Modify: `app/page.tsx`（替换示例页为极简占位）
 - Modify: `app/layout.tsx`（metadata 标题改为项目名）
 
-- [ ] **Step 1: 构建验证（首次，应通过）**
+- [x] **Step 1: 构建验证（首次，应通过）**
 
 Run: `npm run build`
 Expected: `✓ Compiled successfully`，`Route (app)` 列出 `/`，构建成功退出码 0
 
-- [ ] **Step 2: 替换首页为极简占位**
+- [x] **Step 2: 替换首页为极简占位**
 
 Modify: `app/page.tsx` 全文替换为:
 ```tsx
@@ -77,16 +79,16 @@ export default function Home() {
 }
 ```
 
-- [ ] **Step 3: 修改 layout 元信息**
+- [x] **Step 3: 修改 layout 元信息**
 
 Modify: `app/layout.tsx` 中 `metadata` 的 `title` 改为 `"job-helper"`、`description` 改为 `"个人求职 Agent 应用"`（其余内容保留 create-next-app 默认）
 
-- [ ] **Step 4: 构建复验**
+- [x] **Step 4: 构建复验**
 
 Run: `npm run build`
 Expected: `✓ Compiled successfully`
 
-- [ ] **Step 5: 开发服务器验证**
+- [x] **Step 5: 开发服务器验证**
 
 ```bash
 npm run dev &  # 后台启动，等待数秒
@@ -94,7 +96,7 @@ curl -s -o /dev/null -w "%{http_code}" http://localhost:3000
 ```
 Expected: 输出 `200`。验证后停止 dev 进程（`kill %1` 或任务管理器关闭 node 进程）。
 
-- [ ] **Step 6: 提交**
+- [x] **Step 6: 提交**
 
 ```bash
 git add app/ && git commit -m "chore: 首页极简占位与元信息"
@@ -105,7 +107,7 @@ git add app/ && git commit -m "chore: 首页极简占位与元信息"
 **Files:**
 - Create: `AGENTS.md`
 
-- [ ] **Step 1: 写入 AGENTS.md**
+- [x] **Step 1: 写入 AGENTS.md**
 
 Create: `AGENTS.md`，完整内容如下：
 ```markdown
@@ -153,7 +155,7 @@ Create: `AGENTS.md`，完整内容如下：
 - `docs/plans/`：计划文档
 ```
 
-- [ ] **Step 2: 提交**
+- [x] **Step 2: 提交**
 
 ```bash
 git add AGENTS.md && git commit -m "docs: 落地 AGENTS.md（薄）"
@@ -164,7 +166,7 @@ git add AGENTS.md && git commit -m "docs: 落地 AGENTS.md（薄）"
 **Files:**
 - Create: `.agents/specs/00-governance/spec-autonomy.md`
 
-- [ ] **Step 1: 写入规范文件**
+- [x] **Step 1: 写入规范文件**
 
 Create: `.agents/specs/00-governance/spec-autonomy.md`，完整内容如下：
 ```markdown
@@ -204,7 +206,7 @@ Create: `.agents/specs/00-governance/spec-autonomy.md`，完整内容如下：
 - 为什么：多头权威导致执行歧义
 ```
 
-- [ ] **Step 2: 提交**
+- [x] **Step 2: 提交**
 
 ```bash
 git add .agents/specs/ && git commit -m "docs: 落地根基规范①规范自治"
@@ -215,7 +217,7 @@ git add .agents/specs/ && git commit -m "docs: 落地根基规范①规范自治
 **Files:**
 - Create: `.agents/specs/00-governance/plan-document.md`
 
-- [ ] **Step 1: 写入规范文件**
+- [x] **Step 1: 写入规范文件**
 
 Create: `.agents/specs/00-governance/plan-document.md`，完整内容如下：
 ```markdown
@@ -260,7 +262,7 @@ Create: `.agents/specs/00-governance/plan-document.md`，完整内容如下：
 - 为什么：规范先行，实现后置，避免文档失效
 ```
 
-- [ ] **Step 2: 提交**
+- [x] **Step 2: 提交**
 
 ```bash
 git add .agents/specs/ && git commit -m "docs: 落地根基规范②计划文档"
@@ -271,12 +273,12 @@ git add .agents/specs/ && git commit -m "docs: 落地根基规范②计划文档
 **Files:**
 - 无（核对为主）
 
-- [ ] **Step 1: 核对工程可运行**
+- [x] **Step 1: 核对工程可运行**
 
 Run: `npm run build`
 Expected: `✓ Compiled successfully`（退出码 0）
 
-- [ ] **Step 2: 核对规范文件就位**
+- [x] **Step 2: 核对规范文件就位**
 
 Run:
 ```bash
@@ -284,7 +286,7 @@ ls AGENTS.md .agents/specs/00-governance/spec-autonomy.md .agents/specs/00-gover
 ```
 Expected: 三个文件均列出
 
-- [ ] **Step 3: 核对无业务功能实现**
+- [x] **Step 3: 核对无业务功能实现**
 
 Run:
 ```bash
@@ -292,17 +294,17 @@ find app src -type f 2>/dev/null | head -20 && grep -ri "drizzle\|@ai-sdk\|shadc
 ```
 Expected: 只有 create-next-app 默认文件；grep 无输出（无业务依赖与业务代码）
 
-- [ ] **Step 4: 核对 git 状态**
+- [x] **Step 4: 核对 git 状态**
 
 Run: `git status --short && git log --oneline`
 Expected: 工作区干净；提交历史为 Task 1-5 的 5 个提交
 
-- [ ] **Step 5: 核对本计划文件归档**
+- [x] **Step 5: 核对本计划文件归档**
 
 Run: `ls docs/plans/`
 Expected: `2026-08-04-scaffold-setup.md` 存在（本文件即首个计划文档样例）
 
-- [ ] **Step 6: 更新本计划状态并提交**
+- [x] **Step 6: 更新本计划状态并提交**
 
 - 将本文档头部 `状态` 由 `草稿` 改为 `完成`（如无元信息块则按 plan-document.md 规范补充：日期 2026-08-04、状态 完成、目标 脚手架搭建）
 ```bash
