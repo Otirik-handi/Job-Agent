@@ -5,14 +5,23 @@ import { useRef, useState } from 'react';
 import { MessageBubble } from './message-bubble';
 import { ToolProgressCard } from './tool-progress-card';
 import { ChatInput } from './chat-input';
+import type { UIMessage } from 'ai';
 
 export type ToolProgress = { toolName: string; status: 'running' | 'completed' | 'failed'; message: string };
 
-export function ChatPanel({ onChatSettled }: { onChatSettled: () => void }) {
+export function ChatPanel({
+  conversationId, initialMessages, onChatSettled,
+}: {
+  conversationId: string | null;
+  initialMessages: UIMessage[];
+  onChatSettled: () => void;
+}) {
   const [progress, setProgress] = useState<ToolProgress | null>(null);
   const settledRef = useRef(false);
 
   const { messages, sendMessage, stop, status } = useChat({
+    id: conversationId ?? undefined,
+    messages: initialMessages,
     transport: new DefaultChatTransport({ api: '/api/chat' }),
     onData: (part) => {
       if (part.type === 'data-tool-progress') {
@@ -39,7 +48,7 @@ export function ChatPanel({ onChatSettled }: { onChatSettled: () => void }) {
       <ChatInput
         disabled={status === 'streaming' || status === 'submitted'}
         streaming={status === 'streaming' || status === 'submitted'}
-        onSend={(text) => sendMessage({ text })}
+        onSend={(text) => sendMessage({ text }, conversationId ? { body: { conversationId } } : undefined)}
         onStop={stop}
       />
     </div>
