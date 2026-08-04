@@ -1,8 +1,7 @@
 import type { ToolSet } from 'ai';
 
-// 工具在 Task 6/7 创建后接入（届时取消注释）
-// import { analyzeResumeTool } from './tools/analyze-resume';
-// import { importResumeTool } from './tools/import-resume';
+import { analyzeResumeTool } from './tools/analyze-resume';
+import { importResumeTool } from './tools/import-resume';
 
 export const SYSTEM_PROMPT = `你是 job-helper，一个本地运行的个人求职助手 Agent。
 
@@ -21,6 +20,5 @@ export const SYSTEM_PROMPT = `你是 job-helper，一个本地运行的个人求
 - 默认使用中文回复。`;
 
 export function getTools(): ToolSet {
-  // 待 Task 6/7 接入：return { importResume: importResumeTool, analyzeResume: analyzeResumeTool };
-  return {};
+  return { importResume: importResumeTool, analyzeResume: analyzeResumeTool };
 }
