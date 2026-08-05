@@ -21,7 +21,7 @@ Soft UI 风格已全面落地（令牌 + 组件 + 布局密度 + 动效），但
 | 4 | 极淡网格纹理 | 聊天消息区 | 背景叠加双重 `linear-gradient` 细网格（约 5% 透明度 slate），`background-size: 24px 24px`，不干扰文字对比度 |
 | 6 | 空状态插画化 | 全部空状态场景 | 新增通用空状态组件 `EmptyState`：渐变圆底（indigo→pink 极淡，`rounded-full`）+ lucide 图标 + 引导文案 + 可选动作按钮；统一用于新对话主区、会话列表空、资源列表空、抽屉占位 |
 | 8 | 品牌 Logo 区 | 侧栏顶部 | 渐变圆角方块（`rounded-xl`，indigo #6366f1 → violet #8b5cf6）+ 白色 lucide 图标（如 `Sparkles`）+ 「Job Helper」字标（`font-semibold text-slate-700`） |
-| 9 | 角落光斑 | 页面级背景 | 右下 indigo 光斑 + 左上 pink 光斑：`fixed` 定位 + `radial-gradient` + 大尺寸模糊，`opacity` 极低（≈0.16/0.10），`pointer-events-none`、`z-0`，不挡交互 |
+| 9 | 角落光斑 | 页面级背景 | 右下 indigo 光斑 + 右上 pink 光斑（注：原设计左上，落地时因左侧被侧栏白底遮挡改为右上）：`fixed` 定位 + `radial-gradient` + 大尺寸模糊，`opacity` 极低（≈0.16/0.10），`pointer-events-none`、`z-0`，不挡交互 |
 | 10 | 资源项彩色图标底 | 资源列表（简历/岗位） | 每条资源前加 `rounded-full bg-[color]/10` 圆形浅底 + lucide 图标，按类型分色：简历 indigo、岗位 emerald |
 
 ## 3. 规范更新（SoftUI.md）
