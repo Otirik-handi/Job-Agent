@@ -1,8 +1,9 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
-import { Pencil, Trash2 } from 'lucide-react';
+import { MessageSquare, Pencil, Trash2 } from 'lucide-react';
 import { Button } from '@/src/components/ui/button';
 import { ConfirmDialog } from '@/src/components/ui/confirm-dialog';
+import { EmptyState } from '@/src/components/ui/empty-state';
 import { cn } from '@/src/lib/utils';
 import { formatRelativeTime } from '@/src/lib/format-time';
 import type { ConversationSummary } from '@/src/lib/use-conversations';
@@ -39,7 +40,13 @@ export function ConversationList({
     <div className="flex h-full flex-col gap-1.5 p-3">
       <Button size="sm" variant="outline" className="mb-1" onClick={onNew}>＋ 新对话</Button>
       {conversations.length === 0 && (
-        <div className="rounded-2xl bg-slate-100/60 px-3 py-6 text-center text-xs text-muted-foreground">暂无会话</div>
+        <EmptyState
+          compact
+          icon={MessageSquare}
+          title="暂无会话"
+          description="点击「＋ 新对话」开始求职之旅"
+          className="rounded-2xl bg-slate-100/60 px-3 py-6"
+        />
       )}
       {conversations.map((c) => (
         <div

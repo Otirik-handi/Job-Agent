@@ -1,6 +1,8 @@
 'use client';
+import { FileText } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/src/components/ui/sheet';
 import { Badge } from '@/src/components/ui/badge';
+import { EmptyState } from '@/src/components/ui/empty-state';
 import { Separator } from '@/src/components/ui/separator';
 import { useResumeDetail } from '@/src/lib/use-resume-detail';
 
@@ -18,7 +20,12 @@ export function ResumeDrawer({ resumeId, open, onOpenChange }: {
         </SheetHeader>
         {!detail && <p className="text-sm text-muted-foreground">加载中…</p>}
         {detail && !analysis && (
-          <p className="mt-4 text-sm text-muted-foreground">尚未分析，可在对话中让 Agent 分析这份简历。</p>
+          <EmptyState
+            icon={FileText}
+            title="尚未分析"
+            description="在对话中让 Agent 分析这份简历，结果会出现在这里"
+            className="mt-8"
+          />
         )}
         {detail && analysis && (
           <div className="mt-6 space-y-5 text-sm">

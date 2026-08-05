@@ -2,6 +2,8 @@
 import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport } from 'ai';
 import { useRef, useState } from 'react';
+import { Sparkles } from 'lucide-react';
+import { EmptyState } from '@/src/components/ui/empty-state';
 import { MessageBubble } from './message-bubble';
 import { ToolProgressCard } from './tool-progress-card';
 import { ChatInput } from './chat-input';
@@ -53,10 +55,19 @@ export function ChatPanel({
           backgroundSize: '24px 24px',
         }}
       >
-        {messages.map((message, index) => (
-          // key 兜底：存量历史消息可能无 id（服务端补 id 前的数据），用索引兜底避免 React key 冲突
-          <MessageBubble key={message.id || `msg-${index}`} message={message} />
-        ))}
+        {messages.length === 0 ? (
+          <EmptyState
+            icon={Sparkles}
+            title="你好，我是你的求职助手"
+            description="让我帮你分析简历、匹配岗位、发现机会——直接告诉我你的需求吧"
+            className="h-full"
+          />
+        ) : (
+          messages.map((message, index) => (
+            // key 兜底：存量历史消息可能无 id（服务端补 id 前的数据），用索引兜底避免 React key 冲突
+            <MessageBubble key={message.id || `msg-${index}`} message={message} />
+          ))
+        )}
         {progress && progress.status === 'running' && <ToolProgressCard progress={progress} />}
       </div>
       <ChatInput

@@ -1,6 +1,8 @@
 'use client';
+import { Briefcase } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/src/components/ui/sheet';
 import { StatusBadge } from '@/src/components/ui/status-badge';
+import { EmptyState } from '@/src/components/ui/empty-state';
 import { Separator } from '@/src/components/ui/separator';
 import { MarkdownText } from '@/src/components/chat/markdown-text';
 import { cn } from '@/src/lib/utils';
@@ -33,7 +35,12 @@ export function JobDrawer({ jobId, open, onOpenChange }: {
         </SheetHeader>
         {!detail && <p className="text-sm text-muted-foreground">加载中…</p>}
         {detail && !fit && (
-          <p className="mt-4 text-sm text-muted-foreground">尚未匹配，可在对话中让 Agent 匹配这份岗位。</p>
+          <EmptyState
+            icon={Briefcase}
+            title="尚未匹配"
+            description="在对话中让 Agent 匹配这份岗位，结果会出现在这里"
+            className="mt-8"
+          />
         )}
         {detail && fit && (
           <div className="mt-4 space-y-5 text-sm">

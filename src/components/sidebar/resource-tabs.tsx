@@ -6,6 +6,7 @@ import { useJobOpportunities } from '@/src/lib/use-job-opportunities';
 import { StatusBadge } from '@/src/components/ui/status-badge';
 import { Button } from '@/src/components/ui/button';
 import { ConfirmDialog } from '@/src/components/ui/confirm-dialog';
+import { EmptyState } from '@/src/components/ui/empty-state';
 import { apiUpload } from '@/src/lib/api';
 import { formatRelativeTime } from '@/src/lib/format-time';
 
@@ -110,9 +111,13 @@ export function ResourceTabs({
             </div>
           )}
           {resumes.length === 0 && (
-            <div className="rounded-2xl bg-slate-100/60 px-3 py-6 text-center text-xs text-muted-foreground">
-              暂无简历，可上传文件（PDF / DOCX / TXT / MD）或在对话中粘贴文本导入
-            </div>
+            <EmptyState
+              compact
+              icon={FileText}
+              title="暂无简历"
+              description="上传 PDF / DOCX / TXT / MD，或在对话中粘贴文本导入"
+              className="rounded-2xl bg-slate-100/60 px-3 py-6"
+            />
           )}
           {resumes.map((r) => (
             <div key={r.id} className="group relative rounded-xl transition-all hover:bg-slate-100">
@@ -151,9 +156,13 @@ export function ResourceTabs({
       {tab === 'job' && (
         <>
           {jobs.length === 0 && (
-            <div className="rounded-2xl bg-slate-100/60 px-3 py-6 text-center text-xs text-muted-foreground">
-              暂无岗位，可在对话中粘贴 JD 导入
-            </div>
+            <EmptyState
+              compact
+              icon={Briefcase}
+              title="暂无岗位"
+              description="在对话中粘贴 JD，即可导入并匹配"
+              className="rounded-2xl bg-slate-100/60 px-3 py-6"
+            />
           )}
           {jobs.map((job) => (
             <div key={job.id} className="group relative rounded-xl transition-all hover:bg-slate-100">
