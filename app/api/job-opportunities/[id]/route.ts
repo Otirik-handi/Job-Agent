@@ -1,4 +1,4 @@
-import { getJobOpportunity } from '@/src/db/repositories/job-opportunities';
+import { deleteJobOpportunity, getJobOpportunity } from '@/src/db/repositories/job-opportunities';
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -19,4 +19,11 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     createdAt: record.createdAt,
     updatedAt: record.updatedAt,
   });
+}
+
+export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  if (!getJobOpportunity(id)) return Response.json({ code: 'JOB_OPPORTUNITY_NOT_FOUND', message: '岗位不存在' }, { status: 404 });
+  deleteJobOpportunity(id);
+  return Response.json({ ok: true });
 }

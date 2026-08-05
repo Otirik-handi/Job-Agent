@@ -29,3 +29,7 @@ export function getResume(id: string): ResumeRecord | null {
 export function updateResumeAnalysis(id: string, analysisJson: string): void {
   db.update(resumes).set({ analysisJson, updatedAt: nowIso() }).where(eq(resumes.id, id)).run();
 }
+
+export function deleteResume(id: string): void {
+  db.delete(resumes).where(eq(resumes.id, id)).run();
+}

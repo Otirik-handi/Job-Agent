@@ -35,3 +35,7 @@ export function updateJobMatch(id: string, input: { company: string; title: stri
     .set({ company: input.company, title: input.title, fitResultJson: input.fitResultJson, status: 'matched', updatedAt: nowIso() })
     .where(eq(jobOpportunities.id, id)).run();
 }
+
+export function deleteJobOpportunity(id: string): void {
+  db.delete(jobOpportunities).where(eq(jobOpportunities.id, id)).run();
+}
