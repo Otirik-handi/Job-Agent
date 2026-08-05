@@ -16,7 +16,7 @@ export function Sidebar({
 }) {
   const [tab, setTab] = useState<'conversations' | 'resources'>('conversations');
   return (
-    <aside className="flex w-64 shrink-0 flex-col border-r">
+    <aside className="flex w-[272px] shrink-0 flex-col border-r border-slate-200/60 bg-white shadow-card">
       <Tabs value={tab} onValueChange={(v) => setTab(v as 'conversations' | 'resources')}>
         <TabsList className="m-2 grid w-[calc(100%-1rem)] grid-cols-2">
           <TabsTrigger value="conversations">会话</TabsTrigger>
