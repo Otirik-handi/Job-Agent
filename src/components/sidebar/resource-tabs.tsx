@@ -1,27 +1,34 @@
 'use client';
 import { useRef, useState } from 'react';
-import { Upload } from 'lucide-react';
+import { Trash2, Upload } from 'lucide-react';
 import { useResumes } from '@/src/lib/use-resumes';
 import { useJobOpportunities } from '@/src/lib/use-job-opportunities';
 import { StatusBadge } from '@/src/components/ui/status-badge';
 import { Button } from '@/src/components/ui/button';
+import { ConfirmDialog } from '@/src/components/ui/confirm-dialog';
 import { apiUpload } from '@/src/lib/api';
+import { formatRelativeTime } from '@/src/lib/format-time';
 
 const MAX_UPLOAD_SIZE = 20 * 1024 * 1024;
 
 export function ResourceTabs({
   onOpenResume,
   onOpenJob,
+  onDeletedResume,
+  onDeletedJob,
 }: {
   onOpenResume: (id: string) => void;
   onOpenJob: (id: string) => void;
+  onDeletedResume: (id: string) => void;
+  onDeletedJob: (id: string) => void;
 }) {
   const [tab, setTab] = useState<'resume' | 'job'>('resume');
-  const { resumes, refresh } = useResumes();
-  const { jobs } = useJobOpportunities();
+  const { resumes, refresh, remove: removeResume } = useResumes();
+  const { jobs, refresh: refreshJobs, remove: removeJob } = useJobOpportunities();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [notice, setNotice] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ kind: 'resume' | 'job'; id: string; name: string } | null>(null);
 
   const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -45,6 +52,19 @@ export function ResourceTabs({
       setNotice({ kind: 'err', text: err instanceof Error ? err.message : '上传失败' });
     } finally {
       setUploading(false);
+    }
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    const { kind, id } = deleteTarget;
+    setDeleteTarget(null);
+    if (kind === 'resume') {
+      await removeResume(id);
+      onDeletedResume(id);
+    } else {
+      await removeJob(id);
+      onDeletedJob(id);
     }
   };
 
@@ -95,16 +115,31 @@ export function ResourceTabs({
             </div>
           )}
           {resumes.map((r) => (
-            <button
-              key={r.id}
-              onClick={() => onOpenResume(r.id)}
-              className="rounded-xl px-3 py-2 text-left text-sm transition-all hover:bg-slate-100"
-            >
-              <div className="truncate">{r.name}</div>
-              <div className="text-xs text-muted-foreground">
-                {r.analyzed ? '已分析' : '未分析'} · {r.sourceType}
+            <div key={r.id} className="group relative rounded-xl transition-all hover:bg-slate-100">
+              <div
+                onClick={() => onOpenResume(r.id)}
+                className="cursor-pointer px-3 py-2 text-left text-sm"
+              >
+                <div className="flex items-center justify-between gap-1">
+                  <span className="truncate">{r.name}</span>
+                  <span className="flex shrink-0 items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setDeleteTarget({ kind: 'resume', id: r.id, name: r.name }); }}
+                      className="rounded-md p-1 text-muted-foreground hover:bg-red-100 hover:text-red-600"
+                      aria-label={`删除简历 ${r.name}`}
+                    >
+                      <Trash2 className="size-3.5" />
+                    </button>
+                  </span>
+                </div>
+                <div className="mt-0.5 flex items-center justify-between gap-2">
+                  <span className="text-xs text-muted-foreground">
+                    {r.analyzed ? '已分析' : '未分析'} · {r.sourceType}
+                  </span>
+                  <span className="shrink-0 text-xs text-muted-foreground">{formatRelativeTime(r.updatedAt)}</span>
+                </div>
               </div>
-            </button>
+            </div>
           ))}
         </>
       )}
@@ -116,20 +151,42 @@ export function ResourceTabs({
             </div>
           )}
           {jobs.map((job) => (
-            <button
-              key={job.id}
-              onClick={() => onOpenJob(job.id)}
-              className="rounded-xl px-3 py-2 text-left text-sm transition-all hover:bg-slate-100"
-            >
-              <div className="truncate">{job.company ? `${job.company} · ${job.title}` : '未命名岗位'}</div>
-              <div className="mt-0.5 flex items-center gap-2">
-                <StatusBadge status={job.status} />
-                <span className="text-xs text-muted-foreground">{new Date(job.updatedAt).toLocaleDateString()}</span>
+            <div key={job.id} className="group relative rounded-xl transition-all hover:bg-slate-100">
+              <div
+                onClick={() => onOpenJob(job.id)}
+                className="cursor-pointer px-3 py-2 text-left text-sm"
+              >
+                <div className="flex items-center justify-between gap-1">
+                  <span className="truncate">{job.company ? `${job.company} · ${job.title}` : '未命名岗位'}</span>
+                  <span className="flex shrink-0 items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setDeleteTarget({ kind: 'job', id: job.id, name: job.company ? `${job.company} · ${job.title}` : '未命名岗位' }); }}
+                      className="rounded-md p-1 text-muted-foreground hover:bg-red-100 hover:text-red-600"
+                      aria-label="删除岗位"
+                    >
+                      <Trash2 className="size-3.5" />
+                    </button>
+                  </span>
+                </div>
+                <div className="mt-0.5 flex items-center justify-between gap-2">
+                  <span className="flex items-center gap-2">
+                    <StatusBadge status={job.status} />
+                  </span>
+                  <span className="shrink-0 text-xs text-muted-foreground">{formatRelativeTime(job.updatedAt)}</span>
+                </div>
               </div>
-            </button>
+            </div>
           ))}
         </>
       )}
+      <ConfirmDialog
+        open={deleteTarget !== null}
+        title={deleteTarget?.kind === 'resume' ? '删除简历' : '删除岗位'}
+        description={deleteTarget ? `确定要删除「${deleteTarget.name}」吗？此操作不可恢复。` : ''}
+        confirmText="删除"
+        onOpenChange={(open) => { if (!open) setDeleteTarget(null); }}
+        onConfirm={confirmDelete}
+      />
     </div>
   );
 }

@@ -58,6 +58,8 @@ export default function Home() {
         onDeleteConversation={handleDeleteConversation}
         onOpenResume={setDrawerResumeId}
         onOpenJob={setDrawerJobId}
+        onDeletedResume={(id) => setDrawerResumeId((prev) => (prev === id ? null : prev))}
+        onDeletedJob={(id) => setDrawerJobId((prev) => (prev === id ? null : prev))}
       />
       <div className="flex-1">
         <ChatPanel
