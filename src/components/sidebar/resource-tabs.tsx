@@ -11,9 +11,9 @@ export function ResourceTabs({ onOpenResume }: { onOpenResume: (id: string) => v
         <span className="px-3 py-1">专属简历（第 3 期）</span>
       </div>
       {resumes.length === 0 && (
-        <p className="px-3 py-6 text-center text-xs text-muted-foreground">
+        <div className="rounded-2xl bg-slate-100/60 px-3 py-6 text-center text-xs text-muted-foreground">
           暂无简历，可在对话中粘贴文本或提供文件路径导入
-        </p>
+        </div>
       )}
       {resumes.map((r) => (
         <button

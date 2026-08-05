@@ -15,7 +15,7 @@ export function ConversationList({
     <div className="flex h-full flex-col gap-1.5 p-3">
       <Button size="sm" variant="outline" className="mb-1" onClick={onNew}>＋ 新对话</Button>
       {conversations.length === 0 && (
-        <p className="px-3 py-6 text-center text-xs text-muted-foreground">暂无会话</p>
+        <div className="rounded-2xl bg-slate-100/60 px-3 py-6 text-center text-xs text-muted-foreground">暂无会话</div>
       )}
       {conversations.map((c) => (
         <button
