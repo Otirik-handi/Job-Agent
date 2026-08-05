@@ -24,7 +24,7 @@ export function ResourceTabs({
 }) {
   const [tab, setTab] = useState<'resume' | 'job'>('resume');
   const { resumes, refresh, remove: removeResume } = useResumes();
-  const { jobs, refresh: refreshJobs, remove: removeJob } = useJobOpportunities();
+  const { jobs, remove: removeJob } = useJobOpportunities();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [notice, setNotice] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);
