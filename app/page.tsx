@@ -31,6 +31,7 @@ export default function Home() {
         onSelectConversation={selectConversation}
         onNewConversation={newConversation}
         onOpenResume={setDrawerResumeId}
+        onOpenJob={() => {}}
       />
       <div className="flex-1">
         <ChatPanel

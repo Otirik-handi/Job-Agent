@@ -6,13 +6,14 @@ import { ResourceTabs } from './resource-tabs';
 import type { ConversationSummary } from '@/src/lib/use-conversations';
 
 export function Sidebar({
-  conversations, activeConversationId, onSelectConversation, onNewConversation, onOpenResume,
+  conversations, activeConversationId, onSelectConversation, onNewConversation, onOpenResume, onOpenJob,
 }: {
   conversations: ConversationSummary[];
   activeConversationId: string | null;
   onSelectConversation: (id: string) => void;
   onNewConversation: () => void;
   onOpenResume: (id: string) => void;
+  onOpenJob: (id: string) => void;
 }) {
   const [tab, setTab] = useState<'conversations' | 'resources'>('conversations');
   return (
@@ -31,7 +32,7 @@ export function Sidebar({
           />
         </TabsContent>
         <TabsContent value="resources" className="h-[calc(100%-3rem)]">
-          <ResourceTabs onOpenResume={onOpenResume} />
+          <ResourceTabs onOpenResume={onOpenResume} onOpenJob={onOpenJob} />
         </TabsContent>
       </Tabs>
     </aside>
