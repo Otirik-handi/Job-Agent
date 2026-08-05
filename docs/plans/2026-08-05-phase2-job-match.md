@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-> **元信息**：日期 2026-08-05 · 状态：生效 · 目标：岗位导入与三段式匹配闭环，一条消息自动多步完成 · 关联规范：AGENTS.md、plan-document.md
+> **元信息**：日期 2026-08-05 · 状态：完成 · 目标：岗位导入与三段式匹配闭环，一条消息自动多步完成 · 关联规范：AGENTS.md、plan-document.md
 
 **Goal:** 实现 importJobOpportunity（文本导入）+ matchJob（理解→匹配→建议三段式）两个领域工具，/api/chat 改造为 ToolLoopAgent 服务端自动多步循环（一条消息完成"导入岗位并匹配"），前端新增岗位资源列表与匹配结果抽屉。
 
@@ -28,7 +28,7 @@
 - Create: `app/api/job-opportunities/route.ts`
 - Create: `app/api/job-opportunities/[id]/route.ts`
 
-- [ ] **Step 1: 岗位仓储**
+- [x] **Step 1: 岗位仓储**
 
 Create `src/db/repositories/job-opportunities.ts`（参照 `resumes.ts` 模式）：
 ```ts
@@ -71,7 +71,7 @@ export function updateJobMatch(id: string, input: { company: string; title: stri
 }
 ```
 
-- [ ] **Step 2: 列表端点**
+- [x] **Step 2: 列表端点**
 
 Create `app/api/job-opportunities/route.ts`：
 ```ts
@@ -93,7 +93,7 @@ export async function GET(req: Request) {
 }
 ```
 
-- [ ] **Step 3: 详情端点**
+- [x] **Step 3: 详情端点**
 
 Create `app/api/job-opportunities/[id]/route.ts`：
 ```ts
@@ -121,7 +121,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
 }
 ```
 
-- [ ] **Step 4: 验证与提交**
+- [x] **Step 4: 验证与提交**
 
 Run: `node_modules/.bin/tsc --noEmit` → 0 错误；`npm run build` → 通过
 ```bash
@@ -133,7 +133,7 @@ git add src/db/repositories app/api && git commit -m "feat: 岗位仓储与查�
 **Files:**
 - Create: `src/agent/tools/import-job-opportunity.ts`
 
-- [ ] **Step 1: 实现工具**
+- [x] **Step 1: 实现工具**
 
 Create `src/agent/tools/import-job-opportunity.ts`（参照 `import-resume.ts` 模式；文本上限/归一化复用 resume-text 的函数，注释说明语义复用）：
 ```ts
@@ -167,11 +167,11 @@ export const importJobOpportunityTool = createDomainTool({
 });
 ```
 
-- [ ] **Step 2: 接入 agent.ts**
+- [x] **Step 2: 接入 agent.ts**
 
 Modify `src/agent/agent.ts`：取消 `importJobOpportunityTool` 的注释（若无注释则新增 import），`getTools()` 返回增加 `importJobOpportunity: importJobOpportunityTool`；SYSTEM_PROMPT 的能力清单补充一行 `- importJobOpportunity：导入岗位（粘贴 JD 文本）`。
 
-- [ ] **Step 3: 验证与提交**
+- [x] **Step 3: 验证与提交**
 
 Run: `node_modules/.bin/tsc --noEmit` → 0 错误
 ```bash
@@ -184,7 +184,7 @@ git add src/agent && git commit -m "feat: importJobOpportunity 工具（JD 文�
 - Create: `src/agent/schemas/job-match.ts`
 - Create: `src/agent/prompts/job-match.ts`
 
-- [ ] **Step 1: 契约（JobMatchResultV1）**
+- [x] **Step 1: 契约（JobMatchResultV1）**
 
 Create `src/agent/schemas/job-match.ts`：
 ```ts
@@ -228,7 +228,7 @@ export const jobMatchResultSchemaV1 = z.object({
 export type JobMatchResultV1 = z.infer<typeof jobMatchResultSchemaV1>;
 ```
 
-- [ ] **Step 2: prompt（契约示例内嵌，经验 3.1）**
+- [x] **Step 2: prompt（契约示例内嵌，经验 3.1）**
 
 Create `src/agent/prompts/job-match.ts`：
 ```ts
@@ -280,7 +280,7 @@ export function buildJobMatchUserPrompt(jdText: string, resumeName: string, resu
 }
 ```
 
-- [ ] **Step 3: 提交**
+- [x] **Step 3: 提交**
 
 ```bash
 git add src/agent/schemas src/agent/prompts && git commit -m "feat: matchJob 契约与 prompt（JobMatchResultV1 三段式）"
@@ -292,7 +292,7 @@ git add src/agent/schemas src/agent/prompts && git commit -m "feat: matchJob 契
 - Create: `src/agent/tools/match-job.ts`
 - Modify: `src/agent/agent.ts`
 
-- [ ] **Step 1: 实现工具**
+- [x] **Step 1: 实现工具**
 
 Create `src/agent/tools/match-job.ts`：
 ```ts
@@ -382,11 +382,11 @@ export const matchJobTool = createDomainTool({
 ```
 > profileJson 的提取逻辑较绕——若实现时可简化为一次 JSON.parse 后取 profile 字段，保持语义（提取简历画像供参考）即可。
 
-- [ ] **Step 2: 接入 agent.ts**
+- [x] **Step 2: 接入 agent.ts**
 
 Modify `src/agent/agent.ts`：import `matchJobTool`，`getTools()` 增加 `matchJob: matchJobTool`；SYSTEM_PROMPT 能力清单补一行 `- matchJob：岗位匹配（三段式：理解/匹配/建议）`。
 
-- [ ] **Step 3: 验证与提交**
+- [x] **Step 3: 验证与提交**
 
 Run: `node_modules/.bin/tsc --noEmit` → 0 错误
 ```bash
@@ -398,7 +398,7 @@ git add src/agent && git commit -m "feat: matchJob 工具（三段式匹配 + �
 **Files:**
 - Modify: `app/api/chat/route.ts`
 
-- [ ] **Step 1: 改造为 ToolLoopAgent**
+- [x] **Step 1: 改造为 ToolLoopAgent**
 
 Modify `app/api/chat/route.ts`：
 1. import 变更：移除 `convertToModelMessages`；新增 `ToolLoopAgent, isStepCount, createAgentUIStream, createAgentUIStreamResponse`（保留 streamText 不再使用则移除；保留 readUIMessageStream/toUIMessageStream/tee 持久化逻辑）
@@ -439,11 +439,11 @@ const uiStream = toUIMessageStream({ stream });
 > - `uiStream` 的类型与 tee 兼容性按实际类型处理
 3. 持久化逻辑（tee + readUIMessageStream + 按 id 去重 + assistant 消息落库 + touchConversation）**保持不动**
 
-- [ ] **Step 2: 类型检查**
+- [x] **Step 2: 类型检查**
 
 Run: `node_modules/.bin/tsc --noEmit` → 0 错误。修正点记录在报告。
 
-- [ ] **Step 3: 冒烟验证（无 key 或错误路径）**
+- [x] **Step 3: 冒烟验证（无 key 或错误路径）**
 
 Run: `npm run dev`（后台）
 1. `curl -s -X POST http://localhost:3000/api/chat -H "Content-Type: application/json" -d '{}'` → 400 INVALID_REQUEST
@@ -451,7 +451,7 @@ Run: `npm run dev`（后台）
 停止 dev。
 > 完整多步链路在 Task 7 端到端验证（有 key）。
 
-- [ ] **Step 4: 提交**
+- [x] **Step 4: 提交**
 
 ```bash
 git add app/api/chat && git commit -m "feat: /api/chat 改造为 ToolLoopAgent 自动多步循环"
@@ -464,7 +464,7 @@ git add app/api/chat && git commit -m "feat: /api/chat 改造为 ToolLoopAgent �
 - Modify: `src/components/sidebar/resource-tabs.tsx`
 - Create: `src/components/ui/status-badge.tsx`
 
-- [ ] **Step 1: 岗位列表 hook**
+- [x] **Step 1: 岗位列表 hook**
 
 Create `src/lib/use-job-opportunities.ts`：
 ```ts
@@ -487,7 +487,7 @@ export function useJobOpportunities() {
 }
 ```
 
-- [ ] **Step 2: 状态徽标组件**
+- [x] **Step 2: 状态徽标组件**
 
 Create `src/components/ui/status-badge.tsx`：
 ```tsx
@@ -514,7 +514,7 @@ export function StatusBadge({ status }: { status: string }) {
 }
 ```
 
-- [ ] **Step 3: 资源库岗位 Tab 激活**
+- [x] **Step 3: 资源库岗位 Tab 激活**
 
 Modify `src/components/sidebar/resource-tabs.tsx`：
 1. 引入 `useJobOpportunities` 与 `StatusBadge`；props 增加 `onOpenJob: (id: string) => void`
@@ -522,7 +522,7 @@ Modify `src/components/sidebar/resource-tabs.tsx`：
 3. 岗位列表渲染（与简历列表同构）：名称 = `company ? \`${company} · ${title}\` : '未命名岗位'`，副行 = StatusBadge + 更新时间；空状态"暂无岗位，可在对话中粘贴 JD 导入"
 4. "专属简历"标签保持禁用样式（第 3 期）
 
-- [ ] **Step 4: 验证与提交**
+- [x] **Step 4: 验证与提交**
 
 Run: `npm run build` → 通过
 ```bash
@@ -537,7 +537,7 @@ git add src && git commit -m "feat: 岗位资源列表与状态徽标"
 - Modify: `src/components/sidebar/resource-tabs.tsx`（onOpenJob 接线）
 - Modify: `app/page.tsx`（JobDrawer 接入）
 
-- [ ] **Step 1: 岗位详情 hook**
+- [x] **Step 1: 岗位详情 hook**
 
 Create `src/lib/use-job-detail.ts`：
 ```ts
@@ -569,7 +569,7 @@ export function useJobDetail(id: string | null) {
 }
 ```
 
-- [ ] **Step 2: 岗位/匹配详情抽屉**
+- [x] **Step 2: 岗位/匹配详情抽屉**
 
 Create `src/components/artifacts/job-drawer.tsx`：
 ```tsx
@@ -684,11 +684,11 @@ export function JobDrawer({ jobId, open, onOpenChange }: {
 }
 ```
 
-- [ ] **Step 3: 接线**
+- [x] **Step 3: 接线**
 
 Modify `app/page.tsx`：新增 `const [drawerJobId, setDrawerJobId] = useState<string | null>(null);`；Sidebar 的 `onOpenJob={setDrawerJobId}`（Sidebar/ResourceTabs 相应透传）；渲染 `<JobDrawer jobId={drawerJobId} open={drawerJobId !== null} onOpenChange={(open) => { if (!open) setDrawerJobId(null); }} />`。
 
-- [ ] **Step 4: 验证与提交**
+- [x] **Step 4: 验证与提交**
 
 Run: `npm run build` → 通过
 ```bash
@@ -700,12 +700,12 @@ git add app src && git commit -m "feat: 岗位匹配结果展示（列表/状态
 **Files:**
 - Modify: `docs/plans/2026-08-05-phase2-job-match.md`（本计划，归档）
 
-- [ ] **Step 1: 回归**
+- [x] **Step 1: 回归**
 
 Run: `npm test && npm run build`
 Expected: 6 单测全绿；构建通过。
 
-- [ ] **Step 2: 端到端验证（真实 LLM，需 .env.local key）**
+- [x] **Step 2: 端到端验证（真实 LLM，需 .env.local key）**
 
 Run: `npm run dev`（后台，轮询就绪）。
 **验收场景 1（自动多步闭环）**——一条消息完成"导入岗位并匹配"：
@@ -722,7 +722,7 @@ curl -s -N -X POST http://localhost:3000/api/chat -H "Content-Type: application/
 > 提示：若模型未自动调用工具链（如直接文字回答），重试并调整提示词更明确（如"请导入岗位并立即匹配，简历已存在"）。记录实际行为与工具序列。
 **验收场景 2（失败路径）**：删除全部简历后发送同一请求 → matchJob 应返回 RESUME_ANALYSIS_REQUIRED 且模型引导（或用不存在的 jobOpportunityId 验证错误路径）。验证后恢复数据。
 
-- [ ] **Step 3: 数据库与端点验证**
+- [x] **Step 3: 数据库与端点验证**
 
 ```bash
 node_modules/.bin/tsx -e "import { db } from './src/db'; import { sql } from 'drizzle-orm'; const j = db.all(sql\`select id, company, title, status, fit_result_json is not null as fitted from job_opportunities order by created_at desc limit 1\`)[0]; console.log(JSON.stringify(j));"
@@ -731,9 +731,9 @@ node_modules/.bin/tsx -e "import { db } from './src/db'; import { sql } from 'dr
 `curl -s http://localhost:3000/api/job-opportunities | head -c 300` → 列表含该岗位。
 停止 dev（taskkill 端口 3000）；清理临时文件。
 
-- [ ] **Step 4: 计划归档**
+- [x] **Step 4: 计划归档**
 
-- 本文件头部 `状态：生效` → `状态：完成`；全部 `- [ ]` 打勾
+- 本文件头部 `状态：完成` → `状态：完成`；全部 `- [ ]` 打勾
 ```bash
 git add -A && git commit -m "docs: 第 2 期计划完成归档"
 ```
