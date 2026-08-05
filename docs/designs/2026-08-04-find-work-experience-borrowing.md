@@ -35,6 +35,13 @@
 - 每日工作台/工作流规则聚合：纯规则函数设计，对话形态下"推荐行动"的生成思路可参考
 - 错误契约 `{code, message, details}` 与 422 字段展开：API 错误格式设计可参考（若后续有 API 边界）
 
+## 3.1 job-helper 第 1 期实测经验（2026-08-05 增补，来自真实 LLM 验证）
+
+- **AI SDK v7 + OpenAI 兼容 provider 的结构化输出兼容性**：当 provider 不支持 `structuredOutputs`（如 deepseek）时，AI SDK 降级为只发 `response_format: json_object`，**zod schema 不会进入提示词**——模型会自创结构导致校验失败。对策：输出契约的完整示例（字段名/枚举值/示例值）必须写进系统提示词。所有领域工具的 prompt 必须遵守此条。
+- **AI SDK v7 单请求单步**：streamText 无 maxSteps，一次请求只完成一个模型步骤；存在返回值依赖链的工具（importResume → analyzeResume）需要多轮消息完成，或由前端自动续问。设计依赖链工具时注意此行为。
+- **generateObject 的 system 提示**：v7 用 `instructions` 选项传系统提示，塞进 messages 会被 OpenAI 兼容端点拒绝。
+
+
 ## 4. 使用方式
 
 - 各设计阶段（前后端设计、数据结构、API、功能）开始时，先阅读本文档对应条目，再产出设计
