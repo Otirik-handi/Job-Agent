@@ -13,8 +13,8 @@
 **设计依据：** `docs/designs/2026-08-05-resume-upload-design.md`
 **验收标准：** 设计文档第 6 节测试项 + 浏览器端到端人工验证（Task 5）
 
-**已确认的 API 事实**（实施前验证，以装到的版本为准）：
-- `pdf-parse` v4：`import { createPdf } from 'pdf-parse'`；`const pdf = await createPdf(buffer)` → `pdf.text`（Buffer 或路径均可）
+**已确认的 API 事实**（实施验证结果）：
+- `pdf-parse` **2.4.5**（npm 最新，无 4.x）：`import { PDFParse } from 'pdf-parse'` → `new PDFParse({ data: Buffer })` → `await parser.getText({ pageJoiner: '' })` → `result.text`，`await parser.destroy()` 释放。**必须传 `pageJoiner: ''`**，否则默认会给每页附加 `-- n of m --` 标记（扫描件检测失效 + 文本污染）
 - mammoth `extractRawText({ buffer })` 与 `{ path }` 两种 source 都支持（现有代码已用 path）
 - 现有测试 `src/agent/resume-text.test.ts:13` 断言 `isSupportedFilePath('resume.pdf') === false`，本次改为 `true`（先改测试，TDD）
 
@@ -27,7 +27,7 @@
 - Modify: `src/agent/resume-text.test.ts`
 - Modify: `package.json`（新增 pdf-parse 依赖）
 
-- [ ] **Step 1: 先改测试**
+- [x] **Step 1: 先改测试**
 
 修改 `src/agent/resume-text.test.ts`，反转 PDF 断言并新增命名测试：
 
@@ -68,16 +68,16 @@ describe('resume-text', () => {
 });
 ```
 
-- [ ] **Step 2: 跑测试确认失败**
+- [x] **Step 2: 跑测试确认失败**
 
 Run: `npx vitest run src/agent/resume-text.test.ts`
 Expected: `isSupportedFilePath('resume.pdf')` 断言失败（现为 false），`formatNameFromFile` / `buildResumeName` 未定义导致 FAIL。
 
-- [ ] **Step 3: 安装 pdf-parse**
+- [x] **Step 3: 安装 pdf-parse**
 
 Run: `npm install pdf-parse@^4`（注意：不要用 npx 触发安装，本项目有 EALLOWSCRIPTS 问题；直接 npm install）
 
-- [ ] **Step 4: 扩展 `src/agent/resume-text.ts`**
+- [x] **Step 4: 扩展 `src/agent/resume-text.ts`**
 
 整体替换为：
 
@@ -176,12 +176,12 @@ export async function extractTextFromBuffer(buffer: Buffer, fileName: string): P
 
 > 注：若装到的 pdf-parse 无 `createPdf` 导出（v3 及以下），改 `import pdf from 'pdf-parse'` + `pdf(source)` 调用，其余不变。
 
-- [ ] **Step 5: 跑测试确认通过**
+- [x] **Step 5: 跑测试确认通过**
 
 Run: `npx vitest run src/agent/resume-text.test.ts`
 Expected: 全部 PASS（含 PDF 断言反转、命名逻辑）。
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/agent/resume-text.ts src/agent/resume-text.test.ts package.json package-lock.json
