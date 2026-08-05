@@ -24,7 +24,7 @@ export function Sidebar({
 }) {
   const [tab, setTab] = useState<'conversations' | 'resources'>('conversations');
   return (
-    <aside className="flex w-[272px] shrink-0 flex-col border-r border-slate-200/60 bg-gradient-to-b from-indigo-50/70 via-white to-white shadow-card">
+    <aside className="flex w-[300px] shrink-0 flex-col border-r border-slate-200/60 bg-gradient-to-b from-indigo-50/70 via-white to-white shadow-card">
       {/* 品牌 Logo 区 */}
       <div className="flex items-center gap-2.5 px-4 pb-2 pt-4">
         <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-500 text-white shadow-soft">
