@@ -16,8 +16,11 @@ export default function Home() {
   const [drawerJobId, setDrawerJobId] = useState<string | null>(null);
 
   const selectConversation = useCallback(async (id: string) => {
+    // 先加载消息再切换会话：保证 ChatPanel 重挂载时拿到正确的 initialMessages
+    // （useChat 的 messages 参数只在挂载时生效，props 后更新会被忽略）
+    const msgs = await apiGet<UIMessage[]>(`/api/conversations/${id}/messages`);
+    setInitialMessages(msgs);
     setActiveId(id);
-    setInitialMessages(await apiGet<UIMessage[]>(`/api/conversations/${id}/messages`));
   }, []);
 
   const newConversation = useCallback(() => {
