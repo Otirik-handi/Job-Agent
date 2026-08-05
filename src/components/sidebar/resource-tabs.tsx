@@ -28,6 +28,10 @@ export function ResourceTabs({
     e.target.value = ''; // 允许重复选择同一文件
     if (!file) return;
     setNotice(null);
+    if (!/\.(pdf|docx|txt|md)$/i.test(file.name)) {
+      setNotice({ kind: 'err', text: '不支持的文件格式：仅支持 PDF / DOCX / TXT / MD' });
+      return;
+    }
     if (file.size > MAX_UPLOAD_SIZE) {
       setNotice({ kind: 'err', text: '文件超过 5MB 上限' });
       return;

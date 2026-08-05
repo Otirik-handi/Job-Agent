@@ -20,7 +20,7 @@
 | 4 | 上传入口 | 侧边栏「简历」标签页顶部「上传简历」按钮 |
 | 5 | 上传通道 | **直调 REST API**（不经 Agent、不进 LLM 上下文）；上传成功后在 UI 内联提示"可在对话中让 Agent 分析" |
 | 6 | 数据模型 | 零变更（resumes.sourceType 存扩展名、sourceText 存文本） |
-| 7 | PDF 解析库 | 主选 `pdf-parse`，备选 `unpdf`；实施时验证 Next.js App Router 兼容性后二选一（均为成熟库） |
+| 7 | PDF 解析库 | **unpdf**（实施验证后确定）：主选 pdf-parse 实测在 Next dev（turbopack）下 fake worker 初始化失败，按备选条款切换；unpdf 无 worker 依赖，Node 开箱即用 |
 | 8 | 一致性 | 提取逻辑抽为共享模块，`importResume` 的 filePath 分支同步支持 PDF（现状明确报"不支持 PDF"） |
 
 ## 3. 服务端
@@ -49,9 +49,11 @@
 错误：
   400 INVALID_FILE（空文件/无法读取）
   400 FILE_TOO_LARGE / UNSUPPORTED_FORMAT
-  422 PDF_NO_TEXT（PDF 无文本层）｜ EMPTY_TEXT（提取后为空）
+  422 PARSE_FAILED（统一码，message 区分场景：PDF 扫描件提示 / 空文本 / 解析异常）
   其余解析异常统一 422 PARSE_FAILED（日志记录原因，不暴露细节）
 ```
+
+> 实施注记（2026-08-05）：错误码实际统一为 `PARSE_FAILED` + 可读 message 区分（前端仅消费 message，无区分码消费方），与计划一致；如未来出现机器消费方再拆 `PDF_NO_TEXT` / `EMPTY_TEXT`。
 
 错误响应沿用现有 API 约定：`{ code, message }`。
 
