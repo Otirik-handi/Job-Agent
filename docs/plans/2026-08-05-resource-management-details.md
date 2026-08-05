@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-> **元信息**：日期 2026-08-05 · 状态：生效 · 目标：会话删除/重命名、简历/岗位删除（弹窗确认）、列表日期显示 · 关联规范：AGENTS.md、plan-document.md
+> **元信息**：日期 2026-08-05 · 状态：完成 · 目标：会话删除/重命名、简历/岗位删除（弹窗确认）、列表日期显示 · 关联规范：AGENTS.md、plan-document.md
 
 **Goal:** 侧边栏三类资源（会话/简历/岗位）获得删除能力（AlertDialog 弹窗二次确认）、会话获得悬停重命名、列表日期统一相对时间显示。
 
@@ -842,7 +842,7 @@ git commit -m "feat: 简历/岗位列表支持弹窗确认删除，列表显示�
 
 **Files:** 无（验证与清理）
 
-- [ ] **Step 1: API 层验证（dev server 运行中）**
+- [x] **Step 1: API 层验证（dev server 运行中）**
 
 ```bash
 # 创建临时会话验证 DELETE（会话删除）
@@ -856,12 +856,12 @@ curl -s -X DELETE http://localhost:3000/api/resumes/<不存在的id>  # 期望 4
 curl -s -X DELETE http://localhost:3000/api/job-opportunities/<不存在的id>  # 期望 404 JOB_OPPORTUNITY_NOT_FOUND
 ```
 
-- [ ] **Step 2: 外键验证**
+- [x] **Step 2: 外键验证**
 
 Run: `npx tsx -e "import {db} from './src/db'; console.log(db.run('PRAGMA foreign_keys').raw()[0])"`（若 tsx -e 无输出，改用临时脚本文件）
 Expected: `[1]`（foreign_keys=ON）。
 
-- [ ] **Step 3: 浏览器 UI 验证（IAB）**
+- [x] **Step 3: 浏览器 UI 验证（IAB）**
 
 1. **会话重命名**：侧边栏会话列表悬停某项 → 出现 Pencil/Trash2 图标 → 点 Pencil → 标题变输入框 → 改名 + Enter → 列表标题更新，标题栏同步更新
 2. **会话删除**：点 Trash2 → 弹窗出现（标题「删除会话」+ 描述）→ 点「删除」→ 会话消失；点「取消」→ 不删除
@@ -870,7 +870,7 @@ Expected: `[1]`（foreign_keys=ON）。
 5. **岗位删除**：同简历流程
 6. **日期显示**：列表右侧显示相对时间（今天 HH:mm / 昨天 / MM-DD / YYYY-MM-DD）
 
-- [ ] **Step 4: 收尾**
+- [x] **Step 4: 收尾**
 
 无残留临时文件；工作树干净；计划打勾。
 
@@ -888,10 +888,10 @@ Expected: `[1]`（foreign_keys=ON）。
 
 ## 验收清单（对应设计文档）
 
-- [ ] 会话：悬停重命名（Enter 保存/Esc 取消/失焦保存/空标题不保存）
-- [ ] 会话：弹窗确认删除；删除当前激活会话后自动切换
-- [ ] 简历/岗位：弹窗确认删除；被删资源抽屉关闭
-- [ ] ConfirmDialog：ESC/遮罩点击/取消均可关闭且不执行
-- [ ] 日期：今天 HH:mm / 昨天 / 同年 MM-DD / 更早 YYYY-MM-DD
-- [ ] SQLite 外键开启（PRAGMA foreign_keys = ON）
-- [ ] formatRelativeTime 单测 5/5
+- [x] 会话：悬停重命名（Enter 保存/Esc 取消/失焦保存/空标题不保存）
+- [x] 会话：弹窗确认删除；删除当前激活会话后自动切换
+- [x] 简历/岗位：弹窗确认删除；被删资源抽屉关闭
+- [x] ConfirmDialog：ESC/遮罩点击/取消均可关闭且不执行
+- [x] 日期：今天 HH:mm / 昨天 / 同年 MM-DD / 更早 YYYY-MM-DD
+- [x] SQLite 外键开启（PRAGMA foreign_keys = ON）
+- [x] formatRelativeTime 单测 5/5
