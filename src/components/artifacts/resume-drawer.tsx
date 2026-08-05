@@ -12,7 +12,7 @@ export function ResumeDrawer({ resumeId, open, onOpenChange }: {
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-[40vw] sm:max-w-[40vw] overflow-y-auto">
+      <SheetContent className="data-[side=right]:w-[40vw] data-[side=right]:sm:max-w-[40vw] overflow-y-auto">
         <SheetHeader>
           <SheetTitle>{detail?.name ?? '简历详情'}</SheetTitle>
         </SheetHeader>
