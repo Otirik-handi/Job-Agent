@@ -49,6 +49,9 @@ export default function Home() {
 
   return (
     <main className="flex h-screen">
+      {/* 装饰光斑：固定背景层，不挡交互 */}
+      <div aria-hidden className="pointer-events-none fixed -bottom-24 -right-24 -z-10 size-96 rounded-full bg-indigo-500/15 blur-3xl" />
+      <div aria-hidden className="pointer-events-none fixed -left-24 -top-24 -z-10 size-80 rounded-full bg-pink-500/10 blur-3xl" />
       <Sidebar
         conversations={conversations}
         activeConversationId={activeId}

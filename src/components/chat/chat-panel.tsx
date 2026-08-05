@@ -45,7 +45,14 @@ export function ChatPanel({
         <span className="h-2 w-2 rounded-full bg-indigo-500" />
         <h2 className="truncate text-sm font-semibold text-slate-700">{title}</h2>
       </div>
-      <div className="flex-1 overflow-y-auto p-4">
+      <div
+        className="flex-1 overflow-y-auto p-4"
+        style={{
+          backgroundImage:
+            'linear-gradient(rgba(100,116,139,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(100,116,139,0.05) 1px, transparent 1px)',
+          backgroundSize: '24px 24px',
+        }}
+      >
         {messages.map((message, index) => (
           // key 兜底：存量历史消息可能无 id（服务端补 id 前的数据），用索引兜底避免 React key 冲突
           <MessageBubble key={message.id || `msg-${index}`} message={message} />
