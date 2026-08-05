@@ -3,6 +3,7 @@ import { useCallback, useState } from 'react';
 import { ChatPanel } from '@/src/components/chat/chat-panel';
 import { Sidebar } from '@/src/components/sidebar/sidebar';
 import { ResumeDrawer } from '@/src/components/artifacts/resume-drawer';
+import { JobDrawer } from '@/src/components/artifacts/job-drawer';
 import { useConversations } from '@/src/lib/use-conversations';
 import { apiGet } from '@/src/lib/api';
 import type { UIMessage } from 'ai';
@@ -12,6 +13,7 @@ export default function Home() {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [initialMessages, setInitialMessages] = useState<UIMessage[]>([]);
   const [drawerResumeId, setDrawerResumeId] = useState<string | null>(null);
+  const [drawerJobId, setDrawerJobId] = useState<string | null>(null);
 
   const selectConversation = useCallback(async (id: string) => {
     setActiveId(id);
@@ -31,7 +33,7 @@ export default function Home() {
         onSelectConversation={selectConversation}
         onNewConversation={newConversation}
         onOpenResume={setDrawerResumeId}
-        onOpenJob={() => {}}
+        onOpenJob={setDrawerJobId}
       />
       <div className="flex-1">
         <ChatPanel
@@ -45,6 +47,11 @@ export default function Home() {
         resumeId={drawerResumeId}
         open={drawerResumeId !== null}
         onOpenChange={(open) => { if (!open) setDrawerResumeId(null); }}
+      />
+      <JobDrawer
+        jobId={drawerJobId}
+        open={drawerJobId !== null}
+        onOpenChange={(open) => { if (!open) setDrawerJobId(null); }}
       />
     </main>
   );
