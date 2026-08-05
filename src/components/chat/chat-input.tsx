@@ -24,7 +24,7 @@ export function ChatInput({
             placeholder="💡 试着告诉我：帮我分析简历 / 匹配这个岗位"
             disabled={disabled}
             rows={3}
-            className="pl-10"
+            className="min-h-30 pl-10"
             onChange={(e) => setText(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
