@@ -8,6 +8,7 @@ import {
   type UIMessage,
 } from 'ai';
 import { z } from 'zod';
+import { randomUUID } from 'node:crypto';
 import { getModel, LlmConfigError } from '@/src/agent/model';
 import { getTools, SYSTEM_PROMPT } from '@/src/agent/agent';
 import { createConversation, getConversation, touchConversation } from '@/src/db/repositories/conversations';
@@ -112,7 +113,12 @@ export async function POST(req: Request) {
         const byId = new Map<string, UIMessage>();
         for (const m of collected) byId.set(m.id, m);
         for (const m of byId.values()) {
-          if (m.role === 'assistant') insertMessage(convId, 'assistant', JSON.stringify(m));
+          if (m.role === 'assistant') {
+            // 服务端生成的 UIMessage 可能无 id（id 由客户端 useChat 生成）：
+            // 持久化前补 UUID，避免恢复时 React key 冲突
+            const withId = m.id ? m : { ...m, id: randomUUID() };
+            insertMessage(convId, 'assistant', JSON.stringify(withId));
+          }
         }
         touchConversation(convId);
       })();

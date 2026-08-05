@@ -46,8 +46,9 @@ export function ChatPanel({
         <h2 className="truncate text-sm font-semibold text-slate-700">{title}</h2>
       </div>
       <div className="flex-1 overflow-y-auto p-4">
-        {messages.map((message) => (
-          <MessageBubble key={message.id} message={message} />
+        {messages.map((message, index) => (
+          // key 兜底：存量历史消息可能无 id（服务端补 id 前的数据），用索引兜底避免 React key 冲突
+          <MessageBubble key={message.id || `msg-${index}`} message={message} />
         ))}
         {progress && progress.status === 'running' && <ToolProgressCard progress={progress} />}
       </div>
