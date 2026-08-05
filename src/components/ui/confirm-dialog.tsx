@@ -34,7 +34,6 @@ export function ConfirmDialog({
               {description}
             </AlertDialog.Description>
           </div>
-          <Separator />
           <div className="flex justify-end gap-2 px-5 pb-5 pt-4">
             <AlertDialog.Close
               render={<Button variant="outline" size="sm">取消</Button>}
