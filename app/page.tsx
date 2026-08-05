@@ -5,11 +5,11 @@ import { Sidebar } from '@/src/components/sidebar/sidebar';
 import { ResumeDrawer } from '@/src/components/artifacts/resume-drawer';
 import { JobDrawer } from '@/src/components/artifacts/job-drawer';
 import { useConversations } from '@/src/lib/use-conversations';
-import { apiGet } from '@/src/lib/api';
+import { apiGet, apiSend } from '@/src/lib/api';
 import type { UIMessage } from 'ai';
 
 export default function Home() {
-  const { conversations, refresh } = useConversations();
+  const { conversations, refresh, remove } = useConversations();
   const [activeId, setActiveId] = useState<string | null>(null);
   const [initialMessages, setInitialMessages] = useState<UIMessage[]>([]);
   const [drawerResumeId, setDrawerResumeId] = useState<string | null>(null);
@@ -28,6 +28,20 @@ export default function Home() {
     setInitialMessages([]);
   }, []);
 
+  const handleRenameConversation = useCallback(async (id: string, title: string) => {
+    await apiSend(`/api/conversations/${id}`, 'PATCH', { title });
+    await refresh();
+  }, [refresh]);
+
+  const handleDeleteConversation = useCallback(async (id: string) => {
+    await remove(id);
+    if (id === activeId) {
+      const rest = conversations.filter((c) => c.id !== id);
+      if (rest.length > 0) await selectConversation(rest[0].id);
+      else newConversation();
+    }
+  }, [remove, activeId, conversations, selectConversation, newConversation]);
+
   // 当前会话标题（新会话显示"新对话"）
   const currentTitle = activeId
     ? (conversations.find((c) => c.id === activeId)?.title ?? '新对话')
@@ -40,6 +54,8 @@ export default function Home() {
         activeConversationId={activeId}
         onSelectConversation={selectConversation}
         onNewConversation={newConversation}
+        onRenameConversation={handleRenameConversation}
+        onDeleteConversation={handleDeleteConversation}
         onOpenResume={setDrawerResumeId}
         onOpenJob={setDrawerJobId}
       />
