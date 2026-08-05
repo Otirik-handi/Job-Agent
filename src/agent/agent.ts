@@ -3,6 +3,7 @@ import type { ToolSet } from 'ai';
 import { analyzeResumeTool } from './tools/analyze-resume';
 import { importJobOpportunityTool } from './tools/import-job-opportunity';
 import { importResumeTool } from './tools/import-resume';
+import { matchJobTool } from './tools/match-job';
 
 export const SYSTEM_PROMPT = `你是 job-helper，一个本地运行的个人求职助手 Agent。
 
@@ -14,6 +15,7 @@ export const SYSTEM_PROMPT = `你是 job-helper，一个本地运行的个人求
 - importResume：导入简历（用户粘贴文本或提供本地文件路径 .docx/.txt/.md）
 - analyzeResume：分析已导入的简历，产出结构化画像与改进建议
 - importJobOpportunity：导入岗位（粘贴 JD 文本）
+- matchJob：岗位匹配（三段式：理解/匹配/建议）
 
 原则：
 - 绝不编造、补造或夸大用户经历、技能、雇主、证书或成果；所有分析结论必须基于简历原文证据。
@@ -26,5 +28,6 @@ export function getTools(): ToolSet {
     importResume: importResumeTool,
     analyzeResume: analyzeResumeTool,
     importJobOpportunity: importJobOpportunityTool,
+    matchJob: matchJobTool,
   };
 }
