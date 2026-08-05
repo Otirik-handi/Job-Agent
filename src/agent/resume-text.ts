@@ -56,7 +56,7 @@ async function extractPdf(source: { path: string } | { buffer: Buffer }): Promis
   const data = 'buffer' in source ? source.buffer : await readFile(source.path);
   const parser = new PDFParse({ data });
   try {
-    const result = await parser.getText();
+    const result = await parser.getText({ pageJoiner: '' });
     return assertHasText(result.text ?? '');
   } finally {
     await parser.destroy();
