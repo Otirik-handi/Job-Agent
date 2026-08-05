@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-> **元信息**：日期 2026-08-05 · 状态：草稿 · 目标：网页端手动上传简历文件（PDF/DOCX/TXT/MD），仅导入入库、分析仍在对话中 · 关联规范：AGENTS.md、plan-document.md
+> **元信息**：日期 2026-08-05 · 状态：生效 · 目标：网页端手动上传简历文件（PDF/DOCX/TXT/MD），仅导入入库、分析仍在对话中 · 关联规范：AGENTS.md、plan-document.md
 
 **Goal:** 新增「上传简历」入口：侧边栏按钮选文件 → POST /api/resumes/upload 解析提取文本入库；Agent 的 importResume filePath 分支同步支持 PDF。
 
