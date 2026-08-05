@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-> **元信息**：日期 2026-08-05 · 状态：草稿 · 目标：在 Soft UI 已落地基础上加 6 项轻量装饰（3+4+6+8+9+10）· 关联规范：AGENTS.md、plan-document.md、SoftUI.md（本期将新增空状态条目）
+> **元信息**：日期 2026-08-05 · 状态：完成 · 目标：在 Soft UI 已落地基础上加 6 项轻量装饰（3+4+6+8+9+10）· 关联规范：AGENTS.md、plan-document.md、SoftUI.md（本期已新增空状态条目）
 
 **Goal:** 为 job-helper 增加 6 项轻量装饰：侧栏淡彩+底部圆点（3）、聊天区极淡网格（4）、空状态插画化（6）、品牌 Logo 区（8）、页面角落光斑（9）、资源项彩色图标底（10），布局结构与功能逻辑零改动。
 
@@ -20,7 +20,7 @@
 **Files:**
 - Modify: `SoftUI.md`（组件规则区，L59-65 附近）
 
-- [ ] **Step 1: 在「组件规则」列表追加空状态条目**
+- [x] **Step 1: 在「组件规则」列表追加空状态条目**
 
 在 `SoftUI.md` 组件规则 `- 图标使用圆形背景 rounded-full bg-[color]/10` 之后追加一行：
 
@@ -28,7 +28,7 @@
 - 空状态：任何出现空状态的场景（新对话、列表为空、抽屉无内容）必须使用统一空状态组件（渐变圆底 + 图标 + 引导文案），禁止仅裸灰字提示
 ```
 
-- [ ] **Step 2: 验证与提交**
+- [x] **Step 2: 验证与提交**
 
 ```bash
 grep -n "空状态" SoftUI.md
@@ -47,7 +47,7 @@ git commit -m "docs: SoftUI.md 新增空状态规范条目"
 - Modify: `app/page.tsx`（main 根元素内）
 - Modify: `src/components/chat/chat-panel.tsx`（消息滚动区）
 
-- [ ] **Step 1: page.tsx 主框架加两枚装饰光斑**
+- [x] **Step 1: page.tsx 主框架加两枚装饰光斑**
 
 在 `app/page.tsx` 的 `<main className="flex h-screen">` 内、`<Sidebar` 之前插入：
 
@@ -57,7 +57,7 @@ git commit -m "docs: SoftUI.md 新增空状态规范条目"
 <div aria-hidden className="pointer-events-none fixed -left-24 -top-24 -z-10 size-80 rounded-full bg-pink-500/10 blur-3xl" />
 ```
 
-- [ ] **Step 2: chat-panel.tsx 消息滚动区叠加网格纹理**
+- [x] **Step 2: chat-panel.tsx 消息滚动区叠加网格纹理**
 
 将 `src/components/chat/chat-panel.tsx` 中消息滚动区：
 
@@ -78,7 +78,7 @@ git commit -m "docs: SoftUI.md 新增空状态规范条目"
 >
 ```
 
-- [ ] **Step 3: 验证与提交**
+- [x] **Step 3: 验证与提交**
 
 ```bash
 npm run build
@@ -96,7 +96,7 @@ git commit -m "feat: 页面角落光斑与聊天区极淡网格装饰"
 **Files:**
 - Modify: `src/components/sidebar/sidebar.tsx`
 
-- [ ] **Step 1: import 补充**
+- [x] **Step 1: import 补充**
 
 `sidebar.tsx` 顶部新增 lucide 导入：
 
@@ -104,13 +104,13 @@ git commit -m "feat: 页面角落光斑与聊天区极淡网格装饰"
 import { Sparkles } from 'lucide-react';
 ```
 
-- [ ] **Step 2: aside 背景改淡彩渐变**
+- [x] **Step 2: aside 背景改淡彩渐变**
 
 ```tsx
 <aside className="flex w-[272px] shrink-0 flex-col border-r border-slate-200/60 bg-gradient-to-b from-indigo-50/70 via-white to-white shadow-card">
 ```
 
-- [ ] **Step 3: Tabs 前插入 Logo 区**
+- [x] **Step 3: Tabs 前插入 Logo 区**
 
 在 `<Tabs value={tab} ...>` 之前插入：
 
@@ -124,7 +124,7 @@ import { Sparkles } from 'lucide-react';
 </div>
 ```
 
-- [ ] **Step 4: Tabs 改为 flex-1 占满，尾部插底部圆点**
+- [x] **Step 4: Tabs 改为 flex-1 占满，尾部插底部圆点**
 
 Tabs 组件加 `flex-1 min-h-0` 类名，并在 `</Tabs>` 之后、`</aside>` 之前插入：
 
@@ -138,7 +138,7 @@ Tabs 组件加 `flex-1 min-h-0` 类名，并在 `</Tabs>` 之后、`</aside>` �
 </div>
 ```
 
-- [ ] **Step 5: 验证与提交**
+- [x] **Step 5: 验证与提交**
 
 ```bash
 npm run build
@@ -156,13 +156,13 @@ git commit -m "feat: 侧栏 Logo 区、淡彩渐变与底部分色圆点"
 **Files:**
 - Modify: `src/components/sidebar/resource-tabs.tsx`
 
-- [ ] **Step 1: import 补充**
+- [x] **Step 1: import 补充**
 
 ```tsx
 import { Briefcase, FileText, Trash2, Upload } from 'lucide-react';
 ```
 
-- [ ] **Step 2: 简历项加 indigo 圆底图标**
+- [x] **Step 2: 简历项加 indigo 圆底图标**
 
 将简历列表项内：
 
@@ -183,7 +183,7 @@ import { Briefcase, FileText, Trash2, Upload } from 'lucide-react';
   </span>
 ```
 
-- [ ] **Step 3: 岗位项加 emerald 圆底图标**
+- [x] **Step 3: 岗位项加 emerald 圆底图标**
 
 将岗位列表项内：
 
@@ -204,7 +204,7 @@ import { Briefcase, FileText, Trash2, Upload } from 'lucide-react';
   </span>
 ```
 
-- [ ] **Step 4: 验证与提交**
+- [x] **Step 4: 验证与提交**
 
 ```bash
 npm run build
@@ -222,7 +222,7 @@ git commit -m "feat: 资源列表项加分色圆形图标底"
 **Files:**
 - Create: `src/components/ui/empty-state.tsx`
 
-- [ ] **Step 1: 创建组件**
+- [x] **Step 1: 创建组件**
 
 ```tsx
 import type { LucideIcon } from 'lucide-react';
@@ -265,7 +265,7 @@ export function EmptyState({
 }
 ```
 
-- [ ] **Step 2: 验证与提交**
+- [x] **Step 2: 验证与提交**
 
 ```bash
 npm run build
@@ -287,7 +287,7 @@ git commit -m "feat: 通用空状态组件 EmptyState"
 - Modify: `src/components/artifacts/resume-drawer.tsx`
 - Modify: `src/components/artifacts/job-drawer.tsx`
 
-- [ ] **Step 1: 会话列表空状态**
+- [x] **Step 1: 会话列表空状态**
 
 `conversation-list.tsx`：import 加 `EmptyState` 与 `MessageSquare`，替换：
 
@@ -311,7 +311,7 @@ git commit -m "feat: 通用空状态组件 EmptyState"
 )}
 ```
 
-- [ ] **Step 2: 资源列表两处空状态**
+- [x] **Step 2: 资源列表两处空状态**
 
 `resource-tabs.tsx`：import 加 `EmptyState`（`FileText`/`Briefcase` 已在 Task 4 导入）。替换简历空状态：
 
@@ -361,7 +361,7 @@ git commit -m "feat: 通用空状态组件 EmptyState"
 )}
 ```
 
-- [ ] **Step 3: 新对话主区空状态**
+- [x] **Step 3: 新对话主区空状态**
 
 `chat-panel.tsx`：import 加 `EmptyState` 与 `Sparkles`。将消息区：
 
@@ -386,7 +386,7 @@ git commit -m "feat: 通用空状态组件 EmptyState"
 
 并同步调整闭合：`)}` 改为 `))}`（map 结束处多一层三目）。
 
-- [ ] **Step 4: 抽屉未分析/未匹配占位**
+- [x] **Step 4: 抽屉未分析/未匹配占位**
 
 `resume-drawer.tsx`：import 加 `EmptyState` 与 `FileText`，替换：
 
@@ -430,7 +430,7 @@ git commit -m "feat: 通用空状态组件 EmptyState"
 )}
 ```
 
-- [ ] **Step 5: 验证与提交**
+- [x] **Step 5: 验证与提交**
 
 ```bash
 npm run build
@@ -448,14 +448,14 @@ git commit -m "feat: 全部空状态场景替换为统一 EmptyState 插画"
 **Files:**
 - 无（验证 + 更新计划文档打勾）
 
-- [ ] **Step 1: 静态检查**
+- [x] **Step 1: 静态检查**
 
 ```bash
 grep -rn "rounded-none\|border-black" app src --include="*.tsx" --include="*.css"
 # 预期：无输出（或无新增残留）
 ```
 
-- [ ] **Step 2: 构建与功能回归**
+- [x] **Step 2: 构建与功能回归**
 
 ```bash
 npm run build
@@ -469,7 +469,7 @@ npm run build
 5. 抽屉：未分析简历/未匹配岗位显示插画；已分析内容正常
 6. 对话流与工具进度卡工作正常
 
-- [ ] **Step 3: 更新计划状态并提交**
+- [x] **Step 3: 更新计划状态并提交**
 
 ```bash
 # 本文件头部状态：草稿 → 完成，全部 Task 打勾
