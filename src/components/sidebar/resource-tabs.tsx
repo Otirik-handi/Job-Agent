@@ -1,6 +1,6 @@
 'use client';
 import { useRef, useState } from 'react';
-import { Trash2, Upload } from 'lucide-react';
+import { Briefcase, FileText, Trash2, Upload } from 'lucide-react';
 import { useResumes } from '@/src/lib/use-resumes';
 import { useJobOpportunities } from '@/src/lib/use-job-opportunities';
 import { StatusBadge } from '@/src/components/ui/status-badge';
@@ -121,7 +121,12 @@ export function ResourceTabs({
                 className="cursor-pointer px-3 py-2 text-left text-sm"
               >
                 <div className="flex items-center justify-between gap-1">
-                  <span className="truncate">{r.name}</span>
+                  <span className="flex min-w-0 items-center gap-2">
+                    <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-indigo-500/10">
+                      <FileText className="size-3.5 text-indigo-600" />
+                    </span>
+                    <span className="truncate">{r.name}</span>
+                  </span>
                   <span className="flex shrink-0 items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
                     <button
                       onClick={(e) => { e.stopPropagation(); setDeleteTarget({ kind: 'resume', id: r.id, name: r.name }); }}
@@ -157,7 +162,12 @@ export function ResourceTabs({
                 className="cursor-pointer px-3 py-2 text-left text-sm"
               >
                 <div className="flex items-center justify-between gap-1">
-                  <span className="truncate">{job.company ? `${job.company} · ${job.title}` : '未命名岗位'}</span>
+                  <span className="flex min-w-0 items-center gap-2">
+                    <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-emerald-500/10">
+                      <Briefcase className="size-3.5 text-emerald-600" />
+                    </span>
+                    <span className="truncate">{job.company ? `${job.company} · ${job.title}` : '未命名岗位'}</span>
+                  </span>
                   <span className="flex shrink-0 items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
                     <button
                       onClick={(e) => { e.stopPropagation(); setDeleteTarget({ kind: 'job', id: job.id, name: job.company ? `${job.company} · ${job.title}` : '未命名岗位' }); }}
