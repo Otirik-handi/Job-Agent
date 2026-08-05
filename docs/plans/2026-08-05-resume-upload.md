@@ -14,7 +14,7 @@
 **验收标准：** 设计文档第 6 节测试项 + 浏览器端到端人工验证（Task 5）
 
 **已确认的 API 事实**（实施验证结果）：
-- `pdf-parse` **2.4.5**（npm 最新，无 4.x）：`import { PDFParse } from 'pdf-parse'` → `new PDFParse({ data: Buffer })` → `await parser.getText({ pageJoiner: '' })` → `result.text`，`await parser.destroy()` 释放。**必须传 `pageJoiner: ''`**，否则默认会给每页附加 `-- n of m --` 标记（扫描件检测失效 + 文本污染）
+- **PDF 解析库实际采用 `unpdf`（备选方案）**：原主选 `pdf-parse` 实测失败——pdf-parse 2.4.5（npm 最新，无 4.x）在 Next dev（turbopack）下初始化 pdf.js fake worker 失败（`Cannot find module '.next/dev/server/chunks/pdf.worker.mjs'`）。unpdf（内部 pdfjs、无 worker 依赖）在 Node 环境开箱即用：`getDocumentProxy(new Uint8Array(buffer))` + `extractText(pdf, { mergePages: true })` → `{ text }`；无文本 PDF 返回空串（扫描件检测有效）。验证：文本 PDF 提取正确、无文本 PDF 返回空、HTTP 上传全链路通过
 - mammoth `extractRawText({ buffer })` 与 `{ path }` 两种 source 都支持（现有代码已用 path）
 - 现有测试 `src/agent/resume-text.test.ts:13` 断言 `isSupportedFilePath('resume.pdf') === false`，本次改为 `true`（先改测试，TDD）
 
@@ -527,7 +527,7 @@ git commit -m "feat: 侧边栏新增上传简历按钮（选文件即传，内�
 **Files:**
 - Create: `tmp/sample-resume.txt`（验证用样例，不入 git）
 
-- [ ] **Step 1: 生成 TXT 样例并 curl 验证上传端点**
+- [x] **Step 1: 生成 TXT 样例并 curl 验证上传端点**
 
 确保 dev server 运行中（`npm run dev`，如未启动先启动），然后：
 
@@ -537,14 +537,14 @@ cd "C:\Users\Otirik\Desktop\WorkStation\job-helper" && mkdir -p tmp && printf '�
 
 Expected: 返回 `{ id, name: "sample-resume", sourceType: "txt", charCount, preview }`，status 200。重复执行一次应返回 `sample-resume-YYYYMMDD-HHmm`（重名时间戳）。
 
-- [ ] **Step 2: curl 验证错误分支**
+- [x] **Step 2: curl 验证错误分支**
 
 ```bash
 printf 'x' > tmp/tiny.bin && curl -s -X POST -F "file=@tmp/tiny.bin" http://localhost:3000/api/resumes/upload
 ```
 Expected: 400 `UNSUPPORTED_FORMAT`，message 提示仅支持 PDF/DOCX/TXT/MD。
 
-- [ ] **Step 3: 浏览器 UI 验证**
+- [x] **Step 3: 浏览器 UI 验证**
 
 在浏览器（localhost:3000）侧边栏「简历」标签页：
 1. 点击「上传简历」→ 选择 `tmp/sample-resume.txt` → 列表出现新简历，绿条提示「已导入《…》，可在对话中让 Agent 分析」
@@ -553,7 +553,7 @@ Expected: 400 `UNSUPPORTED_FORMAT`，message 提示仅支持 PDF/DOCX/TXT/MD。
 4. 有 PDF 简历的话选一个真实的 `.pdf`（文本型）→ 成功导入且 sourceType 为 pdf；若有扫描件 PDF → 红条提示「未提取到文字」
 5. 在对话中说「分析最新导入的简历」→ Agent 正常分析（验证上传简历与对话闭环打通）
 
-- [ ] **Step 4: 清理与收尾**
+- [x] **Step 4: 清理与收尾**
 
 ```bash
 rm -rf tmp  # 仅删验证样例；确认无残留后删除

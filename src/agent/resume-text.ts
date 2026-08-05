@@ -56,19 +56,17 @@ function assertHasText(text: string, formatLabel: string): string {
 }
 
 async function extractPdf(source: { path: string } | { buffer: Buffer }): Promise<string> {
-  const { PDFParse } = await import('pdf-parse');
+  // unpdf（内部 pdfjs）：pdf-parse 2.x 在 Next dev（turbopack）下 fake worker 初始化失败，
+  // unpdf 无 worker 依赖，Node 环境开箱即用
+  const { extractText, getDocumentProxy } = await import('unpdf');
   const data = 'buffer' in source ? source.buffer : await readFile(source.path);
-  const parser = new PDFParse({ data });
-  try {
-    const result = await parser.getText({ pageJoiner: '' });
-    const normalized = normalizeResumeText(result.text ?? '');
-    if (!normalized) {
-      throw new ResumeTextError('该 PDF 未提取到文字（可能是扫描件或图片），请改用 DOCX / TXT 或粘贴文本');
-    }
-    return normalized;
-  } finally {
-    await parser.destroy();
+  const pdf = await getDocumentProxy(new Uint8Array(data));
+  const { text } = await extractText(pdf, { mergePages: true });
+  const normalized = normalizeResumeText(text ?? '');
+  if (!normalized) {
+    throw new ResumeTextError('该 PDF 未提取到文字（可能是扫描件或图片），请改用 DOCX / TXT 或粘贴文本');
   }
+  return normalized;
 }
 
 async function extractDocx(source: { path: string } | { buffer: Buffer }): Promise<string> {
