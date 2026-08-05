@@ -21,12 +21,12 @@ export async function callStructured<T>(options: {
 
   for (let attempt = 0; attempt <= MAX_REPAIR_ATTEMPTS; attempt++) {
     const messages = [
-      { role: 'system' as const, content: systemPrompt },
       { role: 'user' as const, content: attempt === 0 ? userPrompt : `${userPrompt}\n\n【上次输出无效，请修正后重新输出】\n原因：${lastError}` },
     ];
     try {
       const result = await generateObject({
         model,
+        instructions: systemPrompt,
         temperature: getTemperature(),
         messages,
         schema,
