@@ -11,7 +11,7 @@ export function ChatInput({
 }) {
   const [text, setText] = useState('');
   return (
-    <div className="border-t border-slate-200/60 bg-white/60 p-4">
+    <div className="border-t border-slate-200 bg-white p-4">
       <Textarea
         value={text}
         placeholder="输入消息，Enter 发送，Shift+Enter 换行"
