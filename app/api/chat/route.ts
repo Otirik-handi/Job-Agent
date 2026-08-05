@@ -1,10 +1,10 @@
 import {
-  convertToModelMessages,
+  createAgentUIStream,
   createUIMessageStream,
   createUIMessageStreamResponse,
+  isStepCount,
   readUIMessageStream,
-  streamText,
-  toUIMessageStream,
+  ToolLoopAgent,
   type UIMessage,
 } from 'ai';
 import { z } from 'zod';
@@ -70,25 +70,26 @@ export async function POST(req: Request) {
       return '处理请求时发生错误，请稍后重试';
     },
     execute: async ({ writer }) => {
-      const model = getModel();
-      const result = streamText({
-        model,
-        system: SYSTEM_PROMPT,
-        messages: await convertToModelMessages(trimmed),
+      const agent = new ToolLoopAgent({
+        model: getModel(),
+        instructions: SYSTEM_PROMPT,
         tools: getTools(),
-        onToolExecutionStart: (event) => {
-          const toolName = event.toolCall.toolName;
+        stopWhen: isStepCount(5),
+        onToolExecutionStart: ({ toolCall }) => {
+          const toolName = toolCall.toolName;
           const progressText = toolName === 'importResume' ? '正在读取简历…'
-            : toolName === 'analyzeResume' ? '正在分析简历…' : '正在处理…';
+            : toolName === 'analyzeResume' ? '正在分析简历…'
+            : toolName === 'importJobOpportunity' ? '正在保存岗位信息…'
+            : toolName === 'matchJob' ? '正在匹配岗位…' : '正在处理…';
           writer.write({
             type: 'data-tool-progress',
             data: { toolName, status: 'running', message: progressText },
             transient: true,
           });
         },
-        onToolExecutionEnd: (event) => {
-          const { toolName } = event.toolCall;
-          const success = event.toolOutput.type === 'tool-result';
+        onToolExecutionEnd: ({ toolCall, toolOutput }) => {
+          const toolName = toolCall.toolName;
+          const success = toolOutput.type === 'tool-result';
           writer.write({
             type: 'data-tool-progress',
             data: {
@@ -101,8 +102,8 @@ export async function POST(req: Request) {
         },
       });
 
-      const uiStream = toUIMessageStream({ stream: result.stream });
-      const [clientSide, collectSide] = uiStream.tee();
+      const stream = await createAgentUIStream({ agent, uiMessages: trimmed });
+      const [clientSide, collectSide] = stream.tee();
       const collected: UIMessage[] = [];
       const collector = (async () => {
         for await (const msg of readUIMessageStream({ stream: collectSide })) {
