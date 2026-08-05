@@ -1,6 +1,7 @@
 'use client';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/src/components/ui/sheet';
 import { StatusBadge } from '@/src/components/ui/status-badge';
+import { Separator } from '@/src/components/ui/separator';
 import { MarkdownText } from '@/src/components/chat/markdown-text';
 import { cn } from '@/src/lib/utils';
 import { useJobDetail } from '@/src/lib/use-job-detail';
@@ -43,60 +44,65 @@ export function JobDrawer({ jobId, open, onOpenChange }: {
 
             <div>
               <p className="mb-2 font-medium">岗位理解</p>
-              {fit.understanding.city && <p className="mb-1 text-muted-foreground">城市：{fit.understanding.city}</p>}
-              {fit.understanding.level && <p className="mb-1 text-muted-foreground">职级：{fit.understanding.level}</p>}
-              <ul className="space-y-1">
+              {fit.understanding.city && <p className="mb-1 text-sm text-muted-foreground">城市：{fit.understanding.city}</p>}
+              {fit.understanding.level && <p className="mb-1 text-sm text-muted-foreground">职级：{fit.understanding.level}</p>}
+              <ul className="space-y-1.5">
                 {fit.understanding.requirements.map((r) => (
                   <li key={r.id} className="flex items-start gap-2">
-                    <span className="mt-0.5 shrink-0 text-muted-foreground">{r.id}</span>
+                    <span className="mt-0.5 shrink-0 rounded bg-slate-100 px-1.5 py-0.5 text-xs font-medium text-slate-500">{r.id}</span>
                     <span>{r.text}</span>
                   </li>
                 ))}
               </ul>
             </div>
+            <Separator />
 
             <div>
               <p className="mb-2 font-medium">逐条匹配</p>
-              <ul className="space-y-2">
+              <ul className="space-y-2.5">
                 {fit.fitResults.map((f) => (
-                  <li key={f.requirementId} className="rounded-2xl bg-slate-50 p-3">
+                  <li key={f.requirementId} className="rounded-2xl bg-slate-50 p-3.5">
                     <div className="flex items-center justify-between gap-2">
                       <span className="font-medium">{f.requirementId} · {f.note}</span>
-                      <span className={cn('rounded-full px-2 py-0.5 text-xs font-medium', LEVEL_STYLES[f.level])}>
+                      <span className={cn('shrink-0 rounded-full px-2 py-0.5 text-xs font-medium', LEVEL_STYLES[f.level])}>
                         {LEVEL_LABELS[f.level]}
                       </span>
                     </div>
-                    <p className="mt-1 text-muted-foreground">证据：{f.evidence}</p>
+                    <p className="mt-2 border-t border-slate-200/60 pt-2 text-xs italic leading-relaxed text-slate-500">
+                      证据：{f.evidence}
+                    </p>
                   </li>
                 ))}
               </ul>
             </div>
+            <Separator />
 
             {fit.risks.length > 0 && (
               <div>
-                <p className="mb-1 font-medium">风险</p>
-                <ul className="list-disc space-y-1 pl-4">
+                <p className="mb-1.5 font-medium">风险</p>
+                <ul className="list-disc space-y-1 pl-5">
                   {fit.risks.map((r, i) => <li key={i}>{r.point}</li>)}
                 </ul>
               </div>
             )}
+            <Separator />
 
             <div>
-              <p className="mb-1 font-medium">投递建议</p>
-              <div className="space-y-2">
-                <div>
-                  <p className="text-muted-foreground">必备修改</p>
-                  <ul className="list-disc space-y-1 pl-4">{fit.advice.mustFix.map((m, i) => <li key={i}>{m}</li>)}</ul>
+              <p className="mb-1.5 font-medium">投递建议</p>
+              <div className="space-y-3">
+                <div className="rounded-2xl bg-white p-3.5 shadow-soft">
+                  <p className="mb-1 text-xs font-medium text-slate-500">必备修改</p>
+                  <ul className="list-disc space-y-1 pl-5 text-sm">{fit.advice.mustFix.map((m, i) => <li key={i}>{m}</li>)}</ul>
                 </div>
-                <div>
-                  <p className="text-muted-foreground">简历调整</p>
-                  <ul className="list-disc space-y-1 pl-4">{fit.advice.resumeAdjustments.map((m, i) => <li key={i}>{m}</li>)}</ul>
+                <div className="rounded-2xl bg-white p-3.5 shadow-soft">
+                  <p className="mb-1 text-xs font-medium text-slate-500">简历调整</p>
+                  <ul className="list-disc space-y-1 pl-5 text-sm">{fit.advice.resumeAdjustments.map((m, i) => <li key={i}>{m}</li>)}</ul>
                 </div>
-                <div>
-                  <p className="text-muted-foreground">谈话要点</p>
-                  <ul className="list-disc space-y-1 pl-4">{fit.advice.talkingPoints.map((m, i) => <li key={i}>{m}</li>)}</ul>
+                <div className="rounded-2xl bg-white p-3.5 shadow-soft">
+                  <p className="mb-1 text-xs font-medium text-slate-500">谈话要点</p>
+                  <ul className="list-disc space-y-1 pl-5 text-sm">{fit.advice.talkingPoints.map((m, i) => <li key={i}>{m}</li>)}</ul>
                 </div>
-                <div className="rounded-2xl bg-amber-500/5 p-3 text-muted-foreground">
+                <div className="rounded-2xl bg-amber-500/5 p-3.5 text-sm text-slate-600">
                   <MarkdownText text={fit.advice.truthBoundary} />
                 </div>
               </div>

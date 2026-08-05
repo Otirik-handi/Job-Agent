@@ -28,6 +28,11 @@ export default function Home() {
     setInitialMessages([]);
   }, []);
 
+  // 当前会话标题（新会话显示"新对话"）
+  const currentTitle = activeId
+    ? (conversations.find((c) => c.id === activeId)?.title ?? '新对话')
+    : '新对话';
+
   return (
     <main className="flex h-screen">
       <Sidebar
@@ -43,6 +48,7 @@ export default function Home() {
           key={activeId ?? 'new'}
           conversationId={activeId}
           initialMessages={initialMessages}
+          title={currentTitle}
           onChatSettled={refresh}
         />
       </div>

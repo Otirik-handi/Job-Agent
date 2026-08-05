@@ -10,10 +10,11 @@ import type { UIMessage } from 'ai';
 export type ToolProgress = { toolName: string; status: 'running' | 'completed' | 'failed'; message: string };
 
 export function ChatPanel({
-  conversationId, initialMessages, onChatSettled,
+  conversationId, initialMessages, title, onChatSettled,
 }: {
   conversationId: string | null;
   initialMessages: UIMessage[];
+  title: string;
   onChatSettled: () => void;
 }) {
   const [progress, setProgress] = useState<ToolProgress | null>(null);
@@ -39,6 +40,11 @@ export function ChatPanel({
 
   return (
     <div className="flex h-full flex-col">
+      {/* 会话标题栏 */}
+      <div className="flex items-center gap-2 border-b border-slate-200/60 bg-white/60 px-6 py-3">
+        <span className="h-2 w-2 rounded-full bg-indigo-500" />
+        <h2 className="truncate text-sm font-semibold text-slate-700">{title}</h2>
+      </div>
       <div className="flex-1 overflow-y-auto p-4">
         {messages.map((message) => (
           <MessageBubble key={message.id} message={message} />
