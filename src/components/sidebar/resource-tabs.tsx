@@ -1,8 +1,13 @@
 'use client';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
+import { Upload } from 'lucide-react';
 import { useResumes } from '@/src/lib/use-resumes';
 import { useJobOpportunities } from '@/src/lib/use-job-opportunities';
 import { StatusBadge } from '@/src/components/ui/status-badge';
+import { Button } from '@/src/components/ui/button';
+import { apiUpload } from '@/src/lib/api';
+
+const MAX_UPLOAD_SIZE = 5 * 1024 * 1024;
 
 export function ResourceTabs({
   onOpenResume,
@@ -12,8 +17,33 @@ export function ResourceTabs({
   onOpenJob: (id: string) => void;
 }) {
   const [tab, setTab] = useState<'resume' | 'job'>('resume');
-  const { resumes } = useResumes();
+  const { resumes, refresh } = useResumes();
   const { jobs } = useJobOpportunities();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+  const [notice, setNotice] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);
+
+  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = ''; // 允许重复选择同一文件
+    if (!file) return;
+    setNotice(null);
+    if (file.size > MAX_UPLOAD_SIZE) {
+      setNotice({ kind: 'err', text: '文件超过 5MB 上限' });
+      return;
+    }
+    setUploading(true);
+    try {
+      const r = await apiUpload<{ name: string }>('/api/resumes/upload', file);
+      setNotice({ kind: 'ok', text: `已导入《${r.name}》，可在对话中让 Agent 分析` });
+      void refresh();
+    } catch (err) {
+      setNotice({ kind: 'err', text: err instanceof Error ? err.message : '上传失败' });
+    } finally {
+      setUploading(false);
+    }
+  };
+
   return (
     <div className="flex h-full flex-col gap-1.5 p-3">
       <div className="flex gap-1 text-xs text-muted-foreground">
@@ -33,9 +63,31 @@ export function ResourceTabs({
       </div>
       {tab === 'resume' && (
         <>
+          <div className="flex items-center justify-between gap-2">
+            <Button
+              size="sm"
+              disabled={uploading}
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <Upload className="size-3.5" />
+              {uploading ? '解析中…' : '上传简历'}
+            </Button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".pdf,.docx,.txt,.md"
+              className="hidden"
+              onChange={handleFile}
+            />
+          </div>
+          {notice && (
+            <div className={`rounded-2xl px-3 py-2 text-xs ${notice.kind === 'ok' ? 'bg-emerald-500/10 text-emerald-700' : 'bg-red-500/10 text-red-700'}`}>
+              {notice.text}
+            </div>
+          )}
           {resumes.length === 0 && (
             <div className="rounded-2xl bg-slate-100/60 px-3 py-6 text-center text-xs text-muted-foreground">
-              暂无简历，可在对话中粘贴文本或提供文件路径导入
+              暂无简历，可上传文件（PDF / DOCX / TXT / MD）或在对话中粘贴文本导入
             </div>
           )}
           {resumes.map((r) => (

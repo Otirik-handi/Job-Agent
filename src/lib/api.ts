@@ -19,3 +19,14 @@ export async function apiSend<T>(url: string, method: 'POST' | 'PATCH' | 'DELETE
   }
   return res.json() as Promise<T>;
 }
+
+export async function apiUpload<T>(url: string, file: File): Promise<T> {
+  const form = new FormData();
+  form.append('file', file);
+  const res = await fetch(url, { method: 'POST', body: form });
+  if (!res.ok) {
+    const errBody = await res.json().catch(() => null);
+    throw new Error((errBody as { message?: string } | null)?.message ?? `上传失败（${res.status}）`);
+  }
+  return res.json() as Promise<T>;
+}
