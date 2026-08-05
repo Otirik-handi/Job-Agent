@@ -21,7 +21,7 @@ export function ResumeDrawer({ resumeId, open, onOpenChange }: {
           <p className="mt-4 text-sm text-muted-foreground">尚未分析，可在对话中让 Agent 分析这份简历。</p>
         )}
         {detail && analysis && (
-          <div className="mt-4 space-y-4 text-sm">
+          <div className="mt-6 space-y-5 text-sm">
             <div className="flex items-center gap-2">
               <span className="text-lg font-semibold">{analysis.overallScore}</span>
               <span className="text-muted-foreground">/ 100 综合评分</span>
