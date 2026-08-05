@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-> **元信息**：日期 2026-08-05 · 状态：草稿 · 目标：装饰聊天输入区（收窄居中 + 浅底图标 + 占位引导 + 快捷键提示）并将侧栏加宽 10%（272px → 300px）· 关联规范：AGENTS.md、plan-document.md、SoftUI.md
+> **元信息**：日期 2026-08-05 · 状态：完成 · 目标：装饰聊天输入区（收窄居中 + 浅底图标 + 占位引导 + 快捷键提示）并将侧栏加宽 10%（272px → 300px）· 关联规范：AGENTS.md、plan-document.md、SoftUI.md
 
 **Goal:** 将聊天底部输入区改造为 ChatGPT 式收窄居中布局，加浅底 Paperclip 图标、💡 引导占位文案与快捷键提示；侧栏宽度 272px → 300px。布局结构与功能逻辑零改动。
 
@@ -20,7 +20,7 @@
 **Files:**
 - Modify: `src/components/chat/chat-input.tsx`
 
-- [ ] **Step 1: 新增 lucide 导入**
+- [x] **Step 1: 新增 lucide 导入**
 
 在 `chat-input.tsx` 顶部（`import { useState } from 'react';` 之后）新增：
 
@@ -28,7 +28,7 @@
 import { Paperclip } from 'lucide-react';
 ```
 
-- [ ] **Step 2: 输入区收窄居中 + 图标 + 占位文案 + 快捷键提示**
+- [x] **Step 2: 输入区收窄居中 + 图标 + 占位文案 + 快捷键提示**
 
 将 `chat-input.tsx` 整个 return 块：
 
@@ -108,7 +108,7 @@ import { Paperclip } from 'lucide-react';
   );
 ```
 
-- [ ] **Step 3: 验证与提交**
+- [x] **Step 3: 验证与提交**
 
 ```bash
 npm run build
@@ -126,7 +126,7 @@ git commit -m "feat: 输入区收窄居中、浅底图标、引导占位与快�
 **Files:**
 - Modify: `src/components/sidebar/sidebar.tsx`
 
-- [ ] **Step 1: aside 宽度 272px → 300px**
+- [x] **Step 1: aside 宽度 272px → 300px**
 
 将 `sidebar.tsx` 中：
 
@@ -140,7 +140,7 @@ git commit -m "feat: 输入区收窄居中、浅底图标、引导占位与快�
     <aside className="flex w-[300px] shrink-0 flex-col border-r border-slate-200/60 bg-gradient-to-b from-indigo-50/70 via-white to-white shadow-card">
 ```
 
-- [ ] **Step 2: 验证与提交**
+- [x] **Step 2: 验证与提交**
 
 ```bash
 npm run build
@@ -158,14 +158,14 @@ git commit -m "style: 侧栏加宽 10%（272px → 300px）"
 **Files:**
 - 无（验证 + 更新计划文档打勾）
 
-- [ ] **Step 1: 静态检查**
+- [x] **Step 1: 静态检查**
 
 ```bash
 grep -rn "rounded-none\|border-black" app src --include="*.tsx" --include="*.css"
 # 预期：仅 tabs.tsx 的 data-[variant=line]:rounded-none 功能性变体（既有代码），无新增残留
 ```
 
-- [ ] **Step 2: 构建与回归**
+- [x] **Step 2: 构建与回归**
 
 ```bash
 npm run build
@@ -180,7 +180,7 @@ npm test
 4. 输入文字后发送按钮可用，Enter 发送、Shift+Enter 换行正常；停止按钮正常
 5. 侧栏 300px 宽，Logo/列表/底部圆点布局正常，会话/资源切换正常
 
-- [ ] **Step 3: 更新计划状态并提交**
+- [x] **Step 3: 更新计划状态并提交**
 
 ```bash
 # 本文件头部状态：草稿 → 完成，全部 Task 打勾
