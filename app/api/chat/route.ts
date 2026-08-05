@@ -61,8 +61,20 @@ export async function POST(req: Request) {
   const merged = [...history, ...incoming];
   const trimmed = merged.slice(-MAX_HISTORY_ROUNDS * 2);
 
+  // 入站消息按 id 去重：AI SDK useChat 在多步 Agent 循环中会自动重发消息历史，
+  // 直接插入会产生同 id 重复记录，导致前端 React key 冲突
+  const existingIds = new Set<string>();
+  for (const r of historyRecords) {
+    try {
+      const mid = (JSON.parse(r.messageJson) as { id?: string }).id;
+      if (mid) existingIds.add(mid);
+    } catch { /* 忽略无法解析的存量记录 */ }
+  }
   for (const msg of incoming) {
+    const msgId = msg.id;
+    if (msgId && existingIds.has(msgId)) continue;
     insertMessage(convId, msg.role, JSON.stringify(msg));
+    if (msgId) existingIds.add(msgId);
   }
 
   const stream = createUIMessageStream({
