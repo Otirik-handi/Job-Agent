@@ -197,7 +197,7 @@ git commit -m "feat: 简历文本提取支持 PDF，新增文件名与重命名�
 **Files:**
 - Create: `app/api/resumes/upload/route.ts`
 
-- [ ] **Step 1: 实现端点**
+- [x] **Step 1: 实现端点**
 
 Create `app/api/resumes/upload/route.ts`（参照 `app/api/resumes/route.ts` 的 Response.json 风格）：
 
@@ -254,12 +254,12 @@ export async function POST(req: Request) {
 }
 ```
 
-- [ ] **Step 2: 构建验证**
+- [x] **Step 2: 构建验证**
 
 Run: `npm run build`
 Expected: BUILD SUCCESSFUL，新路由出现在输出中（`/api/resumes/upload`）。
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add app/api/resumes/upload/route.ts
@@ -329,12 +329,12 @@ export const importResumeTool = createDomainTool({
 
 > 说明：原 `extractFromFile` 函数删除，PDF 支持由共享 `extractTextFromFile` 提供；`ResumeTextError` 的"不支持格式"消息自动包含 PDF。
 
-- [ ] **Step 2: 构建验证**
+- [x] **Step 2: 构建验证**
 
 Run: `npm run build`
 Expected: BUILD SUCCESSFUL。
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/agent/tools/import-resume.ts
