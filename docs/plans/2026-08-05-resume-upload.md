@@ -275,7 +275,7 @@ git commit -m "feat: 新增简历文件上传端点（PDF/DOCX/TXT/MD，5MB 上�
 **Files:**
 - Modify: `src/agent/tools/import-resume.ts`
 
-- [ ] **Step 1: 改为复用共享提取模块**
+- [x] **Step 1: 改为复用共享提取模块**
 
 整体替换 `src/agent/tools/import-resume.ts` 为：
 

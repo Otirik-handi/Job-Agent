@@ -3,7 +3,7 @@ import { createDomainTool } from '../tool-factory';
 import { createResume } from '../../db/repositories/resumes';
 import {
   assertTextLength, extractTextFromFile, formatNameFromPath,
-  normalizeResumeText, ResumeTextError,
+  normalizeResumeText,
 } from '../resume-text';
 
 const inputSchema = z.object({
