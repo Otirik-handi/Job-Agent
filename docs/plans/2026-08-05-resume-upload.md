@@ -208,7 +208,7 @@ import {
 } from '@/src/agent/resume-text';
 import { createResume, listResumes } from '@/src/db/repositories/resumes';
 
-const MAX_UPLOAD_SIZE = 5 * 1024 * 1024; // 5MB
+const MAX_UPLOAD_SIZE = 5 * 1024 * 1024; // 20MB
 
 function json(data: unknown, status = 200) {
   return Response.json(data, { status });
@@ -220,7 +220,7 @@ export async function POST(req: Request) {
   const file = form.get('file');
   if (!(file instanceof File)) return json({ code: 'INVALID_FILE', message: '未收到文件字段 file' }, 400);
   if (file.size === 0) return json({ code: 'INVALID_FILE', message: '文件为空' }, 400);
-  if (file.size > MAX_UPLOAD_SIZE) return json({ code: 'FILE_TOO_LARGE', message: '文件超过 5MB 上限' }, 400);
+  if (file.size > MAX_UPLOAD_SIZE) return json({ code: 'FILE_TOO_LARGE', message: '文件超过 20MB 上限' }, 400);
   if (!isSupportedFilePath(file.name)) {
     return json({ code: 'UNSUPPORTED_FORMAT', message: '不支持的文件格式：仅支持 PDF / DOCX / TXT / MD' }, 400);
   }
@@ -263,7 +263,7 @@ Expected: BUILD SUCCESSFUL，新路由出现在输出中（`/api/resumes/upload`
 
 ```bash
 git add app/api/resumes/upload/route.ts
-git commit -m "feat: 新增简历文件上传端点（PDF/DOCX/TXT/MD，5MB 上限）"
+git commit -m "feat: 新增简历文件上传端点（PDF/DOCX/TXT/MD，20MB 上限）"
 ```
 
 **Checkpoint：** 构建通过；端点可被调用（Task 5 端到端验证）。
@@ -404,7 +404,7 @@ export function ResourceTabs({
     if (!file) return;
     setNotice(null);
     if (file.size > MAX_UPLOAD_SIZE) {
-      setNotice({ kind: 'err', text: '文件超过 5MB 上限' });
+      setNotice({ kind: 'err', text: '文件超过 20MB 上限' });
       return;
     }
     setUploading(true);
@@ -549,7 +549,7 @@ Expected: 400 `UNSUPPORTED_FORMAT`，message 提示仅支持 PDF/DOCX/TXT/MD。
 在浏览器（localhost:3000）侧边栏「简历」标签页：
 1. 点击「上传简历」→ 选择 `tmp/sample-resume.txt` → 列表出现新简历，绿条提示「已导入《…》，可在对话中让 Agent 分析」
 2. 再次上传同一文件 → 出现带时间戳后缀的第二条（重名逻辑）
-3. 上传一个超过 5MB 的文件（或从系统选一个 .png）→ 红条提示，不产生记录
+3. 上传一个超过 20MB 的文件（或从系统选一个 .png）→ 红条提示，不产生记录
 4. 有 PDF 简历的话选一个真实的 `.pdf`（文本型）→ 成功导入且 sourceType 为 pdf；若有扫描件 PDF → 红条提示「未提取到文字」
 5. 在对话中说「分析最新导入的简历」→ Agent 正常分析（验证上传简历与对话闭环打通）
 
@@ -574,7 +574,7 @@ rm -rf tmp  # 仅删验证样例；确认无残留后删除
 ## 验收清单（对应设计文档）
 
 - [x] 支持 .pdf/.docx/.txt/.md 上传（服务端白名单校验，不信任客户端）
-- [x] 5MB 上限：前端预检 + 服务端兜底
+- [x] 20MB 上限：前端预检 + 服务端兜底
 - [x] PDF 无文本层（扫描件）→ 422 明确提示
 - [x] 先解析后入库，失败不产生记录
 - [x] 重名自动时间戳后缀

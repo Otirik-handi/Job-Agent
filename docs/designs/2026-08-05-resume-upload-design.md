@@ -41,7 +41,7 @@
 请求：multipart/form-data，字段 file
 校验（服务端为准，不信任客户端）：
   - 扩展名 ∈ {pdf, docx, txt, md}，否则 400 UNSUPPORTED_FORMAT
-  - 大小 ≤ 5MB，否则 400 FILE_TOO_LARGE
+  - 大小 ≤ 20MB，否则 400 FILE_TOO_LARGE
 流程：提取文本 → normalizeResumeText → assertTextLength（复用上限与规则）
   → createResume({ name, sourceType: 扩展名, sourceText })
 命名：文件名去扩展名；与库内已有简历重名时自动追加时间戳后缀（如"张三-20260805-1530"）
@@ -65,8 +65,8 @@
 - 点击触发隐藏 `<input type="file" accept=".pdf,.docx,.txt,.md">`，选择后立即上传
 - 上传状态机：`idle → uploading（按钮禁用 +「解析中…」）→ success | error`
 - 成功：刷新简历列表（复用 `useResumes` 的 refresh）+ 内联成功提示「已导入《名称》，可在对话中让 Agent 分析」
-- 失败：内联错误条，按错误码展示可读消息（格式不支持 / 超过 5MB / 扫描件 PDF 提示 / 其他）
-- 前端预检（体验优化，服务端仍兜底）：扩展名 + 大小（>5MB 直接拦截提示）
+- 失败：内联错误条，按错误码展示可读消息（格式不支持 / 超过 20MB / 扫描件 PDF 提示 / 其他）
+- 前端预检（体验优化，服务端仍兜底）：扩展名 + 大小（>20MB 直接拦截提示）
 - 空状态文案更新：「暂无简历，可上传文件（PDF/DOCX/TXT/MD）或在对话中粘贴文本导入」
 
 交互细节：上传期间按钮禁用防重复提交；成功后按钮恢复可用。
@@ -75,7 +75,7 @@
 
 | 场景 | 行为 |
 |---|---|
-| 不支持格式 / 超 5MB | 前端预检拦截；服务端兜底 400 |
+| 不支持格式 / 超 20MB | 前端预检拦截；服务端兜底 400 |
 | 扫描件 PDF（无文本层） | 422 PDF_NO_TEXT，提示改用 DOCX/TXT 或粘贴 |
 | 提取文本为空 / 超长 | 复用 assertTextLength 规则（422 EMPTY_TEXT） |
 | 同名重复导入 | 允许，name 自动加时间戳后缀 |

@@ -4,7 +4,7 @@ import {
 } from '@/src/agent/resume-text';
 import { createResume, listResumes } from '@/src/db/repositories/resumes';
 
-const MAX_UPLOAD_SIZE = 5 * 1024 * 1024; // 5MB
+const MAX_UPLOAD_SIZE = 20 * 1024 * 1024; // 20MB
 
 function json(data: unknown, status = 200) {
   return Response.json(data, { status });
@@ -16,7 +16,7 @@ export async function POST(req: Request) {
   const file = form.get('file');
   if (!(file instanceof File)) return json({ code: 'INVALID_FILE', message: '未收到文件字段 file' }, 400);
   if (file.size === 0) return json({ code: 'INVALID_FILE', message: '文件为空' }, 400);
-  if (file.size > MAX_UPLOAD_SIZE) return json({ code: 'FILE_TOO_LARGE', message: '文件超过 5MB 上限' }, 400);
+  if (file.size > MAX_UPLOAD_SIZE) return json({ code: 'FILE_TOO_LARGE', message: `文件超过 ${MAX_UPLOAD_SIZE / (1024 * 1024)}MB 上限` }, 400);
   if (!isSupportedFilePath(file.name)) {
     return json({ code: 'UNSUPPORTED_FORMAT', message: '不支持的文件格式：仅支持 PDF / DOCX / TXT / MD' }, 400);
   }

@@ -7,7 +7,7 @@ import { StatusBadge } from '@/src/components/ui/status-badge';
 import { Button } from '@/src/components/ui/button';
 import { apiUpload } from '@/src/lib/api';
 
-const MAX_UPLOAD_SIZE = 5 * 1024 * 1024;
+const MAX_UPLOAD_SIZE = 20 * 1024 * 1024;
 
 export function ResourceTabs({
   onOpenResume,
@@ -33,7 +33,7 @@ export function ResourceTabs({
       return;
     }
     if (file.size > MAX_UPLOAD_SIZE) {
-      setNotice({ kind: 'err', text: '文件超过 5MB 上限' });
+      setNotice({ kind: 'err', text: `文件超过 ${MAX_UPLOAD_SIZE / (1024 * 1024)}MB 上限` });
       return;
     }
     setUploading(true);
