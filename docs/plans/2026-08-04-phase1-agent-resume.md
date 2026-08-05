@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-> **元信息**：日期 2026-08-04 · 状态：生效 · 目标：打通"对话中导入并分析简历"闭环 · 关联规范：AGENTS.md、plan-document.md
+> **元信息**：日期 2026-08-04 · 状态：完成 · 目标：打通"对话中导入并分析简历"闭环 · 关联规范：AGENTS.md、plan-document.md
 
 **Goal:** 搭建 Agent 运行时骨架（模型注册 / llm-call / tool-factory / 会话持久化 / 流式对话端点），实现 importResume + analyzeResume 两个领域工具，前端完成聊天界面（消息流/输入/进度卡片）与简历产物展示，实现"对话中导入并分析简历 → 产物落库 → 展示"闭环。
 
@@ -27,7 +27,7 @@
 - Create: `.env.example`、`.env.local`
 - Modify: `.gitignore`
 
-- [ ] **Step 1: 安装运行时依赖**
+- [x] **Step 1: 安装运行时依赖**
 
 Run（在项目根，Git Bash）:
 ```bash
@@ -35,20 +35,20 @@ npm install ai @ai-sdk/react @ai-sdk/openai-compatible drizzle-orm better-sqlite
 ```
 Expected: `added N packages`，无错误。（若出现 `EALLOWSCRIPTS` 报错，说明环境变化，改用 `npm install --allow-scripts=false ...` 并在报告中标出）
 
-- [ ] **Step 2: 安装开发依赖**
+- [x] **Step 2: 安装开发依赖**
 
 ```bash
 npm install -D drizzle-kit @types/better-sqlite3 @types/dompurify vitest --no-audit --no-fund
 ```
 
-- [ ] **Step 3: package.json 增加测试脚本**
+- [x] **Step 3: package.json 增加测试脚本**
 
 Modify `package.json` 的 `scripts` 增加：
 ```json
 "test": "vitest run"
 ```
 
-- [ ] **Step 4: 创建环境变量模板与本地配置**
+- [x] **Step 4: 创建环境变量模板与本地配置**
 
 Create `.env.example`:
 ```
@@ -60,7 +60,7 @@ LLM_TEMPERATURE=0.3
 ```
 Create `.env.local`：复制 `.env.example` 并填入真实可用的 `LLM_API_KEY`（用户提供；`LLM_BASE_URL`/`LLM_MODEL` 按用户实际供应商修改）。
 
-- [ ] **Step 5: .gitignore 补充**
+- [x] **Step 5: .gitignore 补充**
 
 Modify `.gitignore`，在 `.env*` 行之后追加：
 ```
@@ -68,7 +68,7 @@ Modify `.gitignore`，在 `.env*` 行之后追加：
 /data/
 ```
 
-- [ ] **Step 6: 验证安装与提交**
+- [x] **Step 6: 验证安装与提交**
 
 ```bash
 node_modules/.bin/esbuild --version && node -e "require('better-sqlite3')" 2>&1 | head -1
@@ -85,7 +85,7 @@ Expected: esbuild 打印版本号；`node -e "require('better-sqlite3')"` 无报
 - Create: `drizzle.config.ts`
 - Create: `src/db/migrations/`（由 drizzle-kit 生成）
 
-- [ ] **Step 1: 编写 schema**
+- [x] **Step 1: 编写 schema**
 
 Create `src/db/schema.ts`：
 ```ts
@@ -146,7 +146,7 @@ export const tailoredResumes = sqliteTable('tailored_resumes', {
 ```
 > 注：job_opportunities / tailored_resumes 表第 2-4 期才使用，但数据结构设计已定稿，一次建齐避免后续迁移（YAGNI 权衡：字段默认值占位）。
 
-- [ ] **Step 2: 创建 drizzle 配置**
+- [x] **Step 2: 创建 drizzle 配置**
 
 Create `drizzle.config.ts`：
 ```ts
@@ -160,7 +160,7 @@ export default defineConfig({
 });
 ```
 
-- [ ] **Step 3: 生成并执行迁移**
+- [x] **Step 3: 生成并执行迁移**
 
 ```bash
 npx drizzle-kit generate
@@ -169,7 +169,7 @@ npx drizzle-kit migrate
 > 若 `npx` 触发 EALLOWSCRIPTS 失败，改用：`node_modules/.bin/drizzle-kit generate` 与 `node_modules/.bin/drizzle-kit migrate`。
 Expected: generate 输出 SQL 迁移文件（含 5 张表与 3 个索引）；migrate 输出应用成功；`data/job-helper.db` 文件生成。
 
-- [ ] **Step 4: 编写 DB client**
+- [x] **Step 4: 编写 DB client**
 
 Create `src/db/index.ts`：
 ```ts
@@ -184,7 +184,7 @@ export const db = drizzle(sqlite, { schema });
 export { schema };
 ```
 
-- [ ] **Step 5: 验证与提交**
+- [x] **Step 5: 验证与提交**
 
 ```bash
 node -e "const {db}=require('./src/db'); console.log('db ok')" 2>&1 | head -3
@@ -199,7 +199,7 @@ git add src/db drizzle.config.ts && git commit -m "feat: Drizzle 数据层（5 �
 - Create: `src/db/repositories/messages.ts`
 - Create: `src/db/repositories/resumes.ts`
 
-- [ ] **Step 1: conversations 仓储**
+- [x] **Step 1: conversations 仓储**
 
 Create `src/db/repositories/conversations.ts`：
 ```ts
@@ -241,7 +241,7 @@ export function deleteConversation(id: string): void {
 }
 ```
 
-- [ ] **Step 2: messages 仓储**
+- [x] **Step 2: messages 仓储**
 
 Create `src/db/repositories/messages.ts`：
 ```ts
@@ -271,7 +271,7 @@ export function deleteMessagesByConversation(conversationId: string): void {
 }
 ```
 
-- [ ] **Step 3: resumes 仓储**
+- [x] **Step 3: resumes 仓储**
 
 Create `src/db/repositories/resumes.ts`：
 ```ts
@@ -308,7 +308,7 @@ export function updateResumeAnalysis(id: string, analysisJson: string): void {
 }
 ```
 
-- [ ] **Step 4: 提交**
+- [x] **Step 4: 提交**
 
 ```bash
 git add src/db/repositories && git commit -m "feat: 仓储层（会话/消息/简历）"
@@ -321,7 +321,7 @@ git add src/db/repositories && git commit -m "feat: 仓储层（会话/消息/�
 - Create: `src/agent/llm-call.ts`
 - Test: `src/agent/llm-call.test.ts`
 
-- [ ] **Step 1: 模型注册**
+- [x] **Step 1: 模型注册**
 
 Create `src/agent/model.ts`：
 ```ts
@@ -348,7 +348,7 @@ export function getTemperature(): number {
 }
 ```
 
-- [ ] **Step 2: callStructured 实现**
+- [x] **Step 2: callStructured 实现**
 
 Create `src/agent/llm-call.ts`：
 ```ts
@@ -411,7 +411,7 @@ export async function callStructured<T>(options: {
 ```
 > 注：schema 失败判定用错误消息关键词（AI SDK 的 ZodSchemaError 消息含 schema/JSON 字样）。若实现时发现判定不精确，可将 `result.structuredOutput` 校验失败路径改为：catch 后对错误对象 `(err as { name?: string }).name === 'ZodSchemaError'` 判定，两者取一并在代码注释中说明。
 
-- [ ] **Step 3: 编写纯逻辑单测（repair 计数与失败分类）**
+- [x] **Step 3: 编写纯逻辑单测（repair 计数与失败分类）**
 
 Create `src/agent/llm-call.test.ts`：
 ```ts
@@ -462,12 +462,12 @@ describe('callStructured', () => {
 });
 ```
 
-- [ ] **Step 4: 运行测试**
+- [x] **Step 4: 运行测试**
 
 Run: `npm test -- src/agent/llm-call.test.ts`
 Expected: 3 个用例全部 PASS。
 
-- [ ] **Step 5: 提交**
+- [x] **Step 5: 提交**
 
 ```bash
 git add src/agent package.json && git commit -m "feat: 模型注册与 callStructured（结构化输出 + repair 重试）"
@@ -479,7 +479,7 @@ git add src/agent package.json && git commit -m "feat: 模型注册与 callStruc
 - Create: `src/agent/tool-factory.ts`
 - Create: `src/agent/agent.ts`
 
-- [ ] **Step 1: tool-factory**
+- [x] **Step 1: tool-factory**
 
 Create `src/agent/tool-factory.ts`：
 ```ts
@@ -532,7 +532,7 @@ export function createDomainTool<INPUT extends ZodType, OUTPUT>(
 ```
 > 注：`z` 类型需要 import：文件顶部补 `import type { z } from 'zod';`（`z.infer` 是类型层面用法）。
 
-- [ ] **Step 2: 主对话 Agent（系统提示 + 工具注册表）**
+- [x] **Step 2: 主对话 Agent（系统提示 + 工具注册表）**
 
 Create `src/agent/agent.ts`：
 ```ts
@@ -561,7 +561,7 @@ export function getTools(): ToolSet {
 }
 ```
 
-- [ ] **Step 3: 提交**
+- [x] **Step 3: 提交**
 
 ```bash
 git add src/agent && git commit -m "feat: tool-factory 与主对话 Agent 骨架"
@@ -574,7 +574,7 @@ git add src/agent && git commit -m "feat: tool-factory 与主对话 Agent 骨架
 - Create: `src/agent/tools/import-resume.ts`
 - Test: `src/agent/resume-text.test.ts`
 
-- [ ] **Step 1: 简历文本处理纯逻辑**
+- [x] **Step 1: 简历文本处理纯逻辑**
 
 Create `src/agent/resume-text.ts`：
 ```ts
@@ -605,7 +605,7 @@ export function formatNameFromPath(path: string): string {
 }
 ```
 
-- [ ] **Step 2: 单测**
+- [x] **Step 2: 单测**
 
 Create `src/agent/resume-text.test.ts`：
 ```ts
@@ -627,12 +627,12 @@ describe('resume-text', () => {
 });
 ```
 
-- [ ] **Step 3: 运行测试**
+- [x] **Step 3: 运行测试**
 
 Run: `npm test -- src/agent/resume-text.test.ts`
 Expected: 3 用例 PASS。
 
-- [ ] **Step 4: importResume 工具**
+- [x] **Step 4: importResume 工具**
 
 Create `src/agent/tools/import-resume.ts`：
 ```ts
@@ -694,7 +694,7 @@ export const importResumeTool = createDomainTool({
 });
 ```
 
-- [ ] **Step 5: 提交**
+- [x] **Step 5: 提交**
 
 ```bash
 git add src/agent && git commit -m "feat: importResume 工具（文本/本地文件 + mammoth 解析）"
@@ -707,7 +707,7 @@ git add src/agent && git commit -m "feat: importResume 工具（文本/本地文
 - Create: `src/agent/prompts/resume-analysis.ts`
 - Create: `src/agent/tools/analyze-resume.ts`
 
-- [ ] **Step 1: 分析契约（v1）**
+- [x] **Step 1: 分析契约（v1）**
 
 Create `src/agent/schemas/resume-analysis.ts`：
 ```ts
@@ -741,7 +741,7 @@ export const resumeAnalysisSchemaV1 = z.object({
 export type ResumeAnalysisV1 = z.infer<typeof resumeAnalysisSchemaV1>;
 ```
 
-- [ ] **Step 2: 分析 prompt**
+- [x] **Step 2: 分析 prompt**
 
 Create `src/agent/prompts/resume-analysis.ts`：
 ```ts
@@ -761,7 +761,7 @@ export function buildResumeAnalysisUserPrompt(resumeName: string, sourceText: st
 }
 ```
 
-- [ ] **Step 3: analyzeResume 工具**
+- [x] **Step 3: analyzeResume 工具**
 
 Create `src/agent/tools/analyze-resume.ts`：
 ```ts
@@ -826,7 +826,7 @@ export const analyzeResumeTool = createDomainTool({
 });
 ```
 
-- [ ] **Step 4: 提交**
+- [x] **Step 4: 提交**
 
 ```bash
 git add src/agent && git commit -m "feat: analyzeResume 工具（v1 契约 + prompt + 落库）"
@@ -837,7 +837,7 @@ git add src/agent && git commit -m "feat: analyzeResume 工具（v1 契约 + pro
 **Files:**
 - Create: `app/api/chat/route.ts`
 
-- [ ] **Step 1: 实现对话端点**
+- [x] **Step 1: 实现对话端点**
 
 Create `app/api/chat/route.ts`：
 ```ts
@@ -968,7 +968,7 @@ export async function POST(req: Request) {
 ```
 > 注：`deleteMessagesByConversation` 本任务未用到——移除该 import（保持无未使用导入）；`historyRecords` 的 role 列冗余可用。
 
-- [ ] **Step 2: 冒烟验证（需真实 LLM key）**
+- [x] **Step 2: 冒烟验证（需真实 LLM key）**
 
 Run: `npm run dev`
 Expected: 服务启动无编译错误。用 curl 验证（`LLM_API_KEY` 已配置）：
@@ -979,7 +979,7 @@ curl -s -X POST http://localhost:3000/api/chat \
 ```
 Expected: 返回 SSE 流片段（`data: {...}` 行，含 assistant 文本）。验证后停止 dev 进程。
 
-- [ ] **Step 3: 提交**
+- [x] **Step 3: 提交**
 
 ```bash
 git add app/api && git commit -m "feat: /api/chat 流式对话端点（进度事件 + 消息持久化）"
@@ -994,7 +994,7 @@ git add app/api && git commit -m "feat: /api/chat 流式对话端点（进度事
 - Create: `app/api/resumes/route.ts`
 - Create: `app/api/resumes/[id]/route.ts`
 
-- [ ] **Step 1: 会话列表与新建**
+- [x] **Step 1: 会话列表与新建**
 
 Create `app/api/conversations/route.ts`：
 ```ts
@@ -1030,7 +1030,7 @@ export async function POST(req: Request) {
 }
 ```
 
-- [ ] **Step 2: 会话重命名与删除**
+- [x] **Step 2: 会话重命名与删除**
 
 Create `app/api/conversations/[id]/route.ts`：
 ```ts
@@ -1058,7 +1058,7 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
 ```
 > 注：Next.js 16 中 `params` 为 Promise，须 `await params`。
 
-- [ ] **Step 3: 会话消息加载**
+- [x] **Step 3: 会话消息加载**
 
 Create `app/api/conversations/[id]/messages/route.ts`：
 ```ts
@@ -1078,7 +1078,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
 }
 ```
 
-- [ ] **Step 4: 简历列表与详情**
+- [x] **Step 4: 简历列表与详情**
 
 Create `app/api/resumes/route.ts`：
 ```ts
@@ -1121,7 +1121,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
 }
 ```
 
-- [ ] **Step 5: 验证与提交**
+- [x] **Step 5: 验证与提交**
 
 Run: `npm run build`
 Expected: 编译通过。
@@ -1138,7 +1138,7 @@ git add app/api && git commit -m "feat: 会话与简历查询端点"
 - Create: `src/lib/api.ts`
 - Modify: `app/page.tsx`、`app/layout.tsx`
 
-- [ ] **Step 1: 初始化 shadcn/ui**
+- [x] **Step 1: 初始化 shadcn/ui**
 
 Run:
 ```bash
@@ -1148,7 +1148,7 @@ npx shadcn@latest add button input textarea card scroll-area tabs sheet badge se
 > 若 `npx` 报 EALLOWSCRIPTS：检查 `components.json` 与 `components/ui` 是否已生成，缺失的包手动 `npm install reka-ui class-variance-authority clsx tailwind-merge lucide-react`（lucide 已装）后重试 add。
 Expected: `components.json` 生成、`src/components/ui/*` 出现对应组件、`src/lib/utils.ts` 生成。
 
-- [ ] **Step 2: API 客户端**
+- [x] **Step 2: API 客户端**
 
 Create `src/lib/api.ts`：
 ```ts
@@ -1175,7 +1175,7 @@ export async function apiSend<T>(url: string, method: 'POST' | 'PATCH' | 'DELETE
 }
 ```
 
-- [ ] **Step 3: Markdown 渲染组件**
+- [x] **Step 3: Markdown 渲染组件**
 
 Create `src/components/chat/markdown-text.tsx`：
 ```tsx
@@ -1204,7 +1204,7 @@ export function MarkdownText({ text }: { text: string }) {
 }
 ```
 
-- [ ] **Step 4: 聊天核心（消息流 + 输入 + 进度卡片）**
+- [x] **Step 4: 聊天核心（消息流 + 输入 + 进度卡片）**
 
 Create `src/components/chat/chat-panel.tsx`：
 ```tsx
@@ -1365,7 +1365,7 @@ export function ChatInput({
 }
 ```
 
-- [ ] **Step 5: 组装主页面（临时单页，Task 11 再接入会话栏）**
+- [x] **Step 5: 组装主页面（临时单页，Task 11 再接入会话栏）**
 
 Modify `app/page.tsx` 全文替换：
 ```tsx
@@ -1386,7 +1386,7 @@ export default function Home() {
 }
 ```
 
-- [ ] **Step 6: 构建验证与提交**
+- [x] **Step 6: 构建验证与提交**
 
 Run: `npm run build`
 Expected: 编译通过（如有类型报错按报错微调：重点检查 useChat 泛型与 parts 类型收窄）。
@@ -1404,7 +1404,7 @@ git add app src components.json && git commit -m "feat: 前端基础（shadcn + 
 - Create: `src/lib/use-resumes.ts`
 - Modify: `app/page.tsx`
 
-- [ ] **Step 1: 数据 hooks**
+- [x] **Step 1: 数据 hooks**
 
 Create `src/lib/use-conversations.ts`：
 ```ts
@@ -1472,7 +1472,7 @@ export function useResumes() {
 }
 ```
 
-- [ ] **Step 2: 会话列表**
+- [x] **Step 2: 会话列表**
 
 Create `src/components/sidebar/conversation-list.tsx`：
 ```tsx
@@ -1515,7 +1515,7 @@ export function ConversationList({
 }
 ```
 
-- [ ] **Step 3: 资源库（第 1 期：简历列表）**
+- [x] **Step 3: 资源库（第 1 期：简历列表）**
 
 Create `src/components/sidebar/resource-tabs.tsx`：
 ```tsx
@@ -1554,7 +1554,7 @@ export function ResourceTabs({ onOpenResume }: { onOpenResume: (id: string) => v
 }
 ```
 
-- [ ] **Step 4: 左栏组装 + 主页面接入**
+- [x] **Step 4: 左栏组装 + 主页面接入**
 
 Create `src/components/sidebar/sidebar.tsx`：
 ```tsx
@@ -1652,7 +1652,7 @@ export default function Home() {
 ```
 > 注：`ChatPanel` 内 `useChat` 的 id 与服务端会话 id 的联动第 1 期以"服务端创建会话 + 刷新列表"为准（不做自动选中）；`create` 未用则从 useConversations 解构中移除。实现时按类型报错微调。
 
-- [ ] **Step 5: 构建验证与提交**
+- [x] **Step 5: 构建验证与提交**
 
 Run: `npm run build`
 Expected: 编译通过。
@@ -1667,7 +1667,7 @@ git add app src && git commit -m "feat: 左栏双区（会话列表 + 资源库�
 - Create: `src/lib/use-resume-detail.ts`
 - Modify: `src/components/sidebar/resource-tabs.tsx`、`app/page.tsx`
 
-- [ ] **Step 1: 简历详情 hook**
+- [x] **Step 1: 简历详情 hook**
 
 Create `src/lib/use-resume-detail.ts`：
 ```ts
@@ -1699,7 +1699,7 @@ export function useResumeDetail(id: string | null) {
 }
 ```
 
-- [ ] **Step 2: 简历详情抽屉**
+- [x] **Step 2: 简历详情抽屉**
 
 Create `src/components/artifacts/resume-drawer.tsx`：
 ```tsx
@@ -1780,13 +1780,13 @@ export function ResumeDrawer({ resumeId, open, onOpenChange }: {
 }
 ```
 
-- [ ] **Step 3: 资源库接入抽屉 + 页面状态**
+- [x] **Step 3: 资源库接入抽屉 + 页面状态**
 
 Modify `src/components/sidebar/resource-tabs.tsx`：保持 `onOpenResume` 签名不变。
 
 Modify `app/page.tsx`：增加 `const [drawerResumeId, setDrawerResumeId] = useState<string | null>(null);`；`Sidebar onOpenResume={setDrawerResumeId}`；主区下方渲染 `<ResumeDrawer resumeId={drawerResumeId} open={drawerResumeId !== null} onOpenChange={(open) => { if (!open) setDrawerResumeId(null); }} />`；import ResumeDrawer。
 
-- [ ] **Step 4: 构建验证与提交**
+- [x] **Step 4: 构建验证与提交**
 
 Run: `npm run build`
 Expected: 编译通过。
@@ -1799,7 +1799,7 @@ git add app src && git commit -m "feat: 简历产物展示（详情抽屉 + 资�
 **Files:**
 - Modify: `docs/plans/2026-08-04-phase1-agent-resume.md`（归档状态）
 
-- [ ] **Step 1: 端到端验证（需真实 LLM key）**
+- [x] **Step 1: 端到端验证（需真实 LLM key）**
 
 Run: `npm run dev`
 手动验证（浏览器 http://localhost:3000）：
@@ -1810,18 +1810,18 @@ Run: `npm run dev`
 5. 刷新页面：会话仍存在，消息完整恢复（标题、历史消息、分析摘要）
 6. 验证 SQLite：`node -e "const D=require('better-sqlite3');const d=new D('data/job-helper.db');console.log(d.prepare('select id,name,analysis_json is not null as analyzed from resumes').all())"` → resumes 行存在且 analyzed=1
 
-- [ ] **Step 2: 验证异常路径**
+- [x] **Step 2: 验证异常路径**
 
 1. 发送"帮我分析这份简历"（未导入）→ 模型应调用 analyzeResume 前先要求导入，或 importResume 提示缺参数（模型侧行为，确认不崩溃即可）
 2. 输入 PDF 路径 → importResume 返回"不支持的格式"错误信息
 3. 停止生成按钮可用
 
-- [ ] **Step 3: 回归构建与单测**
+- [x] **Step 3: 回归构建与单测**
 
 Run: `npm test && npm run build`
 Expected: 单测全绿（resume-text 3 例、llm-call 3 例）；构建通过。
 
-- [ ] **Step 4: 计划归档**
+- [x] **Step 4: 计划归档**
 
 - 本文件头部 `状态` 改为 `完成`
 - 全部步骤 `- [ ]` 打勾
