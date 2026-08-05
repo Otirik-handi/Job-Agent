@@ -351,7 +351,7 @@ git commit -m "feat: importResume 工具 filePath 分支支持 PDF（复用共�
 - Modify: `src/lib/api.ts`（新增 apiUpload）
 - Modify: `src/components/sidebar/resource-tabs.tsx`
 
-- [ ] **Step 1: api.ts 新增上传辅助**
+- [x] **Step 1: api.ts 新增上传辅助**
 
 在 `src/lib/api.ts` 末尾追加：
 
@@ -368,7 +368,7 @@ export async function apiUpload<T>(url: string, file: File): Promise<T> {
 }
 ```
 
-- [ ] **Step 2: resource-tabs.tsx 添加上传按钮与状态提示**
+- [x] **Step 2: resource-tabs.tsx 添加上传按钮与状态提示**
 
 整体替换 `src/components/sidebar/resource-tabs.tsx` 为：
 
@@ -506,12 +506,12 @@ export function ResourceTabs({
 }
 ```
 
-- [ ] **Step 3: 构建验证**
+- [x] **Step 3: 构建验证**
 
 Run: `npm run build`
 Expected: BUILD SUCCESSFUL。
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/lib/api.ts src/components/sidebar/resource-tabs.tsx

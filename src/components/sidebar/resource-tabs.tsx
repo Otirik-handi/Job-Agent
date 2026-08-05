@@ -63,7 +63,7 @@ export function ResourceTabs({
       </div>
       {tab === 'resume' && (
         <>
-          <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
             <Button
               size="sm"
               disabled={uploading}
@@ -81,7 +81,7 @@ export function ResourceTabs({
             />
           </div>
           {notice && (
-            <div className={`rounded-2xl px-3 py-2 text-xs ${notice.kind === 'ok' ? 'bg-emerald-500/10 text-emerald-700' : 'bg-red-500/10 text-red-700'}`}>
+            <div role="status" className={`rounded-2xl px-3 py-2 text-xs ${notice.kind === 'ok' ? 'bg-emerald-500/10 text-emerald-700' : 'bg-red-500/10 text-red-700'}`}>
               {notice.text}
             </div>
           )}
