@@ -52,6 +52,7 @@ export function ConversationList({
           {editingId === c.id ? (
             <input
               ref={inputRef}
+              maxLength={50}
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
               onKeyDown={(e) => {
@@ -63,7 +64,12 @@ export function ConversationList({
             />
           ) : (
             <div
+              role="button"
+              tabIndex={0}
               onClick={() => onSelect(c.id)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect(c.id); }
+              }}
               className="cursor-pointer px-3 py-2 text-left text-sm"
             >
               <div className="flex items-center justify-between gap-1">
