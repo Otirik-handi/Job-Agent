@@ -26,7 +26,8 @@ export function buildJobMatchSystemPrompt(): string {
     "tags": ["React", "TypeScript"]
   },
   "fitResults": [
-    { "requirementId": "r1", "level": "matched", "evidence": "简历中写明 5 年前端开发经验", "note": "满足年限要求" }
+    { "requirementId": "r1", "level": "matched", "evidence": "简历中写明 5 年前端开发经验", "note": "满足年限要求" },
+    { "requirementId": "r2", "level": "mismatch", "evidence": "简历技能列表无 React", "note": "缺少关键技能" }
   ],
   "overallScore": 78,
   "risks": [
