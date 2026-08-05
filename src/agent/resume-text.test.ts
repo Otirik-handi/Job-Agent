@@ -37,7 +37,7 @@ describe('resume-text', () => {
   it('重名追加本地时间戳后缀', () => {
     expect(buildResumeName('张三.pdf', ['李四'])).toBe('张三');
     expect(buildResumeName('张三.pdf', ['张三'])).toMatch(/^张三-\d{8}-\d{4}$/);
-    expect(buildResumeName('张三.pdf', ['张三', `张三-20260805-1530`])).toMatch(/^张三-\d{8}-\d{4}$/);
+    expect(buildResumeName('张三.pdf', ['张三', `张三-20260805-1530`])).toMatch(/^张三-\d{8}-\d{4}(\d{2})?$/);
   });
   it('PDF 扫描件（无文字）抛错', async () => {
     const textlessPdf = Buffer.from(TEXTLESS_PDF_BASE64, 'base64');
@@ -47,5 +47,8 @@ describe('resume-text', () => {
     await expect(extractTextFromBuffer(textlessPdf, 'scanned-resume.pdf'))
       .rejects
       .toThrow('该 PDF 未提取到文字（可能是扫描件或图片），请改用 DOCX / TXT 或粘贴文本');
+  });
+  it('空文本文件抛错', async () => {
+    await expect(extractTextFromBuffer(Buffer.from('  \n '), 'empty-resume.txt')).rejects.toThrow(ResumeTextError);
   });
 });

@@ -33,20 +33,24 @@ export function formatNameFromFile(fileName: string): string {
   return dot > 0 ? base.slice(0, dot) : base;
 }
 
-/** 重名时追加本地时间戳后缀：张三 → 张三-20260805-1530 */
+/** 重名时追加本地时间戳后缀：张三 → 张三-20260805-1530；同分钟再冲突时追加秒：张三-20260805-153055 */
 export function buildResumeName(fileName: string, existingNames: string[]): string {
   const base = formatNameFromFile(fileName) || '未命名简历';
   if (!existingNames.includes(base)) return base;
   const d = new Date();
   const pad = (n: number) => String(n).padStart(2, '0');
-  const ts = `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}`;
-  return `${base}-${ts}`;
+  const ymd = `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}`;
+  const hm = `${pad(d.getHours())}${pad(d.getMinutes())}`;
+  const s = pad(d.getSeconds());
+  let candidate = `${base}-${ymd}-${hm}`;
+  if (existingNames.includes(candidate)) candidate = `${base}-${ymd}-${hm}${s}`;
+  return candidate;
 }
 
-function assertHasText(text: string): string {
+function assertHasText(text: string, formatLabel: string): string {
   const normalized = normalizeResumeText(text);
   if (!normalized) {
-    throw new ResumeTextError('该 PDF 未提取到文字（可能是扫描件或图片），请改用 DOCX / TXT 或粘贴文本');
+    throw new ResumeTextError(`未能从${formatLabel}中提取到文字（可能是空文件或扫描件）`);
   }
   return normalized;
 }
@@ -57,7 +61,11 @@ async function extractPdf(source: { path: string } | { buffer: Buffer }): Promis
   const parser = new PDFParse({ data });
   try {
     const result = await parser.getText({ pageJoiner: '' });
-    return assertHasText(result.text ?? '');
+    const normalized = normalizeResumeText(result.text ?? '');
+    if (!normalized) {
+      throw new ResumeTextError('该 PDF 未提取到文字（可能是扫描件或图片），请改用 DOCX / TXT 或粘贴文本');
+    }
+    return normalized;
   } finally {
     await parser.destroy();
   }
@@ -66,11 +74,11 @@ async function extractPdf(source: { path: string } | { buffer: Buffer }): Promis
 async function extractDocx(source: { path: string } | { buffer: Buffer }): Promise<string> {
   const mammoth = (await import('mammoth')).default;
   const result = await mammoth.extractRawText(source);
-  return assertHasText(result.value);
+  return assertHasText(result.value, '该 DOCX');
 }
 
 function extractPlainText(buffer: Buffer): string {
-  return assertHasText(buffer.toString('utf-8'));
+  return assertHasText(buffer.toString('utf-8'), '该文件');
 }
 
 /** 从本地文件路径提取文本（importResume.filePath 用） */
@@ -81,7 +89,7 @@ export async function extractTextFromFile(filePath: string): Promise<string> {
   const lower = filePath.toLowerCase();
   if (lower.endsWith('.pdf')) return extractPdf({ path: filePath });
   if (lower.endsWith('.docx')) return extractDocx({ path: filePath });
-  return assertHasText(await readFile(filePath, 'utf-8'));
+  return assertHasText(await readFile(filePath, 'utf-8'), '该文件');
 }
 
 /** 从内存 Buffer 提取文本（文件上传用） */
