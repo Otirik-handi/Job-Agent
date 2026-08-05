@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-> **元信息**：日期 2026-08-05 · 状态：草稿 · 目标：会话删除/重命名、简历/岗位删除（弹窗确认）、列表日期显示 · 关联规范：AGENTS.md、plan-document.md
+> **元信息**：日期 2026-08-05 · 状态：生效 · 目标：会话删除/重命名、简历/岗位删除（弹窗确认）、列表日期显示 · 关联规范：AGENTS.md、plan-document.md
 
 **Goal:** 侧边栏三类资源（会话/简历/岗位）获得删除能力（AlertDialog 弹窗二次确认）、会话获得悬停重命名、列表日期统一相对时间显示。
 
