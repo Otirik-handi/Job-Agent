@@ -24,8 +24,8 @@ export function JobDrawer({ jobId, open, onOpenChange }: {
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="data-[side=right]:w-[40vw] data-[side=right]:sm:max-w-[40vw] overflow-y-auto">
-        <SheetHeader>
+      <SheetContent className="data-[side=right]:w-[40vw] data-[side=right]:sm:max-w-[40vw] overflow-y-auto p-6">
+        <SheetHeader className="p-0">
           <SheetTitle>
             {detail ? (detail.company ? `${detail.company} · ${detail.title}` : '未命名岗位') : '岗位详情'}
           </SheetTitle>

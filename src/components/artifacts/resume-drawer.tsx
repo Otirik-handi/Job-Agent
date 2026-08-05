@@ -12,8 +12,8 @@ export function ResumeDrawer({ resumeId, open, onOpenChange }: {
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="data-[side=right]:w-[40vw] data-[side=right]:sm:max-w-[40vw] overflow-y-auto">
-        <SheetHeader>
+      <SheetContent className="data-[side=right]:w-[40vw] data-[side=right]:sm:max-w-[40vw] overflow-y-auto p-6">
+        <SheetHeader className="p-0">
           <SheetTitle>{detail?.name ?? '简历详情'}</SheetTitle>
         </SheetHeader>
         {!detail && <p className="text-sm text-muted-foreground">加载中…</p>}
