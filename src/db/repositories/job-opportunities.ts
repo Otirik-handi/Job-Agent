@@ -42,6 +42,12 @@ export function updateJobChannels(id: string, channelsJson: string): void {
     .where(eq(jobOpportunities.id, id)).run();
 }
 
+export function updateJobApplication(id: string, status: 'applying' | 'applied' | 'skipped'): void {
+  db.update(jobOpportunities)
+    .set({ status, updatedAt: nowIso() })
+    .where(eq(jobOpportunities.id, id)).run();
+}
+
 export function deleteJobOpportunity(id: string): void {
   db.delete(jobOpportunities).where(eq(jobOpportunities.id, id)).run();
 }
