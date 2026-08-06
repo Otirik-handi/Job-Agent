@@ -1,5 +1,5 @@
 'use client';
-import { useRef, useState } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import { Briefcase, FilePen, FileText, Trash2, Upload } from 'lucide-react';
 import { useResumes } from '@/src/lib/use-resumes';
 import { useJobOpportunities } from '@/src/lib/use-job-opportunities';
@@ -29,6 +29,14 @@ export function ResourceTabs({
   onDeletedTailored: (id: string) => void;
 }) {
   const [tab, setTab] = useState<'resume' | 'job' | 'tailored'>('resume');
+  // 滑动指示器：跟随选中 Tab 的位置与宽度（useLayoutEffect 避免首帧闪烁）
+  const tabBarRef = useRef<HTMLDivElement>(null);
+  const [indicator, setIndicator] = useState({ x: 0, w: 0 });
+  useLayoutEffect(() => {
+    const bar = tabBarRef.current;
+    const active = bar?.querySelector<HTMLElement>(`[data-resource-tab="${tab}"]`);
+    if (bar && active) setIndicator({ x: active.offsetLeft, w: active.offsetWidth });
+  }, [tab]);
   const { resumes, refresh, remove: removeResume } = useResumes();
   const { jobs, remove: removeJob } = useJobOpportunities();
   const { items: tailored, refresh: refreshTailored, remove: removeTailored } = useTailoredResumes();
@@ -82,22 +90,31 @@ export function ResourceTabs({
 
   return (
     <div className="flex h-full flex-col gap-1.5 p-3">
-      <div className="flex gap-1 text-xs text-muted-foreground">
+      <div ref={tabBarRef} className="relative flex gap-1 text-xs text-muted-foreground">
+        {/* 滑动指示器：主色胶囊，translateX + width 过渡实现滑动切换 */}
         <span
+          aria-hidden
+          className="pointer-events-none absolute inset-y-0 left-0 rounded-full bg-indigo-600 shadow-soft transition-all duration-300 ease-out"
+          style={{ width: indicator.w || undefined, transform: `translateX(${indicator.x}px)` }}
+        />
+        <span
+          data-resource-tab="resume"
           onClick={() => setTab('resume')}
-          className={`cursor-pointer rounded-full px-3 py-1 transition-all hover:bg-slate-100 ${tab === 'resume' ? 'bg-white text-foreground shadow-soft' : ''}`}
+          className={`relative z-10 cursor-pointer rounded-full px-3 py-1 transition-colors ${tab === 'resume' ? 'text-white' : 'hover:bg-slate-100'}`}
         >
           简历
         </span>
         <span
+          data-resource-tab="job"
           onClick={() => setTab('job')}
-          className={`cursor-pointer rounded-full px-3 py-1 transition-all hover:bg-slate-100 ${tab === 'job' ? 'bg-white text-foreground shadow-soft' : ''}`}
+          className={`relative z-10 cursor-pointer rounded-full px-3 py-1 transition-colors ${tab === 'job' ? 'text-white' : 'hover:bg-slate-100'}`}
         >
           岗位
         </span>
         <span
+          data-resource-tab="tailored"
           onClick={() => setTab('tailored')}
-          className={`cursor-pointer rounded-full px-3 py-1 transition-all hover:bg-slate-100 ${tab === 'tailored' ? 'bg-white text-foreground shadow-soft' : ''}`}
+          className={`relative z-10 cursor-pointer rounded-full px-3 py-1 transition-colors ${tab === 'tailored' ? 'text-white' : 'hover:bg-slate-100'}`}
         >
           专属简历
         </span>
