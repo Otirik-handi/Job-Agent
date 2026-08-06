@@ -8,6 +8,10 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   if (record.fitResultJson) {
     try { fitResult = JSON.parse(record.fitResultJson); } catch { fitResult = null; }
   }
+  let channels = null;
+  if (record.channelsJson) {
+    try { channels = JSON.parse(record.channelsJson); } catch { channels = null; }
+  }
   return Response.json({
     id: record.id,
     company: record.company,
@@ -16,6 +20,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     url: record.url,
     status: record.status,
     fitResult,
+    channels,
     createdAt: record.createdAt,
     updatedAt: record.updatedAt,
   });
