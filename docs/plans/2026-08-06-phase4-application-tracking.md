@@ -44,7 +44,7 @@ Create `docs/plans/2026-08-06-phase4-application-tracking.md`（本文件）。
 - Create: `src/agent/apply-state.ts`
 - Test: `src/agent/apply-state.test.ts`
 
-^- [x] **Step 1: 写失败测试**
+- [x] **Step 1: 写失败测试**
 
 Create `src/agent/apply-state.test.ts`（对齐 channel-guard.test.ts 模式）：
 
@@ -81,12 +81,12 @@ describe('apply-state: skip 动作', () => {
 });
 ```
 
-^- [x] **Step 2: 跑测试确认失败**
+- [x] **Step 2: 跑测试确认失败**
 
 Run: `npm run test -- apply-state`
 Expected: FAIL（`Cannot find module './apply-state'`）
 
-^- [x] **Step 3: 最小实现**
+- [x] **Step 3: 最小实现**
 
 Create `src/agent/apply-state.ts`：
 
@@ -110,12 +110,12 @@ export function applyStateTransition(status: string, action: ApplyAction): Apply
 }
 ```
 
-^- [x] **Step 4: 跑测试确认通过**
+- [x] **Step 4: 跑测试确认通过**
 
 Run: `npm run test -- apply-state`
 Expected: PASS（2 个 describe 全部通过）
 
-^- [x] **Step 5: 提交**
+- [x] **Step 5: 提交**
 
 ```bash
 git add src/agent/apply-state.ts src/agent/apply-state.test.ts
@@ -129,7 +129,7 @@ git commit -m "feat: 投递状态机纯函数（apply 推进/skip 跳过 + 单�
 **Files:**
 - Modify: `src/db/repositories/job-opportunities.ts`（在 updateJobChannels 之后新增）
 
-^- [x] **Step 1: 新增函数**
+- [x] **Step 1: 新增函数**
 
 在 `src/db/repositories/job-opportunities.ts` 的 `updateJobChannels` 函数之后追加：
 
@@ -141,12 +141,12 @@ export function updateJobApplication(id: string, status: 'applying' | 'applied' 
 }
 ```
 
-^- [x] **Step 2: 类型检查**
+- [x] **Step 2: 类型检查**
 
 Run: `npx tsc --noEmit`
 Expected: 无错误
 
-^- [x] **Step 3: 提交**
+- [x] **Step 3: 提交**
 
 ```bash
 git add src/db/repositories/job-opportunities.ts
@@ -163,7 +163,7 @@ git commit -m "feat: 岗位仓储新增 updateJobApplication（投递状态落�
 - Modify: `src/agent/agent.ts`（import + 能力清单 + getTools）
 - Modify: `app/api/chat/route.ts`（onToolExecutionStart 进度文案）
 
-^- [x] **Step 1: 输入 schema**
+- [x] **Step 1: 输入 schema**
 
 Create `src/agent/schemas/apply-job.ts`（对齐 schemas/tailored-resume.ts 模式）：
 
@@ -178,7 +178,7 @@ export const applyJobInputSchema = z.object({
 });
 ```
 
-^- [x] **Step 2: 工具实现**
+- [x] **Step 2: 工具实现**
 
 Create `src/agent/tools/apply-job.ts`（对齐 tools/tailored-resume.ts 的两段式与错误码模式）：
 
@@ -274,7 +274,7 @@ export const applyJobTool = createDomainTool({
 });
 ```
 
-^- [x] **Step 3: 注册工具 + 能力清单**
+- [x] **Step 3: 注册工具 + 能力清单**
 
 Modify `src/agent/agent.ts`：
 1. import 区追加：`import { applyJobTool } from './tools/apply-job';`
@@ -282,7 +282,7 @@ Modify `src/agent/agent.ts`：
    `- applyJob：投递管理（两段式：先出投递摘要经用户确认，再推进状态 matched→applying→applied 或标记跳过 skipped）`
 3. getTools() 返回对象追加：`applyJob: applyJobTool,`
 
-^- [x] **Step 4: 进度文案映射**
+- [x] **Step 4: 进度文案映射**
 
 Modify `app/api/chat/route.ts` onToolExecutionStart（tailoredResume 行之后）追加：
 
@@ -290,7 +290,7 @@ Modify `app/api/chat/route.ts` onToolExecutionStart（tailoredResume 行之后�
 : toolName === 'applyJob' ? '正在更新投递状态…'
 ```
 
-^- [x] **Step 5: 类型检查 + 提交**
+- [x] **Step 5: 类型检查 + 提交**
 
 Run: `npx tsc --noEmit`
 Expected: 无错误
@@ -308,7 +308,7 @@ git commit -m "feat: applyJob 投递工具（两段式对话化审批 + 状态�
 - Modify: `src/components/sidebar/resource-tabs.tsx`（岗位区块加状态筛选）
 - Modify: `src/components/artifacts/job-drawer.tsx`（加投递状态区块）
 
-^- [x] **Step 1: 岗位列表状态筛选**
+- [x] **Step 1: 岗位列表状态筛选**
 
 Modify `src/components/sidebar/resource-tabs.tsx`：
 
@@ -340,7 +340,7 @@ const [jobFilter, setJobFilter] = useState<'all' | 'matched' | 'applying' | 'app
 {jobs.filter((job) => jobFilter === 'all' || job.status === jobFilter).map((job) => (
 ```
 
-^- [x] **Step 2: 抽屉投递状态区块**
+- [x] **Step 2: 抽屉投递状态区块**
 
 Modify `src/components/artifacts/job-drawer.tsx`：在"投递渠道"区块（`<Separator />` + `<div><p ...>投递渠道</p>` 之前）插入：
 
@@ -360,7 +360,7 @@ Modify `src/components/artifacts/job-drawer.tsx`：在"投递渠道"区块（`<S
 
 （插入位置：现有"投递渠道"区块开头 `<div>` 之前，即 `{detail && (` 容器内第二个 `<Separator />` 之后、渠道区块 `<div>` 之前）
 
-^- [x] **Step 3: 构建 + 提交**
+- [x] **Step 3: 构建 + 提交**
 
 Run: `npm run lint && npx tsc --noEmit`
 Expected: 无错误
@@ -378,12 +378,12 @@ git commit -m "feat: 前端投递状态可见性（岗位筛选 + 抽屉投递�
 - Modify: `docs/designs/2026-08-06-phase4-application-tracking-design.md`（状态改为完成）
 - Modify: `docs/plans/2026-08-06-phase4-application-tracking.md`（本文件打勾 + 状态完成）
 
-^- [x] **Step 1: 自动化验证**
+- [x] **Step 1: 自动化验证**
 
 Run: `npm run test && npm run lint && npm run build`
 Expected: 单测全绿、lint 无错误、build 成功
 
-^- [x] **Step 2: 真实 LLM 端到端验证（对话场景）**
+- [x] **Step 2: 真实 LLM 端到端验证（对话场景）**
 
 启动 `npm run dev`，在对话中验证（需 .env.local 已配置模型）：
 1. 对已匹配岗位说"投递这个岗位" → 第一段出摘要（当前/目标状态 + 推荐渠道）→ 确认 → 落库 applying；再次确认 → applied
@@ -392,7 +392,7 @@ Expected: 单测全绿、lint 无错误、build 成功
 4. 说"跳过这个岗位" → skipped 落库
 5. 侧栏岗位列表筛选（全部/已匹配/投递中/已投递/已跳过）与抽屉"投递状态"区块展示正确
 
-^- [x] **Step 3: 归档**
+- [x] **Step 3: 归档**
 
 1. 设计文档状态行 `状态：草稿 → 待审阅` 改为 `状态：完成`
 2. 本计划头部 `状态：草稿` 改为 `状态：完成`，全部任务打勾

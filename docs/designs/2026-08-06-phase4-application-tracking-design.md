@@ -32,7 +32,7 @@
 第一段（confirmed 缺省）——出投递摘要，不落库：
   1. 读岗位：channelsJson（推荐渠道，verified 优先）+ fitResultJson（三段式投递建议）
   2. 返回：{ ok:true, phase:'preview', jobOpportunityId, currentStatus, targetStatus,
-     channels: [{ id, type, label, url, email, verification, riskSignals }], advice }
+     channels: [{ id, type, label, url, email, verification, riskSignals }] }
   3. hint：引导模型向用户呈现"将把岗位从 X 推进到 Y + 推荐渠道（核验状态）"，请求用户确认
 
 第二段（confirmed=true）——状态推进落库：
