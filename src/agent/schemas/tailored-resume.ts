@@ -16,8 +16,8 @@ export const resumeEditSuggestionsSchemaV1 = z.object({
   schemaVersion: z.literal(1),
   edits: z.array(z.object({
     id: z.string().regex(/^e\d+$/).describe('建议编号，稳定 id：e1、e2…'),
-    section: z.enum(['experience', 'skills', 'education', 'other'])
-      .describe('所属简历区块：experience 经历 / skills 技能 / education 教育 / other 其他'),
+    section: z.enum(['summary', 'experience', 'skills', 'education', 'projects', 'other'])
+      .describe('所属简历区块：summary 个人摘要 / experience 工作经历 / skills 技能 / education 教育 / projects 项目经历 / other 其他'),
     sourceText: z.string().describe('简历原文片段（必须逐字抄录，后续按此定位替换）'),
     suggestedText: z.string().describe('替换文本（针对岗位匹配结果优化后的表述）'),
     reason: z.string().describe('依据：引用匹配要求编号（r1..rn）或简历内已有证据'),

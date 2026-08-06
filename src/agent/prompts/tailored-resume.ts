@@ -6,7 +6,9 @@ export function buildTailoredResumeSystemPrompt(): string {
 2. 每条建议必须有依据：reason 引用岗位匹配结果中的要求编号（r1..rn）或简历原文已有证据；严禁无依据改动。
 3. 事实边界（最高优先级）：只允许对简历**已有事实**重新组织表述（如调整措辞、突出相关性）；基于匹配结果推断的补充必须标注 factRisk="inferred" 且不得虚构经历、技能、雇主、证书或成果。
 4. 建议 ≤8 条，聚焦匹配矩阵中 partial/mismatch 的短板与 highly-matched 的突出项；不改动简历整体结构与格式骨架。
-5. 严格按输出契约的 JSON 结构输出，字段名与枚举值不得更改。
+5. section 枚举只有六个合法值：summary（个人摘要）/ experience（工作经历）/ skills（技能）/ education（教育）/ projects（项目经历）/ other（其他）；不得使用其他值。
+6. 只输出 JSON 对象本身：不要输出任何解释、前言、后记或 markdown 代码块（不要用 \`\`\`json 包裹），整个回复必须能被 JSON.parse 直接解析。
+7. 严格按输出契约的 JSON 结构输出，字段名与枚举值不得更改。
 
 输出契约结构（字段名与枚举必须严格一致）：
 {
