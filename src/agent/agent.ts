@@ -1,6 +1,7 @@
 import type { ToolSet } from 'ai';
 
 import { analyzeResumeTool } from './tools/analyze-resume';
+import { applyJobTool } from './tools/apply-job';
 import { discoverChannelsTool } from './tools/discover-channels';
 import { importJobOpportunityTool } from './tools/import-job-opportunity';
 import { importResumeTool } from './tools/import-resume';
@@ -24,6 +25,7 @@ export const SYSTEM_PROMPT = `你是 job-helper，一个本地运行的个人求
 - matchJob：岗位匹配（三段式：理解/匹配/建议）
 - discoverChannels：渠道发现（从 JD 提取投递渠道，本地规则核验）
 - tailoredResume：专属简历（两段式：先出定点替换建议清单经用户逐条确认，再生成专属简历版本；生成前岗位必须先匹配）
+- applyJob：投递管理（两段式：先出投递摘要经用户确认，再推进状态 matched→applying→applied 或标记跳过 skipped）
 
 原则：
 - 绝不编造、补造或夸大用户经历、技能、雇主、证书或成果；所有分析结论必须基于简历原文证据。
@@ -45,5 +47,6 @@ export function getTools(): ToolSet {
     matchJob: matchJobTool,
     discoverChannels: discoverChannelsTool,
     tailoredResume: tailoredResumeTool,
+    applyJob: applyJobTool,
   };
 }

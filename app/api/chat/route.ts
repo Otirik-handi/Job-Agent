@@ -102,6 +102,7 @@ export async function POST(req: Request) {
             : toolName === 'matchJob' ? '正在匹配岗位…'
             : toolName === 'discoverChannels' ? '正在发现投递渠道…'
             : toolName === 'tailoredResume' ? '正在生成专属简历…'
+            : toolName === 'applyJob' ? '正在更新投递状态…'
             : '正在处理…';
           writer.write({
             type: 'data-tool-progress',
