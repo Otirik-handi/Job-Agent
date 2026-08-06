@@ -34,6 +34,7 @@ export const applyJobTool = createDomainTool({
         ok: false,
         error: { code: 'JOB_MATCH_REQUIRED', message: '该岗位尚未完成匹配，无法投递' },
         jobOpportunityId: job.id,
+        currentStatus: job.status,
         hint: '请先调用 matchJob 完成岗位匹配，再执行投递。',
       };
     }
