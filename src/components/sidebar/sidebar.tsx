@@ -44,17 +44,17 @@ export function Sidebar({
       </div>
       <Tabs value={tab} onValueChange={(v) => setTab(v as 'conversations' | 'resources')} className="flex-1 min-h-0">
         <div ref={tabBarRef} className="relative m-2">
-          {/* 滑动指示器：白色胶囊承载选中态，颜色不变，仅增加滑动过渡 */}
+          {/* 滑动指示器：与选中块原样式完全同形（白底 rounded-md 同高 shadow-soft），z-10 保证阴影不被 TabsList 背景遮挡 */}
           <span
             aria-hidden
-            className="pointer-events-none absolute inset-y-0 left-0 rounded-lg bg-white shadow-soft transition-all duration-300 ease-out"
+            className="pointer-events-none absolute inset-y-1 left-0 z-10 rounded-md bg-white shadow-soft transition-all duration-300 ease-out"
             style={{ width: indicator.w || undefined, transform: `translateX(${indicator.x}px)` }}
           />
-          <TabsList className="relative z-10 grid w-full grid-cols-2">
-            <TabsTrigger value="conversations" data-sidebar-tab="conversations" className="data-active:bg-transparent data-active:shadow-none">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="conversations" data-sidebar-tab="conversations" className="z-20 data-active:bg-transparent data-active:shadow-none">
               会话
             </TabsTrigger>
-            <TabsTrigger value="resources" data-sidebar-tab="resources" className="data-active:bg-transparent data-active:shadow-none">
+            <TabsTrigger value="resources" data-sidebar-tab="resources" className="z-20 data-active:bg-transparent data-active:shadow-none">
               资源
             </TabsTrigger>
           </TabsList>
