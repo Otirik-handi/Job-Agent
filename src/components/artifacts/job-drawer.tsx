@@ -139,7 +139,6 @@ export function JobDrawer({ jobId, open, onOpenChange, onOpenTailored }: {
         )}
         {detail && (
           <div className="mt-5 space-y-5 border-t border-slate-200/60 pt-5 text-sm">
-            <Separator />
             <div>
               <p className="mb-2 font-medium">投递状态</p>
               <div className="flex items-center gap-2">
