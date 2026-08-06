@@ -85,19 +85,19 @@ export function ResourceTabs({
       <div className="flex gap-1 text-xs text-muted-foreground">
         <span
           onClick={() => setTab('resume')}
-          className={`cursor-pointer rounded-full px-3 py-1 transition-colors hover:bg-slate-100 ${tab === 'resume' ? 'bg-slate-100' : ''}`}
+          className={`cursor-pointer rounded-full px-3 py-1 transition-all hover:bg-slate-100 ${tab === 'resume' ? 'bg-white text-foreground shadow-soft' : ''}`}
         >
           简历
         </span>
         <span
           onClick={() => setTab('job')}
-          className={`cursor-pointer rounded-full px-3 py-1 transition-colors hover:bg-slate-100 ${tab === 'job' ? 'bg-slate-100' : ''}`}
+          className={`cursor-pointer rounded-full px-3 py-1 transition-all hover:bg-slate-100 ${tab === 'job' ? 'bg-white text-foreground shadow-soft' : ''}`}
         >
           岗位
         </span>
         <span
           onClick={() => setTab('tailored')}
-          className={`cursor-pointer rounded-full px-3 py-1 transition-colors hover:bg-slate-100 ${tab === 'tailored' ? 'bg-slate-100' : ''}`}
+          className={`cursor-pointer rounded-full px-3 py-1 transition-all hover:bg-slate-100 ${tab === 'tailored' ? 'bg-white text-foreground shadow-soft' : ''}`}
         >
           专属简历
         </span>
