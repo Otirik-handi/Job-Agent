@@ -29,6 +29,7 @@ export function ResourceTabs({
   onDeletedTailored: (id: string) => void;
 }) {
   const [tab, setTab] = useState<'resume' | 'job' | 'tailored'>('resume');
+  const [jobFilter, setJobFilter] = useState<'all' | 'matched' | 'applying' | 'applied' | 'skipped'>('all');
   // 滑动指示器：跟随选中 Tab 的位置与宽度（useLayoutEffect 避免首帧闪烁）
   const tabBarRef = useRef<HTMLDivElement>(null);
   const [indicator, setIndicator] = useState({ x: 0, w: 0 });
@@ -188,6 +189,17 @@ export function ResourceTabs({
       )}
       {tab === 'job' && (
         <>
+          <div className="flex flex-wrap gap-1 px-3 pb-1 text-xs">
+            {(['all', 'matched', 'applying', 'applied', 'skipped'] as const).map((f) => (
+              <button
+                key={f}
+                onClick={() => setJobFilter(f)}
+                className={`rounded-full px-2.5 py-1 transition-colors ${jobFilter === f ? 'bg-indigo-600 text-white' : 'text-muted-foreground hover:bg-slate-100'}`}
+              >
+                {{ all: '全部', matched: '已匹配', applying: '投递中', applied: '已投递', skipped: '已跳过' }[f]}
+              </button>
+            ))}
+          </div>
           {jobs.length === 0 && (
             <EmptyState
               compact
@@ -197,7 +209,7 @@ export function ResourceTabs({
               className="rounded-2xl bg-slate-100/60 px-3 py-6"
             />
           )}
-          {jobs.map((job) => (
+          {jobs.filter((job) => jobFilter === 'all' || job.status === jobFilter).map((job) => (
             <div key={job.id} className="group relative rounded-xl transition-all hover:bg-slate-100">
               <div
                 onClick={() => onOpenJob(job.id)}

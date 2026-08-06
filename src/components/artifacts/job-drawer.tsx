@@ -139,6 +139,17 @@ export function JobDrawer({ jobId, open, onOpenChange, onOpenTailored }: {
         )}
         {detail && (
           <div className="mt-5 space-y-5 border-t border-slate-200/60 pt-5 text-sm">
+            <Separator />
+            <div>
+              <p className="mb-2 font-medium">投递状态</p>
+              <div className="flex items-center gap-2">
+                <StatusBadge status={detail.status} />
+                {detail.status === 'matched' && <span className="text-xs text-muted-foreground">可对助手说「投递该岗位」或「跳过该岗位」</span>}
+                {detail.status === 'applying' && <span className="text-xs text-muted-foreground">可对助手说「已投递该岗位」完成投递</span>}
+                {detail.status === 'applied' && <span className="text-xs text-muted-foreground">已投递，等待对方反馈</span>}
+                {detail.status === 'skipped' && <span className="text-xs text-muted-foreground">已跳过，可随时重新匹配</span>}
+              </div>
+            </div>
             <div>
               <p className="mb-2 font-medium">投递渠道</p>
               {channels === null && <p className="text-muted-foreground">尚未发现渠道，可在对话中让 Agent 发现</p>}
