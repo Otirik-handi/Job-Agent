@@ -1,7 +1,7 @@
 # 第 4 期设计：投递管理闭环（applyJob + 投递状态机）
 
 日期：2026-08-06
-状态：草稿 → 待审阅
+状态：完成
 关联规范：AGENTS.md（关键硬约束）、plan-document.md
 设计依据：`docs/designs/2026-08-04-data-model-design.md`（status 枚举 saved/analyzed/matched/applying/applied/skipped、工具全景 applyJob 契约、过程态不建模）、`docs/designs/2026-08-04-agent-architecture-design.md`（工具全景、对话化审批）、`docs/designs/2026-08-06-phase3-channel-tailored-resume-design.md`（两段式对话化审批模式参考、channels_json）
 前置：第 3 期已交付（discoverChannels/tailoredResume、channels_json 落库、专属简历与岗位抽屉区块）
