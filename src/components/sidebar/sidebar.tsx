@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import { Sparkles } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/src/components/ui/tabs';
 import { ConversationList } from './conversation-list';
@@ -25,6 +25,14 @@ export function Sidebar({
   onDeletedTailored: (id: string) => void;
 }) {
   const [tab, setTab] = useState<'conversations' | 'resources'>('conversations');
+  // 滑动指示器：跟随选中 Tab（白色胶囊，选中色保持原样）
+  const tabBarRef = useRef<HTMLDivElement>(null);
+  const [indicator, setIndicator] = useState({ x: 0, w: 0 });
+  useLayoutEffect(() => {
+    const bar = tabBarRef.current;
+    const el = bar?.querySelector<HTMLElement>(`[data-sidebar-tab="${tab}"]`);
+    if (bar && el) setIndicator({ x: el.offsetLeft, w: el.offsetWidth });
+  }, [tab]);
   return (
     <aside className="flex w-[300px] shrink-0 flex-col border-r border-slate-200/60 bg-gradient-to-b from-indigo-50/70 via-white to-white shadow-card">
       {/* 品牌 Logo 区 */}
@@ -35,10 +43,22 @@ export function Sidebar({
         <span className="truncate text-sm font-semibold text-slate-700">Job Helper</span>
       </div>
       <Tabs value={tab} onValueChange={(v) => setTab(v as 'conversations' | 'resources')} className="flex-1 min-h-0">
-        <TabsList className="m-2 grid w-[calc(100%-1rem)] grid-cols-2">
-          <TabsTrigger value="conversations">会话</TabsTrigger>
-          <TabsTrigger value="resources">资源</TabsTrigger>
-        </TabsList>
+        <div ref={tabBarRef} className="relative m-2">
+          {/* 滑动指示器：白色胶囊承载选中态，颜色不变，仅增加滑动过渡 */}
+          <span
+            aria-hidden
+            className="pointer-events-none absolute inset-y-0 left-0 rounded-lg bg-white shadow-soft transition-all duration-300 ease-out"
+            style={{ width: indicator.w || undefined, transform: `translateX(${indicator.x}px)` }}
+          />
+          <TabsList className="relative z-10 grid w-full grid-cols-2">
+            <TabsTrigger value="conversations" data-sidebar-tab="conversations" className="data-active:bg-transparent data-active:shadow-none">
+              会话
+            </TabsTrigger>
+            <TabsTrigger value="resources" data-sidebar-tab="resources" className="data-active:bg-transparent data-active:shadow-none">
+              资源
+            </TabsTrigger>
+          </TabsList>
+        </div>
         <TabsContent value="conversations" className="h-[calc(100%-3rem)]">
           <ConversationList
             conversations={conversations}
