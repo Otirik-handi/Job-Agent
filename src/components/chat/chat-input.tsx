@@ -13,7 +13,7 @@ export function ChatInput({
   const [text, setText] = useState('');
   return (
     <div className="border-t border-slate-200 bg-white p-4">
-      <div className="mx-auto w-full max-w-2xl">
+      <div className="mx-auto w-full max-w-[52.5rem]">
         <div className="relative">
           {/* 装饰图标：浅底回形针，纯装饰（未来可接入上传入口） */}
           <span aria-hidden className="pointer-events-none absolute left-3 top-3.5 flex size-6 items-center justify-center rounded-full bg-indigo-500/10">

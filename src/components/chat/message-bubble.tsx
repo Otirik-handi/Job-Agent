@@ -17,7 +17,7 @@ export function MessageBubble({ message }: { message: UIMessage }) {
       <div
         className={cn(
           'flex size-8 shrink-0 items-center justify-center rounded-full',
-          isUser ? 'bg-indigo-500/10 text-indigo-600' : 'bg-slate-200/70 text-slate-600',
+          isUser ? 'bg-primary/10 text-primary' : 'bg-slate-200/70 text-slate-600',
         )}
         aria-label={isUser ? '用户' : '助手'}
       >
