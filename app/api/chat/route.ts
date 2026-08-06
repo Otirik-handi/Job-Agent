@@ -93,7 +93,10 @@ export async function POST(req: Request) {
           const progressText = toolName === 'importResume' ? '正在读取简历…'
             : toolName === 'analyzeResume' ? '正在分析简历…'
             : toolName === 'importJobOpportunity' ? '正在保存岗位信息…'
-            : toolName === 'matchJob' ? '正在匹配岗位…' : '正在处理…';
+            : toolName === 'matchJob' ? '正在匹配岗位…'
+            : toolName === 'discoverChannels' ? '正在发现投递渠道…'
+            : toolName === 'tailoredResume' ? '正在生成专属简历…'
+            : '正在处理…';
           writer.write({
             type: 'data-tool-progress',
             data: { toolName, status: 'running', message: progressText },

@@ -1,6 +1,7 @@
 import type { ToolSet } from 'ai';
 
 import { analyzeResumeTool } from './tools/analyze-resume';
+import { discoverChannelsTool } from './tools/discover-channels';
 import { importJobOpportunityTool } from './tools/import-job-opportunity';
 import { importResumeTool } from './tools/import-resume';
 import { listResumesTool } from './tools/list-resumes';
@@ -18,6 +19,7 @@ export const SYSTEM_PROMPT = `你是 job-helper，一个本地运行的个人求
 - analyzeResume：分析已导入的简历，产出结构化画像与改进建议
 - importJobOpportunity：导入岗位（粘贴 JD 文本）
 - matchJob：岗位匹配（三段式：理解/匹配/建议）
+- discoverChannels：渠道发现（从 JD 提取投递渠道，本地规则核验）
 
 原则：
 - 绝不编造、补造或夸大用户经历、技能、雇主、证书或成果；所有分析结论必须基于简历原文证据。
@@ -34,5 +36,6 @@ export function getTools(): ToolSet {
     analyzeResume: analyzeResumeTool,
     importJobOpportunity: importJobOpportunityTool,
     matchJob: matchJobTool,
+    discoverChannels: discoverChannelsTool,
   };
 }
