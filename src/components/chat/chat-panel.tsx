@@ -1,7 +1,7 @@
 'use client';
 import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport } from 'ai';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Sparkles } from 'lucide-react';
 import { EmptyState } from '@/src/components/ui/empty-state';
 import { MessageBubble } from './message-bubble';
@@ -11,19 +11,26 @@ import type { UIMessage } from 'ai';
 
 export type ToolProgress = { toolName: string; status: 'running' | 'completed' | 'failed'; message: string };
 
+/** 距底部多少像素内视为"跟随底部"（避免用户上滑查看历史时被强制拉回） */
+const STICK_THRESHOLD = 80;
+
 export function ChatPanel({
-  conversationId, initialMessages, title, onChatSettled,
+  conversationId, initialMessages, title, onChatSettled, onConversationCreated,
 }: {
   conversationId: string | null;
   initialMessages: UIMessage[];
   title: string;
   onChatSettled: () => void;
+  onConversationCreated: (id: string) => void;
 }) {
   const [progress, setProgress] = useState<ToolProgress | null>(null);
   const settledRef = useRef(false);
+  // 服务端创建新会话后通过 conversation-id 事件回传真实 id，后续消息复用它
+  const [internalConvId, setInternalConvId] = useState<string | null>(conversationId);
+  useEffect(() => { setInternalConvId(conversationId); }, [conversationId]);
 
   const { messages, sendMessage, stop, status } = useChat({
-    id: conversationId ?? undefined,
+    id: internalConvId ?? undefined,
     messages: initialMessages,
     transport: new DefaultChatTransport({ api: '/api/chat' }),
     onData: (part) => {
@@ -31,6 +38,12 @@ export function ChatPanel({
         const data = part.data as ToolProgress;
         setProgress(data);
         if (data.status === 'completed' || data.status === 'failed') settledRef.current = true;
+      } else if (part.type === 'data-conversation-id') {
+        const id = (part.data as { conversationId: string }).conversationId;
+        if (id) {
+          setInternalConvId(id);
+          onConversationCreated(id);
+        }
       }
     },
     onFinish: () => {
@@ -40,6 +53,19 @@ export function ChatPanel({
     },
   });
 
+  // —— 滚动跟随底部：新消息/流式输出时若用户处于底部附近则自动滚到最下方 ——
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [stickToBottom, setStickToBottom] = useState(true);
+  const handleScroll = () => {
+    const el = scrollRef.current;
+    if (!el) return;
+    setStickToBottom(el.scrollHeight - el.scrollTop - el.clientHeight < STICK_THRESHOLD);
+  };
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (el && stickToBottom) el.scrollTop = el.scrollHeight;
+  }, [messages, stickToBottom]);
+
   return (
     <div className="flex h-full flex-col">
       {/* 会话标题栏 */}
@@ -48,6 +74,8 @@ export function ChatPanel({
         <h2 className="truncate text-sm font-semibold text-slate-700">{title}</h2>
       </div>
       <div
+        ref={scrollRef}
+        onScroll={handleScroll}
         className="flex-1 overflow-y-auto p-4"
         style={{
           backgroundImage:
@@ -73,7 +101,7 @@ export function ChatPanel({
       <ChatInput
         disabled={status === 'streaming' || status === 'submitted'}
         streaming={status === 'streaming' || status === 'submitted'}
-        onSend={(text) => sendMessage({ text }, conversationId ? { body: { conversationId } } : undefined)}
+        onSend={(text) => sendMessage({ text }, internalConvId ? { body: { conversationId: internalConvId } } : undefined)}
         onStop={stop}
       />
     </div>

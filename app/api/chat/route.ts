@@ -83,6 +83,12 @@ export async function POST(req: Request) {
       return '处理请求时发生错误，请稍后重试';
     },
     execute: async ({ writer }) => {
+      // 推送会话 id：新会话首条消息由服务端创建，前端需获知 id 以便后续消息复用同一会话
+      writer.write({
+        type: 'data-conversation-id',
+        data: { conversationId: convId },
+        transient: true,
+      });
       const agent = new ToolLoopAgent({
         model: getModel(),
         instructions: SYSTEM_PROMPT,

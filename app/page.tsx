@@ -13,6 +13,9 @@ export default function Home() {
   const { conversations, refresh, remove } = useConversations();
   const [activeId, setActiveId] = useState<string | null>(null);
   const [initialMessages, setInitialMessages] = useState<UIMessage[]>([]);
+  // ChatPanel 重挂载键：仅"切换/新建会话"时递增；
+  // 首次创建会话（activeId null → id）不递增，避免流式回复中途重挂载丢失消息
+  const [chatKey, setChatKey] = useState(0);
   const [drawerResumeId, setDrawerResumeId] = useState<string | null>(null);
   const [drawerJobId, setDrawerJobId] = useState<string | null>(null);
   const [drawerTailoredId, setDrawerTailoredId] = useState<string | null>(null);
@@ -23,11 +26,17 @@ export default function Home() {
     const msgs = await apiGet<UIMessage[]>(`/api/conversations/${id}/messages`);
     setInitialMessages(msgs);
     setActiveId(id);
+    setChatKey((k) => k + 1);
   }, []);
 
   const newConversation = useCallback(() => {
     setActiveId(null);
     setInitialMessages([]);
+    setChatKey((k) => k + 1);
+  }, []);
+
+  const handleConversationCreated = useCallback((id: string) => {
+    setActiveId(id);
   }, []);
 
   const handleRenameConversation = useCallback(async (id: string, title: string) => {
@@ -70,11 +79,12 @@ export default function Home() {
       />
       <div className="flex-1">
         <ChatPanel
-          key={activeId ?? 'new'}
+          key={chatKey}
           conversationId={activeId}
           initialMessages={initialMessages}
           title={currentTitle}
           onChatSettled={refresh}
+          onConversationCreated={handleConversationCreated}
         />
       </div>
       <ResumeDrawer
