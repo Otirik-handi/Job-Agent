@@ -1,12 +1,14 @@
 'use client';
-import { Briefcase } from 'lucide-react';
+import { Briefcase, FilePen, Globe, Mail } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/src/components/ui/sheet';
 import { StatusBadge } from '@/src/components/ui/status-badge';
 import { EmptyState } from '@/src/components/ui/empty-state';
 import { Separator } from '@/src/components/ui/separator';
 import { MarkdownText } from '@/src/components/chat/markdown-text';
 import { cn } from '@/src/lib/utils';
+import { formatRelativeTime } from '@/src/lib/format-time';
 import { useJobDetail } from '@/src/lib/use-job-detail';
+import { useTailoredResumes } from '@/src/lib/use-tailored-resumes';
 
 const LEVEL_LABELS: Record<string, string> = {
   'highly-matched': '高度匹配', matched: '匹配', partial: '部分匹配', mismatch: '不匹配',
@@ -18,11 +20,31 @@ const LEVEL_STYLES: Record<string, string> = {
   mismatch: 'bg-red-500/10 text-red-700',
 };
 
-export function JobDrawer({ jobId, open, onOpenChange }: {
+const CHANNEL_TYPE_LABELS: Record<string, string> = {
+  official: '官方', job_board: '招聘平台', email: '邮箱', unknown: '未知',
+};
+const CHANNEL_TYPE_STYLES: Record<string, string> = {
+  official: 'bg-indigo-500/10 text-indigo-700',
+  job_board: 'bg-amber-500/10 text-amber-700',
+  email: 'bg-emerald-500/10 text-emerald-700',
+  unknown: 'bg-slate-100 text-slate-600',
+};
+const CHANNEL_VERIFY_LABELS: Record<string, string> = {
+  verified: '已核验', needs_check: '需核验',
+};
+const CHANNEL_VERIFY_STYLES: Record<string, string> = {
+  verified: 'bg-emerald-500/10 text-emerald-700',
+  needs_check: 'bg-amber-500/10 text-amber-700',
+};
+
+export function JobDrawer({ jobId, open, onOpenChange, onOpenTailored }: {
   jobId: string | null; open: boolean; onOpenChange: (open: boolean) => void;
+  onOpenTailored: (id: string) => void;
 }) {
   const { detail } = useJobDetail(open ? jobId : null);
+  const { items: tailored } = useTailoredResumes(open ? { jobOpportunityId: jobId ?? undefined } : undefined);
   const fit = detail?.fitResult ?? null;
+  const channels = detail?.channels?.channels ?? null;
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -48,7 +70,6 @@ export function JobDrawer({ jobId, open, onOpenChange }: {
               <span className="text-2xl font-semibold">{fit.overallScore}</span>
               <span className="text-muted-foreground">/ 100 匹配评分</span>
             </div>
-
             <div>
               <p className="mb-2 font-medium">岗位理解</p>
               {fit.understanding.city && <p className="mb-1 text-sm text-muted-foreground">城市：{fit.understanding.city}</p>}
@@ -113,6 +134,82 @@ export function JobDrawer({ jobId, open, onOpenChange }: {
                   <MarkdownText text={fit.advice.truthBoundary} />
                 </div>
               </div>
+            </div>
+          </div>
+        )}
+        {detail && (
+          <div className="mt-5 space-y-5 border-t border-slate-200/60 pt-5 text-sm">
+            <div>
+              <p className="mb-2 font-medium">投递渠道</p>
+              {channels === null && <p className="text-muted-foreground">尚未发现渠道，可在对话中让 Agent 发现</p>}
+              {channels && channels.length === 0 && <p className="text-muted-foreground">JD 中未发现可核验的投递渠道</p>}
+              {channels && channels.length > 0 && (
+                <ul className="space-y-2.5">
+                  {channels.map((c) => (
+                    <li key={c.id} className="rounded-2xl bg-slate-50 p-3.5">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="flex min-w-0 items-center gap-2">
+                          <span className={cn('shrink-0 rounded-full px-2 py-0.5 text-xs font-medium', CHANNEL_TYPE_STYLES[c.type])}>
+                            {CHANNEL_TYPE_LABELS[c.type]}
+                          </span>
+                          <span className="truncate font-medium">{c.label}</span>
+                        </span>
+                        <span className={cn('shrink-0 rounded-full px-2 py-0.5 text-xs font-medium', CHANNEL_VERIFY_STYLES[c.verification])}>
+                          {CHANNEL_VERIFY_LABELS[c.verification]}
+                        </span>
+                      </div>
+                      {(c.url || c.email) && (
+                        <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs">
+                          {c.url && (
+                            <a href={c.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 break-all text-indigo-600 hover:underline">
+                              <Globe className="size-3 shrink-0" />
+                              {c.url}
+                            </a>
+                          )}
+                          {c.email && (
+                            <a href={`mailto:${c.email}`} className="inline-flex items-center gap-1 text-indigo-600 hover:underline">
+                              <Mail className="size-3 shrink-0" />
+                              {c.email}
+                            </a>
+                          )}
+                        </div>
+                      )}
+                      {c.riskSignals.length > 0 && (
+                        <p className="mt-2 border-t border-slate-200/60 pt-2 text-xs text-amber-700">{c.riskSignals.join('；')}</p>
+                      )}
+                      {c.note && <p className="mt-1 text-xs italic text-slate-500">核验：{c.note}</p>}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+            <Separator />
+            <div>
+              <p className="mb-2 font-medium">专属简历</p>
+              {tailored.length === 0 && (
+                <p className="text-muted-foreground">尚未生成，可在对话中让 Agent 生成专属简历</p>
+              )}
+              {tailored.length > 0 && (
+                <ul className="space-y-1.5">
+                  {tailored.map((t) => (
+                    <li key={t.id}>
+                      <button
+                        onClick={() => onOpenTailored(t.id)}
+                        className="w-full rounded-xl bg-slate-50 px-3.5 py-2.5 text-left transition-colors hover:bg-slate-100"
+                      >
+                        <span className="flex items-center justify-between gap-2">
+                          <span className="flex min-w-0 items-center gap-2">
+                            <FilePen className="size-3.5 shrink-0 text-violet-600" />
+                            <span className="font-medium">v{t.version}</span>
+                            <span className="truncate text-xs text-muted-foreground">{t.resumeName || '未知简历'}</span>
+                          </span>
+                          <span className="shrink-0 text-xs text-muted-foreground">{formatRelativeTime(t.updatedAt)}</span>
+                        </span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
           </div>
         )}

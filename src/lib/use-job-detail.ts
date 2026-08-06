@@ -12,6 +12,14 @@ export type JobDetail = {
     risks: Array<{ point: string; evidence?: string }>;
     advice: { mustFix: string[]; resumeAdjustments: string[]; talkingPoints: string[]; truthBoundary: string };
   } | null;
+  channels: {
+    schemaVersion: number;
+    channels: Array<{
+      id: string; type: 'official' | 'job_board' | 'email' | 'unknown';
+      label: string; url: string | null; email: string | null;
+      riskSignals: string[]; verification: 'verified' | 'needs_check'; note: string;
+    }>;
+  } | null;
   createdAt: string; updatedAt: string;
 };
 

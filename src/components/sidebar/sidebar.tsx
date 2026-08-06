@@ -8,8 +8,8 @@ import type { ConversationSummary } from '@/src/lib/use-conversations';
 
 export function Sidebar({
   conversations, activeConversationId, onSelectConversation, onNewConversation,
-  onRenameConversation, onDeleteConversation, onOpenResume, onOpenJob,
-  onDeletedResume, onDeletedJob,
+  onRenameConversation, onDeleteConversation, onOpenResume, onOpenJob, onOpenTailored,
+  onDeletedResume, onDeletedJob, onDeletedTailored,
 }: {
   conversations: ConversationSummary[];
   activeConversationId: string | null;
@@ -19,8 +19,10 @@ export function Sidebar({
   onDeleteConversation: (id: string) => void;
   onOpenResume: (id: string) => void;
   onOpenJob: (id: string) => void;
+  onOpenTailored: (id: string) => void;
   onDeletedResume: (id: string) => void;
   onDeletedJob: (id: string) => void;
+  onDeletedTailored: (id: string) => void;
 }) {
   const [tab, setTab] = useState<'conversations' | 'resources'>('conversations');
   return (
@@ -51,8 +53,10 @@ export function Sidebar({
           <ResourceTabs
             onOpenResume={onOpenResume}
             onOpenJob={onOpenJob}
+            onOpenTailored={onOpenTailored}
             onDeletedResume={onDeletedResume}
             onDeletedJob={onDeletedJob}
+            onDeletedTailored={onDeletedTailored}
           />
         </TabsContent>
       </Tabs>

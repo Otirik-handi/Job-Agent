@@ -4,6 +4,7 @@ import { ChatPanel } from '@/src/components/chat/chat-panel';
 import { Sidebar } from '@/src/components/sidebar/sidebar';
 import { ResumeDrawer } from '@/src/components/artifacts/resume-drawer';
 import { JobDrawer } from '@/src/components/artifacts/job-drawer';
+import { TailoredResumeDrawer } from '@/src/components/artifacts/tailored-resume-drawer';
 import { useConversations } from '@/src/lib/use-conversations';
 import { apiGet, apiSend } from '@/src/lib/api';
 import type { UIMessage } from 'ai';
@@ -14,6 +15,7 @@ export default function Home() {
   const [initialMessages, setInitialMessages] = useState<UIMessage[]>([]);
   const [drawerResumeId, setDrawerResumeId] = useState<string | null>(null);
   const [drawerJobId, setDrawerJobId] = useState<string | null>(null);
+  const [drawerTailoredId, setDrawerTailoredId] = useState<string | null>(null);
 
   const selectConversation = useCallback(async (id: string) => {
     // 先加载消息再切换会话：保证 ChatPanel 重挂载时拿到正确的 initialMessages
@@ -61,8 +63,10 @@ export default function Home() {
         onDeleteConversation={handleDeleteConversation}
         onOpenResume={setDrawerResumeId}
         onOpenJob={setDrawerJobId}
+        onOpenTailored={setDrawerTailoredId}
         onDeletedResume={(id) => setDrawerResumeId((prev) => (prev === id ? null : prev))}
         onDeletedJob={(id) => setDrawerJobId((prev) => (prev === id ? null : prev))}
+        onDeletedTailored={(id) => setDrawerTailoredId((prev) => (prev === id ? null : prev))}
       />
       <div className="flex-1">
         <ChatPanel
@@ -82,6 +86,13 @@ export default function Home() {
         jobId={drawerJobId}
         open={drawerJobId !== null}
         onOpenChange={(open) => { if (!open) setDrawerJobId(null); }}
+        onOpenTailored={setDrawerTailoredId}
+      />
+      <TailoredResumeDrawer
+        tailoredResumeId={drawerTailoredId}
+        open={drawerTailoredId !== null}
+        onOpenChange={(open) => { if (!open) setDrawerTailoredId(null); }}
+        onDeleted={(id) => setDrawerTailoredId((prev) => (prev === id ? null : prev))}
       />
     </main>
   );
