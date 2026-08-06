@@ -1,5 +1,3 @@
-import type { JobMatchResultV1 } from '../schemas/job-match';
-
 export function buildJobMatchSystemPrompt(): string {
   return `你是一名资深招聘匹配专家。请将岗位 JD 与候选人简历进行匹配分析，按输出契约产出结构化结果（三段式：岗位理解 → 逐条匹配矩阵 → 投递建议）。
 

@@ -27,7 +27,7 @@ export type ExecutableDomainTool<INPUT extends ZodType, OUTPUT> = Tool<
 export function createDomainTool<INPUT extends ZodType, OUTPUT>(
   options: DomainToolOptions<INPUT, OUTPUT>,
 ) {
-  const { name, description, inputSchema, progress, execute } = options;
+  const { name, description, inputSchema, execute } = options;
   // ai v7 的 tool() 无法在泛型参数下推断 INPUT/OUTPUT（FlexibleSchema 为
   // zod v3 兼容 | zod v4 core.$ZodType 联合；NeverOptional<OUTPUT> 在 OUTPUT
   // 为未解析类型参数时会坍缩到 never 分支，导致 execute/outputSchema 全部变成
@@ -36,8 +36,10 @@ export function createDomainTool<INPUT extends ZodType, OUTPUT>(
   //    仍生效：inputSchema 需可赋值给 FlexibleSchema、execute 返回需兼容）；
   // 2) 结果再断言回 ExecutableDomainTool，使 createDomainTool 返回值在调用处
   //    （具体 schema）保有准确的输入/输出类型，且可注册进 ToolSet。
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- ai v7 泛型桥接，见上方注释
   return tool<z.infer<INPUT>, any, ToolContext>({
     description,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- zod v3/v4 联合类型桥接，见上方注释
     inputSchema: inputSchema as z.ZodType<z.infer<INPUT>, any>,
     execute: async (args) => {
       const startedAt = Date.now();
