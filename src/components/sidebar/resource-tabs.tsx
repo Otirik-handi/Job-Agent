@@ -31,7 +31,7 @@ export function ResourceTabs({
   const [tab, setTab] = useState<'resume' | 'job' | 'tailored'>('resume');
   const { resumes, refresh, remove: removeResume } = useResumes();
   const { jobs, remove: removeJob } = useJobOpportunities();
-  const { items: tailored, remove: removeTailored } = useTailoredResumes();
+  const { items: tailored, refresh: refreshTailored, remove: removeTailored } = useTailoredResumes();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [notice, setNotice] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);
@@ -69,9 +69,11 @@ export function ResourceTabs({
     if (kind === 'resume') {
       await removeResume(id);
       onDeletedResume(id);
+      void refreshTailored(); // 级联删除关联专属简历，列表需同步刷新
     } else if (kind === 'job') {
       await removeJob(id);
       onDeletedJob(id);
+      void refreshTailored(); // 级联删除关联专属简历，列表需同步刷新
     } else {
       await removeTailored(id);
       onDeletedTailored(id);
