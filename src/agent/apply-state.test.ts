@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { applyStateTransition, applicationOutcomeTransition } from './apply-state';
+import { applyStateTransition, applicationOutcomeTransition, type OutcomeTarget } from './apply-state';
 
 describe('apply-state: apply 动作', () => {
   it('matched → applying', () => {
@@ -54,7 +54,7 @@ describe('apply-state: applicationOutcomeTransition 非法转移', () => {
   });
   it('回退（offer→interview、interview→applied）→ STATUS_TRANSITION_INVALID', () => {
     expect(applicationOutcomeTransition('offer', 'interview')).toEqual({ ok: false, code: 'STATUS_TRANSITION_INVALID' });
-    expect(applicationOutcomeTransition('interview', 'applied')).toEqual({ ok: false, code: 'STATUS_TRANSITION_INVALID' });
+    expect(applicationOutcomeTransition('interview', 'applied' as OutcomeTarget)).toEqual({ ok: false, code: 'STATUS_TRANSITION_INVALID' });
   });
   it('终态（rejected/hired）再记录 → STATUS_TRANSITION_INVALID', () => {
     expect(applicationOutcomeTransition('rejected', 'interview')).toEqual({ ok: false, code: 'STATUS_TRANSITION_INVALID' });
