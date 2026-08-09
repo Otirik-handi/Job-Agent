@@ -15,12 +15,12 @@ export type ResumeDetail = {
   createdAt: string; updatedAt: string;
 };
 
-export function useResumeDetail(id: string | null) {
+export function useResumeDetail(id: string | null, refreshSignal?: number) {
   const [detail, setDetail] = useState<ResumeDetail | null>(null);
   useEffect(() => {
     setDetail(null);
     if (!id) return;
     void apiGet<ResumeDetail>(`/api/resumes/${id}`).then(setDetail).catch(() => setDetail(null));
-  }, [id]);
+  }, [id, refreshSignal]);
   return { detail };
 }

@@ -37,12 +37,12 @@ const CHANNEL_VERIFY_STYLES: Record<string, string> = {
   needs_check: 'bg-amber-500/10 text-amber-700',
 };
 
-export function JobDrawer({ jobId, open, onOpenChange, onOpenTailored }: {
-  jobId: string | null; open: boolean; onOpenChange: (open: boolean) => void;
+export function JobDrawer({ jobId, open, refreshSignal, onOpenChange, onOpenTailored }: {
+  jobId: string | null; open: boolean; refreshSignal?: number; onOpenChange: (open: boolean) => void;
   onOpenTailored: (id: string) => void;
 }) {
-  const { detail } = useJobDetail(open ? jobId : null);
-  const { items: tailored } = useTailoredResumes(open ? { jobOpportunityId: jobId ?? undefined } : undefined);
+  const { detail } = useJobDetail(open ? jobId : null, refreshSignal);
+  const { items: tailored } = useTailoredResumes(open ? { jobOpportunityId: jobId ?? undefined } : undefined, refreshSignal);
   const fit = detail?.fitResult ?? null;
   const channels = detail?.channels?.channels ?? null;
 

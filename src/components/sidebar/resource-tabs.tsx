@@ -14,13 +14,10 @@ import { formatRelativeTime } from '@/src/lib/format-time';
 const MAX_UPLOAD_SIZE = 20 * 1024 * 1024;
 
 export function ResourceTabs({
-  onOpenResume,
-  onOpenJob,
-  onOpenTailored,
-  onDeletedResume,
-  onDeletedJob,
-  onDeletedTailored,
+  refreshSignal, onOpenResume, onOpenJob, onOpenTailored,
+  onDeletedResume, onDeletedJob, onDeletedTailored,
 }: {
+  refreshSignal?: number;
   onOpenResume: (id: string) => void;
   onOpenJob: (id: string) => void;
   onOpenTailored: (id: string) => void;
@@ -38,9 +35,9 @@ export function ResourceTabs({
     const active = bar?.querySelector<HTMLElement>(`[data-resource-tab="${tab}"]`);
     if (bar && active) setIndicator({ x: active.offsetLeft, w: active.offsetWidth });
   }, [tab]);
-  const { resumes, refresh, remove: removeResume } = useResumes();
-  const { jobs, remove: removeJob } = useJobOpportunities();
-  const { items: tailored, refresh: refreshTailored, remove: removeTailored } = useTailoredResumes();
+  const { resumes, refresh, remove: removeResume } = useResumes(refreshSignal);
+  const { jobs, remove: removeJob } = useJobOpportunities(refreshSignal);
+  const { items: tailored, refresh: refreshTailored, remove: removeTailored } = useTailoredResumes(undefined, refreshSignal);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [notice, setNotice] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);

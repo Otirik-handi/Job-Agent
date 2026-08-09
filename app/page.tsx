@@ -16,9 +16,16 @@ export default function Home() {
   // ChatPanel 重挂载键：仅"切换/新建会话"时递增；
   // 首次创建会话（activeId null → id）不递增，避免流式回复中途重挂载丢失消息
   const [chatKey, setChatKey] = useState(0);
+  // 资源刷新信号：每轮对话结束递增，驱动侧栏资源列表与已打开抽屉重新拉取（对话落库 → UI 自动同步）
+  const [resourceSignal, setResourceSignal] = useState(0);
   const [drawerResumeId, setDrawerResumeId] = useState<string | null>(null);
   const [drawerJobId, setDrawerJobId] = useState<string | null>(null);
   const [drawerTailoredId, setDrawerTailoredId] = useState<string | null>(null);
+
+  const handleChatSettled = useCallback(() => {
+    void refresh(); // 会话列表（标题/顺序）
+    setResourceSignal((s) => s + 1); // 资源列表与抽屉详情
+  }, [refresh]);
 
   const selectConversation = useCallback(async (id: string) => {
     // 先加载消息再切换会话：保证 ChatPanel 重挂载时拿到正确的 initialMessages
@@ -66,6 +73,7 @@ export default function Home() {
       <Sidebar
         conversations={conversations}
         activeConversationId={activeId}
+        refreshSignal={resourceSignal}
         onSelectConversation={selectConversation}
         onNewConversation={newConversation}
         onRenameConversation={handleRenameConversation}
@@ -83,24 +91,27 @@ export default function Home() {
           conversationId={activeId}
           initialMessages={initialMessages}
           title={currentTitle}
-          onChatSettled={refresh}
+          onChatSettled={handleChatSettled}
           onConversationCreated={handleConversationCreated}
         />
       </div>
       <ResumeDrawer
         resumeId={drawerResumeId}
         open={drawerResumeId !== null}
+        refreshSignal={resourceSignal}
         onOpenChange={(open) => { if (!open) setDrawerResumeId(null); }}
       />
       <JobDrawer
         jobId={drawerJobId}
         open={drawerJobId !== null}
+        refreshSignal={resourceSignal}
         onOpenChange={(open) => { if (!open) setDrawerJobId(null); }}
         onOpenTailored={setDrawerTailoredId}
       />
       <TailoredResumeDrawer
         tailoredResumeId={drawerTailoredId}
         open={drawerTailoredId !== null}
+        refreshSignal={resourceSignal}
         onOpenChange={(open) => { if (!open) setDrawerTailoredId(null); }}
         onDeleted={(id) => setDrawerTailoredId((prev) => (prev === id ? null : prev))}
       />

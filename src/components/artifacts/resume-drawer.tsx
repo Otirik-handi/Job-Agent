@@ -6,10 +6,10 @@ import { EmptyState } from '@/src/components/ui/empty-state';
 import { Separator } from '@/src/components/ui/separator';
 import { useResumeDetail } from '@/src/lib/use-resume-detail';
 
-export function ResumeDrawer({ resumeId, open, onOpenChange }: {
-  resumeId: string | null; open: boolean; onOpenChange: (open: boolean) => void;
+export function ResumeDrawer({ resumeId, open, refreshSignal, onOpenChange }: {
+  resumeId: string | null; open: boolean; refreshSignal?: number; onOpenChange: (open: boolean) => void;
 }) {
-  const { detail } = useResumeDetail(open ? resumeId : null);
+  const { detail } = useResumeDetail(open ? resumeId : null, refreshSignal);
   const analysis = detail?.analysis ?? null;
 
   return (

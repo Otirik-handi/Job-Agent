@@ -8,7 +8,7 @@ export type TailoredResumeSummary = {
   createdAt: string; updatedAt: string;
 };
 
-export function useTailoredResumes(filter?: { jobOpportunityId?: string; resumeId?: string }) {
+export function useTailoredResumes(filter?: { jobOpportunityId?: string; resumeId?: string }, refreshSignal?: number) {
   const [items, setItems] = useState<TailoredResumeSummary[]>([]);
   const jobOpportunityId = filter?.jobOpportunityId;
   const resumeId = filter?.resumeId;
@@ -22,7 +22,8 @@ export function useTailoredResumes(filter?: { jobOpportunityId?: string; resumeI
   const refresh = useCallback(async () => {
     setItems(await apiGet<TailoredResumeSummary[]>(`/api/tailored-resumes${query}`));
   }, [query]);
-  useEffect(() => { void refresh(); }, [refresh]);
+  // refreshSignal：对话落库后由页面层递增，触发重新拉取（对话驱动资源变更同步到侧栏）
+  useEffect(() => { void refresh(); }, [refresh, refreshSignal]);
 
   const remove = useCallback(async (id: string) => {
     await apiSend(`/api/tailored-resumes/${id}`, 'DELETE');

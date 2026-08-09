@@ -28,13 +28,14 @@
 
 - 模式：`useState` + `refresh`（`useCallback` 包装 `apiGet`）+ `useEffect` 挂载刷新
 - 变更后重新 `refresh`：删除、上传、重命名等操作完成后调用 `refresh()` 同步列表
-- 为什么：现有 7 个 hook 的一致模式，数据源单一、状态自动同步，避免手工维护两份列表
+- 数据 hook 支持可选 `refreshSignal?: number` 参数（挂进 `useEffect` 依赖）：对话落库后页面层递增该信号，驱动列表/抽屉详情重新拉取；透传链 `page → Sidebar/ResourceTabs/Drawers`
+- 为什么：现有 hook 的一致模式，数据源单一、状态自动同步，避免手工维护两份列表；对话驱动资源变更需在 UI 侧自动同步（修复"状态更新后需手动刷新"历史教训）
 
 ## UI 约定
 
 - 空状态一律用 `EmptyState`（渐变圆底 + 图标 + 引导文案），禁止裸灰字
 - 产物展示（简历/岗位/专属简历详情）用 `artifacts/` 抽屉组件
-- 投递状态用 `StatusBadge`，仅渲染 5 状态枚举（saved/matched/applying/applied/skipped）
+- 投递状态用 `StatusBadge`，仅渲染 9 状态枚举（saved/matched/applying/applied/skipped/interview/offer/hired/rejected）
 - 确认型操作（删除/重命名）用 `ConfirmDialog`
 - 为什么：统一视觉与交互语言，验收过的组件复用而非重写
 

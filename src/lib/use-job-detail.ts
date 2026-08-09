@@ -23,12 +23,12 @@ export type JobDetail = {
   createdAt: string; updatedAt: string;
 };
 
-export function useJobDetail(id: string | null) {
+export function useJobDetail(id: string | null, refreshSignal?: number) {
   const [detail, setDetail] = useState<JobDetail | null>(null);
   useEffect(() => {
     setDetail(null);
     if (!id) return;
     void apiGet<JobDetail>(`/api/job-opportunities/${id}`).then(setDetail).catch(() => setDetail(null));
-  }, [id]);
+  }, [id, refreshSignal]);
   return { detail };
 }

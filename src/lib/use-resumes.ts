@@ -7,12 +7,13 @@ export type ResumeSummary = {
   createdAt: string; updatedAt: string;
 };
 
-export function useResumes() {
+export function useResumes(refreshSignal?: number) {
   const [resumes, setResumes] = useState<ResumeSummary[]>([]);
   const refresh = useCallback(async () => {
     setResumes(await apiGet<ResumeSummary[]>('/api/resumes'));
   }, []);
-  useEffect(() => { void refresh(); }, [refresh]);
+  // refreshSignal：对话落库后由页面层递增，触发重新拉取（对话驱动资源变更同步到侧栏）
+  useEffect(() => { void refresh(); }, [refresh, refreshSignal]);
 
   const remove = useCallback(async (id: string) => {
     await apiSend(`/api/resumes/${id}`, 'DELETE');

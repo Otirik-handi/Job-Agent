@@ -10,15 +10,15 @@ import { useTailoredResumeDetail } from '@/src/lib/use-tailored-resume-detail';
 import { useTailoredResumes } from '@/src/lib/use-tailored-resumes';
 
 /** 专属简历抽屉：Markdown 预览 + 同岗位版本切换 + 删除 */
-export function TailoredResumeDrawer({ tailoredResumeId, open, onOpenChange, onDeleted }: {
-  tailoredResumeId: string | null; open: boolean; onOpenChange: (open: boolean) => void;
+export function TailoredResumeDrawer({ tailoredResumeId, open, refreshSignal, onOpenChange, onDeleted }: {
+  tailoredResumeId: string | null; open: boolean; refreshSignal?: number; onOpenChange: (open: boolean) => void;
   onDeleted: (id: string) => void;
 }) {
   const [selectedId, setSelectedId] = useState<string | null>(tailoredResumeId);
   useEffect(() => { setSelectedId(tailoredResumeId); }, [tailoredResumeId]);
 
-  const { detail } = useTailoredResumeDetail(open ? selectedId : null);
-  const { items, remove } = useTailoredResumes(detail ? { jobOpportunityId: detail.jobOpportunityId } : undefined);
+  const { detail } = useTailoredResumeDetail(open ? selectedId : null, refreshSignal);
+  const { items, remove } = useTailoredResumes(detail ? { jobOpportunityId: detail.jobOpportunityId } : undefined, refreshSignal);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
   const handleDelete = async () => {

@@ -8,12 +8,12 @@ export type TailoredResumeDetail = {
   createdAt: string; updatedAt: string;
 };
 
-export function useTailoredResumeDetail(id: string | null) {
+export function useTailoredResumeDetail(id: string | null, refreshSignal?: number) {
   const [detail, setDetail] = useState<TailoredResumeDetail | null>(null);
   useEffect(() => {
     setDetail(null);
     if (!id) return;
     void apiGet<TailoredResumeDetail>(`/api/tailored-resumes/${id}`).then(setDetail).catch(() => setDetail(null));
-  }, [id]);
+  }, [id, refreshSignal]);
   return { detail };
 }

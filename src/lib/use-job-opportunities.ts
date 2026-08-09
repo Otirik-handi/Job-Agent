@@ -7,12 +7,13 @@ export type JobOpportunitySummary = {
   createdAt: string; updatedAt: string;
 };
 
-export function useJobOpportunities() {
+export function useJobOpportunities(refreshSignal?: number) {
   const [jobs, setJobs] = useState<JobOpportunitySummary[]>([]);
   const refresh = useCallback(async () => {
     setJobs(await apiGet<JobOpportunitySummary[]>('/api/job-opportunities'));
   }, []);
-  useEffect(() => { void refresh(); }, [refresh]);
+  // refreshSignal：对话落库后由页面层递增，触发重新拉取（对话驱动资源变更同步到侧栏）
+  useEffect(() => { void refresh(); }, [refresh, refreshSignal]);
 
   const remove = useCallback(async (id: string) => {
     await apiSend(`/api/job-opportunities/${id}`, 'DELETE');
