@@ -1,6 +1,6 @@
 # 代码注释规范实施计划
 
-> **元信息**：日期 2026-08-09 · 状态：生效 · 目标：创建代码注释规范到 `.agents/specs/04-comments/comments-conventions.md`（现状沉淀，横切三层，不改代码） · 关联规范：AGENTS.md、spec-autonomy.md（新增条件/内容边界/修订流程）、plan-document.md
+> **元信息**：日期 2026-08-09 · 状态：完成 · 目标：创建代码注释规范到 `.agents/specs/04-comments/comments-conventions.md`（现状沉淀，横切三层，不改代码） · 关联规范：AGENTS.md、spec-autonomy.md（新增条件/内容边界/修订流程）、plan-document.md
 > 前置：设计文档 `docs/designs/2026-08-09-comments-conventions-design.md` 已批准
 
 **Goal:** 把代码中已稳定一致的中文注释、JSDoc 选择性覆盖、"为什么"注释、eslint-disable 原因等约定固化为一份规范，供后续新代码遵循。
@@ -31,16 +31,16 @@
 
 ### Task 3: 注释规范
 
-- [ ] 创建 `.agents/specs/04-comments/comments-conventions.md`
+- [x] 创建 `.agents/specs/04-comments/comments-conventions.md`
   - 内容（9 条）：语言、克制原则、JSDoc 覆盖、复杂逻辑"为什么"、eslint-disable 原因、JSX 区块标记、来源引用、敏感信息禁入、TODO 禁令
-- [ ] 每条附"为什么"；抽查对照 `src/agent/tool-factory.ts`、`src/components/chat/message-bubble.tsx` 一致性
-- [ ] `git commit -m "docs: 新增代码注释工程规范（现状沉淀）"`
+- [x] 每条附"为什么"；抽查对照 `src/agent/tool-factory.ts`、`src/components/chat/message-bubble.tsx` 一致性
+- [x] `git commit -m "docs: 新增代码注释工程规范（现状沉淀）"`
 
 ### Task 4: 收尾验证
 
-- [ ] `.agents/specs/04-comments/comments-conventions.md` 就位；每条含"为什么"，无占位符
-- [ ] 工作树干净；`git log --oneline -4` 展示 3 个提交（设计、计划、规范）
-- [ ] 本计划头部 `状态：生效` → `状态：完成`
+- [x] `.agents/specs/04-comments/comments-conventions.md` 就位；每条含"为什么"，无占位符
+- [x] 工作树干净；`git log --oneline -4` 展示 3 个提交（设计、计划、规范）
+- [x] 本计划头部 `状态：生效` → `状态：完成`
 
 **Checkpoint：** 规范文件就位且与现状注释实践一致；git 历史完整；工作树干净。
 
@@ -51,7 +51,7 @@
 
 ## 验收清单（对应设计文档第 5 节）
 
-- [ ] `.agents/specs/04-comments/comments-conventions.md` 就位
-- [ ] 规范遵守 spec-autonomy：条目可执行，每条附"为什么"
-- [ ] 规范内容与现有注释实践一致（抽查通过）
-- [ ] 设计 + 计划 + 规范文件均已 commit
+- [x] `.agents/specs/04-comments/comments-conventions.md` 就位
+- [x] 规范遵守 spec-autonomy：条目可执行，每条附"为什么"
+- [x] 规范内容与现有注释实践一致（抽查通过）
+- [x] 设计 + 计划 + 规范文件均已 commit
