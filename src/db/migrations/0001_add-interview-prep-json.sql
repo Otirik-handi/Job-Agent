@@ -1,0 +1,1 @@
+ALTER TABLE `job_opportunities` ADD `interview_prep_json` text;

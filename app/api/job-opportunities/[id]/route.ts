@@ -12,6 +12,10 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   if (record.channelsJson) {
     try { channels = JSON.parse(record.channelsJson); } catch { channels = null; }
   }
+  let interviewPrep = null;
+  if (record.interviewPrepJson) {
+    try { interviewPrep = JSON.parse(record.interviewPrepJson); } catch { interviewPrep = null; }
+  }
   return Response.json({
     id: record.id,
     company: record.company,
@@ -21,6 +25,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     status: record.status,
     fitResult,
     channels,
+    interviewPrep,
     createdAt: record.createdAt,
     updatedAt: record.updatedAt,
   });

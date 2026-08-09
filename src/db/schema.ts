@@ -35,6 +35,7 @@ export const jobOpportunities = sqliteTable('job_opportunities', {
   status: text('status').notNull().default('saved'),
   fitResultJson: text('fit_result_json'),
   channelsJson: text('channels_json'),
+  interviewPrepJson: text('interview_prep_json'),
   createdAt: text('created_at').notNull(),
   updatedAt: text('updated_at').notNull(),
 });

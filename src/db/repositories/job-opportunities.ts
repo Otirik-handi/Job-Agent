@@ -7,13 +7,14 @@ import { nowIso } from './shared';
 export type JobOpportunityRecord = {
   id: string; company: string; title: string; jdText: string; url: string | null;
   status: string; fitResultJson: string | null; channelsJson: string | null;
+  interviewPrepJson: string | null;
   createdAt: string; updatedAt: string;
 };
 
 export function createJobOpportunity(jdText: string): JobOpportunityRecord {
   const record: JobOpportunityRecord = {
     id: randomUUID(), company: '', title: '', jdText, url: null,
-    status: 'saved', fitResultJson: null, channelsJson: null,
+    status: 'saved', fitResultJson: null, channelsJson: null, interviewPrepJson: null,
     createdAt: nowIso(), updatedAt: nowIso(),
   };
   db.insert(jobOpportunities).values(record).run();
@@ -50,4 +51,16 @@ export function updateJobApplication(id: string, status: 'applying' | 'applied' 
 
 export function deleteJobOpportunity(id: string): void {
   db.delete(jobOpportunities).where(eq(jobOpportunities.id, id)).run();
+}
+
+export function getInterviewPrep(id: string): string | null {
+  const row = db.select({ interviewPrepJson: jobOpportunities.interviewPrepJson })
+    .from(jobOpportunities).where(eq(jobOpportunities.id, id)).get();
+  return row?.interviewPrepJson ?? null;
+}
+
+export function setInterviewPrep(id: string, interviewPrepJson: string): void {
+  db.update(jobOpportunities)
+    .set({ interviewPrepJson, updatedAt: nowIso() })
+    .where(eq(jobOpportunities.id, id)).run();
 }

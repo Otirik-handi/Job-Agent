@@ -20,6 +20,11 @@ export type JobDetail = {
       riskSignals: string[]; verification: 'verified' | 'needs_check'; note: string;
     }>;
   } | null;
+  interviewPrep: {
+    schemaVersion: number; companyBrief: string; selfIntro: string;
+    questions: Array<{ id: string; question: string; intent: string; answerPoints: string[]; evidence: string | null; risk: string | null }>;
+    askThem: string[];
+  } | null;
   createdAt: string; updatedAt: string;
 };
 
