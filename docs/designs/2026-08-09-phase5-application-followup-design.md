@@ -14,9 +14,9 @@
 | 2 | 状态范围 | 在 phase4 遗留三状态（interview/offer/rejected）基础上补 **hired**（接受 offer/入职），覆盖投递后完整链路 |
 | 3 | 转移规则 | **严格单向 + 终态**：`applied→interview→offer→hired`；`applied`/`interview`/`offer` 任一→`rejected`；`rejected`/`hired` 为终态 |
 | 4 | 日期建模 | **不加列不加迁移**：投递时间用 `updatedAt` 近似（推进到 `applied` 时刷新），守住"过程态不建模" |
-| 5 | 审批流 | **混合（按发起方划分）**：applyJob 保持两段式（Agent 发起的对外动作）；投递后状态记录单段直接落库（用户报告的外部事实） |
+| 5 | 审批流 | **全部两段式**：所有落库的状态变更（含投递后记录）均需用户主动确认——状态机严格单向+终态不可回退，落库前确认即反悔机会。applyJob 与 recordApplicationStatus 同构 |
 | 6 | 工具形态 | 新增确定性工具 **recordApplicationStatus**（单文件 + 输入契约，不建 prompts）；applyJob 保持纯粹（只到 applied/skipped） |
-| 7 | 规范同步 | 02-backend status 枚举补四状态；03-agent 审批流补"按发起方划分"边界 |
+| 7 | 规范同步 | 02-backend status 枚举补四状态；03-agent 审批流补两段式清单与"不可回退故必须确认"的理由 |
 
 ## 2. 状态机（纯函数）
 
@@ -38,19 +38,19 @@
 ### 2.2 与现有 applyStateTransition 的关系
 
 两者并存不合并：
-- `applyStateTransition` 管**投递动作**（apply/skip），Agent 发起、两段式
-- `applicationOutcomeTransition` 管**投递后结果记录**，用户报告、单段式
+- `applyStateTransition` 管**投递动作**（apply/skip），经 applyJob 工具两段式执行
+- `applicationOutcomeTransition` 管**投递后结果记录**，经 recordApplicationStatus 工具两段式执行
 
-语义分界与审批流边界（决策 #5）一致，规则为纯函数（可单测）。
+两者均两段式（用户确认后落库），语义分界是"动作类型"而非审批流；规则为纯函数（可单测）。
 
 ## 3. 工具契约
 
-### recordApplicationStatus（确定性工具，单段式）
+### recordApplicationStatus（确定性工具，两段式，与 applyJob 同构）
 
 ```
-输入：{ jobOpportunityId, target: 'interview' | 'offer' | 'hired' | 'rejected' }
+输入：{ jobOpportunityId, target: 'interview' | 'offer' | 'hired' | 'rejected', confirmed?: boolean }
 
-前置校验：
+前置校验（两段共用）：
   岗位存在（否则工厂兜底 TOOL_FAILED）
   当前状态 ∈ {rejected, hired} → STATUS_TRANSITION_INVALID（终态不可再记录）
   当前状态未 applied → NOT_APPLIED（"该岗位尚未投递，无法记录投递后状态"，附 next 指引先投递）
@@ -59,16 +59,18 @@
   applicationOutcomeTransition(current, target) 非法 → STATUS_TRANSITION_INVALID
   （如 applied 直接 hired、interview 直接 hired）
 
-落库：
-  updateJobApplication(id, target)（仓储 status 类型扩展后）
+第一段（confirmed 缺省）——出变更摘要，不落库：
+  返回 { ok: true, phase: 'preview', jobOpportunityId, currentStatus, targetStatus, hint }
+  hint：引导模型向用户呈现"将把岗位从 X 记录为 Y"，请求用户确认
 
-返回：
-  { ok: true, jobOpportunityId, currentStatus, targetStatus, hint }
-  hint：引导模型向用户回执"已记录：applied → interview"，并提示下一步可推进的状态
+第二段（confirmed=true）——重新执行前置/转移校验后落库：
+  updateJobApplication(id, target)（仓储 status 类型扩展后）
+  返回 { ok: true, phase: target, jobOpportunityId, status: target, hint }
+  hint：向用户回执"已记录：applied → interview"，并提示下一步可推进的状态
 ```
 
-- **无 confirmed 字段**（单段式）：用户报告外部事实，Agent 忠实记录，不请求确认
-- **执行前重读岗位状态**：防多会话/并发下过期状态误覆盖（与 applyJob 第二段同模式）
+- **全部状态记录均需用户主动确认**：状态机严格单向+终态不可回退，落库前确认即唯一的反悔机会（决策 #5）
+- **第二段重新执行前置/转移校验**：防多会话/并发下过期状态误覆盖（与 applyJob 第二段同模式）
 
 ## 4. 前端可见性
 
@@ -90,7 +92,7 @@
 | 规范 | 修订 |
 |---|---|
 | 02-backend `status` 枚举 | 补 `interview` / `offer` / `hired` / `rejected` |
-| 03-agent 审批流 | 补"按发起方划分"边界：Agent 发起的对外动作（applyJob/tailoredResume）两段式；用户报告的外部事实（投递后状态记录）单段直接落库 |
+| 03-agent 审批流 | 两段式工具清单补 `recordApplicationStatus`；"为什么"补充：状态机严格单向+终态不可回退，所有状态变更落库前必须用户确认（确认即反悔机会） |
 
 ## 7. 纯函数与单测
 
