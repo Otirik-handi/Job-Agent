@@ -32,7 +32,7 @@
 
 ## JSON 列
 
-- LLM 产物（`analysisJson`/`fitResultJson`/`channelsJson`）以 JSON 字符串落库
+- LLM 产物（`analysisJson`/`fitResultJson`/`channelsJson`/`interviewPrepJson`）以 JSON 字符串落库
 - 路由层读取时 `try/catch` 解析，坏 JSON 降级 `null`（防御旧数据/损坏数据）
 - 为什么：SQLite 无原生 JSON 类型；LLM 产物运行时校验（find-work 经验 #8）
 
