@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { applyStateTransition } from './apply-state';
+import { applyStateTransition, applicationOutcomeTransition } from './apply-state';
 
 describe('apply-state: apply 动作', () => {
   it('matched → applying', () => {
@@ -26,5 +26,43 @@ describe('apply-state: skip 动作', () => {
   });
   it('applied 不可跳过 → STATUS_TRANSITION_INVALID', () => {
     expect(applyStateTransition('applied', 'skip')).toEqual({ ok: false, code: 'STATUS_TRANSITION_INVALID' });
+  });
+});
+
+describe('apply-state: applicationOutcomeTransition 合法链', () => {
+  it('applied → interview', () => {
+    expect(applicationOutcomeTransition('applied', 'interview')).toEqual({ ok: true, next: 'interview' });
+  });
+  it('interview → offer', () => {
+    expect(applicationOutcomeTransition('interview', 'offer')).toEqual({ ok: true, next: 'offer' });
+  });
+  it('offer → hired', () => {
+    expect(applicationOutcomeTransition('offer', 'hired')).toEqual({ ok: true, next: 'hired' });
+  });
+  it('applied/interview/offer → rejected', () => {
+    expect(applicationOutcomeTransition('applied', 'rejected')).toEqual({ ok: true, next: 'rejected' });
+    expect(applicationOutcomeTransition('interview', 'rejected')).toEqual({ ok: true, next: 'rejected' });
+    expect(applicationOutcomeTransition('offer', 'rejected')).toEqual({ ok: true, next: 'rejected' });
+  });
+});
+
+describe('apply-state: applicationOutcomeTransition 非法转移', () => {
+  it('跳过中间态（applied→offer/hired、interview→hired）→ STATUS_TRANSITION_INVALID', () => {
+    expect(applicationOutcomeTransition('applied', 'offer')).toEqual({ ok: false, code: 'STATUS_TRANSITION_INVALID' });
+    expect(applicationOutcomeTransition('applied', 'hired')).toEqual({ ok: false, code: 'STATUS_TRANSITION_INVALID' });
+    expect(applicationOutcomeTransition('interview', 'hired')).toEqual({ ok: false, code: 'STATUS_TRANSITION_INVALID' });
+  });
+  it('回退（offer→interview、interview→applied）→ STATUS_TRANSITION_INVALID', () => {
+    expect(applicationOutcomeTransition('offer', 'interview')).toEqual({ ok: false, code: 'STATUS_TRANSITION_INVALID' });
+    expect(applicationOutcomeTransition('interview', 'applied')).toEqual({ ok: false, code: 'STATUS_TRANSITION_INVALID' });
+  });
+  it('终态（rejected/hired）再记录 → STATUS_TRANSITION_INVALID', () => {
+    expect(applicationOutcomeTransition('rejected', 'interview')).toEqual({ ok: false, code: 'STATUS_TRANSITION_INVALID' });
+    expect(applicationOutcomeTransition('hired', 'rejected')).toEqual({ ok: false, code: 'STATUS_TRANSITION_INVALID' });
+  });
+  it('未投递（saved/analyzed/matched/applying/skipped）→ NOT_APPLIED', () => {
+    for (const s of ['saved', 'analyzed', 'matched', 'applying', 'skipped']) {
+      expect(applicationOutcomeTransition(s, 'interview')).toEqual({ ok: false, code: 'NOT_APPLIED' });
+    }
   });
 });
