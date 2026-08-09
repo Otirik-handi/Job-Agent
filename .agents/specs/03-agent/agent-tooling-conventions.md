@@ -13,17 +13,17 @@
 ## 文件组织
 
 - **LLM 工具**（需调模型产出结构化结果：analyze-resume / match-job / discover-channels / tailored-resume）三文件：`tools/<name>.ts`（薄壳：校验 + 业务规则 + 落库）、`prompts/<name>.ts`（提示词）、`schemas/<name>.ts`（zod 契约，输入 + 输出同文件）
-- **确定性工具**（纯本地逻辑，无 LLM 调用：import-resume / import-job-opportunity / list-resumes / list-job-opportunities / apply-job）单文件 `tools/<name>.ts`（输入 schema 内联或独立 `schemas/` 文件如 apply-job，**不建 prompts**）
+- **确定性工具**（纯本地逻辑，无 LLM 调用：import-resume / import-job-opportunity / list-resumes / list-job-opportunities / apply-job / record-application-status）单文件 `tools/<name>.ts`（输入 schema 内联或独立 `schemas/` 文件如 apply-job、record-application-status，**不建 prompts**）
 - 新增工具在 `agent.ts` 的 `SYSTEM_PROMPT` 能力清单中补一行说明
 - 为什么：契约与提示词独立可维护，工具文件保持编排职责；确定性工具无模型调用，prompts 纯属空壳（YAGNI）
 
 ## 两段式对话化审批
 
-- 高风险 / 数据变更动作（tailoredResume、applyJob）采用两段式：
+- 高风险 / 数据变更动作（tailoredResume、applyJob、recordApplicationStatus）采用两段式：
   1. **第一段**（不带 `confirmed`）：只读取/生成摘要，**不落库**，返回给用户确认
   2. **第二段**（带 `confirmed: true`）：校验前置条件后落库
-- 执行前校验前置条件并返回明确错误（如岗位未匹配 → `JOB_MATCH_REQUIRED`，并附 next 指引）
-- 为什么：对外关键动作必须有人工确认点（find-work 经验 #4），两段式复刻对话审批流
+- 执行前校验前置条件并返回明确错误（如岗位未匹配 → `JOB_MATCH_REQUIRED`、岗位未投递 → `NOT_APPLIED`，并附 next 指引）
+- 为什么：对外关键动作必须有人工确认点（find-work 经验 #4），两段式复刻对话审批流；状态机严格单向 + 终态不可回退，**所有状态变更落库前确认即反悔机会**
 
 ## 确定性护栏
 

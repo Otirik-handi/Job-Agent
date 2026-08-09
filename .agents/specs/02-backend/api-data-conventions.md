@@ -38,8 +38,8 @@
 
 ## status 枚举
 
-- 岗位 `status` 列枚举：`saved` / `analyzed` / `matched` / `applying` / `applied` / `skipped`
-- 状态转移规则在 `src/agent/apply-state.ts`（纯函数），仓储只落库不校验转移
+- 岗位 `status` 列枚举：`saved` / `analyzed` / `matched` / `applying` / `applied` / `skipped` / `interview` / `offer` / `hired` / `rejected`
+- 状态转移规则在 `src/agent/apply-state.ts`（纯函数：`applyStateTransition` 投递动作 / `applicationOutcomeTransition` 投递后结果），仓储只落库不校验转移
 - 为什么：投递状态机统一语义，前端 `StatusBadge` 与岗位筛选依赖该枚举
 
 ## 外键
