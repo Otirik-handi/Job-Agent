@@ -6,10 +6,15 @@ const STATUS_STYLES: Record<string, string> = {
   applying: 'bg-amber-500/10 text-amber-700',
   applied: 'bg-emerald-500/10 text-emerald-700',
   skipped: 'bg-slate-100 text-slate-500',
+  interview: 'bg-sky-500/10 text-sky-700',
+  offer: 'bg-violet-500/10 text-violet-700',
+  hired: 'bg-teal-500/10 text-teal-700',
+  rejected: 'bg-red-500/10 text-red-700',
 };
 
 const STATUS_LABELS: Record<string, string> = {
   saved: '已保存', matched: '已匹配', applying: '投递中', applied: '已投递', skipped: '已跳过',
+  interview: '面试中', offer: 'offer', hired: '已入职', rejected: '已拒绝',
 };
 
 export function StatusBadge({ status }: { status: string }) {

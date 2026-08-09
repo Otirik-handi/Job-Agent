@@ -153,6 +153,10 @@ export function JobDrawer({ jobId, open, onOpenChange, onOpenTailored }: {
                 {detail.status === 'applying' && <span className="text-xs text-muted-foreground">可对助手说「已投递该岗位」完成投递</span>}
                 {detail.status === 'applied' && <span className="text-xs text-muted-foreground">已投递，等待对方反馈</span>}
                 {detail.status === 'skipped' && <span className="text-xs text-muted-foreground">已跳过，可随时重新匹配</span>}
+                {detail.status === 'interview' && <span className="text-xs text-muted-foreground">可对助手说：记录面试结果（offer/拒绝）</span>}
+                {detail.status === 'offer' && <span className="text-xs text-muted-foreground">可对助手说：接受 offer 入职</span>}
+                {detail.status === 'rejected' && <span className="text-xs text-muted-foreground">已拒绝，可删除该岗位或匹配其他机会</span>}
+                {detail.status === 'hired' && <span className="text-xs text-muted-foreground">已入职，此岗位已完结</span>}
               </div>
             </div>
             {/* 投递渠道 */}
