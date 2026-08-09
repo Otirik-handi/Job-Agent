@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-> **元信息**：日期 2026-08-09 · 状态：草稿 · 目标：新增 recordApplicationStatus 确定性工具（两段式）+ 投递后状态机纯函数 + 前端四状态可见性（徽标/筛选/抽屉），并同步 02-backend/03-agent 规范 · 关联规范：AGENTS.md、plan-document.md、.agents/specs/02-backend/api-data-conventions.md、.agents/specs/03-agent/agent-tooling-conventions.md
+> **元信息**：日期 2026-08-09 · 状态：完成 · 目标：新增 recordApplicationStatus 确定性工具（两段式）+ 投递后状态机纯函数 + 前端四状态可见性（徽标/筛选/抽屉），并同步 02-backend/03-agent 规范 · 关联规范：AGENTS.md、plan-document.md、.agents/specs/02-backend/api-data-conventions.md、.agents/specs/03-agent/agent-tooling-conventions.md
 
 **Goal:** 让 Agent 在对话中经用户确认后记录岗位投递后阶段（applied→interview→offer→hired 或任一→rejected），前端徽标/筛选/抽屉全量可见；状态机严格单向 + 终态不可回退，落库前确认即反悔机会。
 
@@ -45,7 +45,7 @@ Create `docs/plans/2026-08-09-phase5-application-followup.md`（本文件）。
 - Modify: `.agents/specs/02-backend/api-data-conventions.md`（status 枚举）
 - Modify: `.agents/specs/03-agent/agent-tooling-conventions.md`（确定性工具清单 + 两段式审批）
 
-- [ ] **Step 1: 02-backend status 枚举补四状态**
+- [x] **Step 1: 02-backend status 枚举补四状态**
 
 在 `.agents/specs/02-backend/api-data-conventions.md` 的 `## status 枚举` 节（约第 41-43 行）修改：
 
@@ -55,7 +55,7 @@ Create `docs/plans/2026-08-09-phase5-application-followup.md`（本文件）。
 - 为什么：投递状态机统一语义，前端 `StatusBadge` 与岗位筛选依赖该枚举
 ```
 
-- [ ] **Step 2: 03-agent 确定性工具清单补 recordApplicationStatus**
+- [x] **Step 2: 03-agent 确定性工具清单补 recordApplicationStatus**
 
 在 `.agents/specs/03-agent/agent-tooling-conventions.md` 的 `## 文件组织` 节（约第 16 行）修改确定性工具清单：
 
@@ -63,7 +63,7 @@ Create `docs/plans/2026-08-09-phase5-application-followup.md`（本文件）。
 - **确定性工具**（纯本地逻辑，无 LLM 调用：import-resume / import-job-opportunity / list-resumes / list-job-opportunities / apply-job / record-application-status）单文件 `tools/<name>.ts`（输入 schema 内联或独立 `schemas/` 文件如 apply-job、record-application-status，**不建 prompts**）
 ```
 
-- [ ] **Step 3: 03-agent 两段式审批补 recordApplicationStatus 与理由**
+- [x] **Step 3: 03-agent 两段式审批补 recordApplicationStatus 与理由**
 
 在 `.agents/specs/03-agent/agent-tooling-conventions.md` 的 `## 两段式对话化审批` 节（约第 20-27 行）修改：
 
@@ -77,7 +77,7 @@ Create `docs/plans/2026-08-09-phase5-application-followup.md`（本文件）。
 - 为什么：对外关键动作必须有人工确认点（find-work 经验 #4），两段式复刻对话审批流；状态机严格单向 + 终态不可回退，**所有状态变更落库前确认即反悔机会**
 ```
 
-- [ ] **Step 4: 提交**
+- [x] **Step 4: 提交**
 
 ```bash
 git add .agents/specs/02-backend/api-data-conventions.md .agents/specs/03-agent/agent-tooling-conventions.md
@@ -92,7 +92,7 @@ git commit -m "docs: 规范同步投递后状态（02-backend 枚举 + 03-agent 
 - Modify: `src/agent/apply-state.ts`
 - Modify: `src/agent/apply-state.test.ts`
 
-- [ ] **Step 1: 追加失败测试**
+- [x] **Step 1: 追加失败测试**
 
 先修改 `src/agent/apply-state.test.ts` 第 1 行 import（追加 `applicationOutcomeTransition`）：
 
@@ -141,12 +141,12 @@ describe('apply-state: applicationOutcomeTransition 非法转移', () => {  it('
 });
 ```
 
-- [ ] **Step 2: 跑测试确认失败**
+- [x] **Step 2: 跑测试确认失败**
 
 Run: `npm run test -- apply-state`
 Expected: FAIL（`applicationOutcomeTransition` is not a function）
 
-- [ ] **Step 3: 最小实现**
+- [x] **Step 3: 最小实现**
 
 在 `src/agent/apply-state.ts` 末尾追加：
 
@@ -169,12 +169,12 @@ export function applicationOutcomeTransition(status: string, target: OutcomeTarg
 }
 ```
 
-- [ ] **Step 4: 跑测试确认通过**
+- [x] **Step 4: 跑测试确认通过**
 
 Run: `npm run test -- apply-state`
 Expected: PASS（现有 2 个 describe + 新增 2 个 describe 全部通过）
 
-- [ ] **Step 5: 提交**
+- [x] **Step 5: 提交**
 
 ```bash
 git add src/agent/apply-state.ts src/agent/apply-state.test.ts
@@ -188,7 +188,7 @@ git commit -m "feat: 投递后状态机纯函数（applicationOutcomeTransition 
 **Files:**
 - Modify: `src/db/repositories/job-opportunities.ts`（updateJobApplication status 类型）
 
-- [ ] **Step 1: 扩展 status 类型**
+- [x] **Step 1: 扩展 status 类型**
 
 在 `src/db/repositories/job-opportunities.ts` 中把 `updateJobApplication` 签名（约第 45 行）修改为：
 
@@ -202,12 +202,12 @@ export function updateJobApplication(id: string, status: 'applying' | 'applied' 
 
 > 注：仅 TS 类型扩展，SQL 语句不变（status 为 text 列，无迁移）。唯一调用方 apply-job.ts 传参不受影响。
 
-- [ ] **Step 2: 类型检查**
+- [x] **Step 2: 类型检查**
 
 Run: `npx tsc --noEmit`
 Expected: 无错误
 
-- [ ] **Step 3: 提交**
+- [x] **Step 3: 提交**
 
 ```bash
 git add src/db/repositories/job-opportunities.ts
@@ -224,7 +224,7 @@ git commit -m "feat: 岗位仓储 updateJobApplication 支持投递后状态（�
 - Modify: `src/agent/agent.ts`（import + 能力清单 + getTools）
 - Modify: `app/api/chat/route.ts`（onToolExecutionStart 进度文案）
 
-- [ ] **Step 1: 输入 schema**
+- [x] **Step 1: 输入 schema**
 
 Create `src/agent/schemas/record-application-status.ts`（对齐 `src/agent/schemas/apply-job.ts` 模式）：
 
@@ -240,7 +240,7 @@ export const recordApplicationStatusInputSchema = z.object({
 });
 ```
 
-- [ ] **Step 2: 工具实现**
+- [x] **Step 2: 工具实现**
 
 Create `src/agent/tools/record-application-status.ts`（确定性工具，对齐 `src/agent/tools/apply-job.ts` 两段式与错误码模式）：
 
@@ -307,7 +307,7 @@ export const recordApplicationStatusTool = createDomainTool({
 });
 ```
 
-- [ ] **Step 3: 注册进 agent.ts**
+- [x] **Step 3: 注册进 agent.ts**
 
 在 `src/agent/agent.ts` 中：
 
@@ -335,7 +335,7 @@ import { recordApplicationStatusTool } from './tools/record-application-status';
     recordApplicationStatus: recordApplicationStatusTool,
 ```
 
-- [ ] **Step 4: 进度文案映射**
+- [x] **Step 4: 进度文案映射**
 
 在 `app/api/chat/route.ts` 的 `onToolExecutionStart` 中（`applyJob` 分支之后，约第 105 行）追加分支：
 
@@ -343,12 +343,12 @@ import { recordApplicationStatusTool } from './tools/record-application-status';
             : toolName === 'recordApplicationStatus' ? '正在记录投递后状态…'
 ```
 
-- [ ] **Step 5: 类型检查**
+- [x] **Step 5: 类型检查**
 
 Run: `npx tsc --noEmit`
 Expected: 无错误
 
-- [ ] **Step 6: 提交**
+- [x] **Step 6: 提交**
 
 ```bash
 git add src/agent/schemas/record-application-status.ts src/agent/tools/record-application-status.ts src/agent/agent.ts app/api/chat/route.ts
@@ -364,7 +364,7 @@ git commit -m "feat: recordApplicationStatus 投递后状态记录工具（两�
 - Modify: `src/components/sidebar/resource-tabs.tsx`
 - Modify: `src/components/artifacts/job-drawer.tsx`
 
-- [ ] **Step 1: StatusBadge 追加四状态**
+- [x] **Step 1: StatusBadge 追加四状态**
 
 在 `src/components/ui/status-badge.tsx` 中，向 `STATUS_STYLES` 与 `STATUS_LABELS` 两个 Record 各追加 4 条（现有 5 状态零改动）：
 
@@ -387,7 +387,7 @@ const STATUS_LABELS: Record<string, string> = {
 };
 ```
 
-- [ ] **Step 2: 岗位筛选 Tab 补四枚**
+- [x] **Step 2: 岗位筛选 Tab 补四枚**
 
 在 `src/components/sidebar/resource-tabs.tsx` 中：
 
@@ -413,7 +413,7 @@ const [jobFilter, setJobFilter] = useState<'all' | 'matched' | 'applying' | 'app
 
 > 注：容器已有 `flex flex-wrap gap-1 px-3 pb-1 text-xs`，9 枚按钮自动换行，零样式改动。
 
-- [ ] **Step 3: 岗位抽屉状态区块补文案**
+- [x] **Step 3: 岗位抽屉状态区块补文案**
 
 在 `src/components/artifacts/job-drawer.tsx` 的投递状态区块（第 152-155 行现有 4 条文案之后）追加 4 条：
 
@@ -424,12 +424,12 @@ const [jobFilter, setJobFilter] = useState<'all' | 'matched' | 'applying' | 'app
 {detail.status === 'hired' && <span className="text-xs text-muted-foreground">已入职，此岗位已完结</span>}
 ```
 
-- [ ] **Step 4: 类型检查 + 构建**
+- [x] **Step 4: 类型检查 + 构建**
 
 Run: `npx tsc --noEmit && npm run build`
 Expected: 无错误，build 通过
 
-- [ ] **Step 5: 提交**
+- [x] **Step 5: 提交**
 
 ```bash
 git add src/components/ui/status-badge.tsx src/components/sidebar/resource-tabs.tsx src/components/artifacts/job-drawer.tsx
@@ -444,12 +444,12 @@ git commit -m "feat: 前端投递后状态可见性（徽标/筛选/抽屉文案
 - Modify: `docs/plans/2026-08-09-phase5-application-followup.md`（本文件，任务打勾）
 - Modify: `docs/designs/2026-08-09-phase5-application-followup-design.md`（状态 → 完成）
 
-- [ ] **Step 1: 单测与构建**
+- [x] **Step 1: 单测与构建**
 
 Run: `npm run test && npm run build`
 Expected: 全部单测通过 + build 通过
 
-- [ ] **Step 2: 端到端场景验证（dev 服务）**
+- [x] **Step 2: 端到端场景验证（dev 服务）**
 
 Run: `npm run dev`，在对话中依次验证：
 
@@ -462,12 +462,12 @@ Run: `npm run dev`，在对话中依次验证：
 
 Expected: 6 项全部符合预期；刷新后状态持久（SQLite 落库）
 
-- [ ] **Step 3: 计划与设计文档状态更新**
+- [x] **Step 3: 计划与设计文档状态更新**
 
 - 计划头部元信息 `状态：草稿` → `状态：完成`；本文件所有任务打勾 `[x]`
 - 设计文档头部 `状态：草稿 → 待审阅` → `状态：完成`
 
-- [ ] **Step 4: 提交**
+- [x] **Step 4: 提交**
 
 ```bash
 git add docs/plans/2026-08-09-phase5-application-followup.md docs/designs/2026-08-09-phase5-application-followup-design.md

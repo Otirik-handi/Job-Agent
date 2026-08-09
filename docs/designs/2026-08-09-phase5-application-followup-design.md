@@ -1,7 +1,7 @@
 # 第 5 期设计：投递后阶段（recordApplicationStatus + 投递后状态机）
 
 日期：2026-08-09
-状态：草稿 → 待审阅
+状态：完成
 关联规范：AGENTS.md（关键硬约束）、plan-document.md、`.agents/specs/02-backend/api-data-conventions.md`、`.agents/specs/03-agent/agent-tooling-conventions.md`
 设计依据：`docs/designs/2026-08-06-phase4-application-tracking-design.md`（决策 #1"投递后阶段留后续期"、状态机、两段式审批）、`docs/designs/2026-08-04-data-model-design.md`（status 枚举、过程态不建模）、`.agents/specs/03-agent/agent-tooling-conventions.md`（确定性工具、两段式对话化审批）、`.agents/specs/02-backend/api-data-conventions.md`（status 枚举）
 前置：第 4 期已交付（applyJob 两段式 + 投递状态机 + 前端状态可见性）
