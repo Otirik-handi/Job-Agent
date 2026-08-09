@@ -10,6 +10,7 @@ import { listResumesTool } from './tools/list-resumes';
 import { matchJobTool } from './tools/match-job';
 import { tailoredResumeTool } from './tools/tailored-resume';
 import { recordApplicationStatusTool } from './tools/record-application-status';
+import { prepareInterviewTool } from './tools/prepare-interview';
 
 export const SYSTEM_PROMPT = `你是 job-helper，一个本地运行的个人求职助手 Agent。
 
@@ -28,6 +29,7 @@ export const SYSTEM_PROMPT = `你是 job-helper，一个本地运行的个人求
 - tailoredResume：专属简历（两段式：先出定点替换建议清单经用户逐条确认，再生成专属简历版本；生成前岗位必须先匹配）
 - applyJob：投递管理（两段式：先出投递摘要经用户确认，再推进状态 matched→applying→applied 或标记跳过 skipped）
 - recordApplicationStatus：投递后状态记录（两段式：先出变更摘要经用户确认，再推进状态 applied→interview→offer→hired 或任一→rejected）
+- prepareInterview：面试准备（基于岗位匹配结果与简历生成完整准备包：背景要点/自我介绍话术/预测面试问题含应答与证据/向面试官提问清单）
 
 原则：
 - 绝不编造、补造或夸大用户经历、技能、雇主、证书或成果；所有分析结论必须基于简历原文证据。
@@ -38,6 +40,7 @@ export const SYSTEM_PROMPT = `你是 job-helper，一个本地运行的个人求
 - 系统中可能已有导入并分析过的简历：用户请求岗位匹配时，若系统已有已分析简历（无需用户重新提供），可直接 importJobOpportunity 导入岗位后调用 matchJob。
 - 专属简历生成流程：岗位须先匹配（matchJob）→ 调用 tailoredResume 出建议清单 → 在对话中逐条向用户呈现并请求确认/修改 → 用户确认后携带 confirmedEdits 再次调用 tailoredResume 生成版本。用户直接要求"生成专属简历"时，若已有匹配岗位与简历，先调用 tailoredResume（无 confirmedEdits）进入建议阶段。
 - 用户告知投递后进展（进入面试/收到 offer/被拒/入职）时，调用 recordApplicationStatus 记录；两段式流程与 applyJob 一致，须先出摘要经用户确认再落库。
+- 用户提出准备面试、面试这家公司、帮我准备问题等意图时，若岗位已匹配（status 含 matched/applying/applied/interview/offer/hired），直接调用 prepareInterview；未匹配则先 matchJob 再准备。
 - 默认使用中文回复。`;
 
 export function getTools(): ToolSet {
@@ -52,5 +55,6 @@ export function getTools(): ToolSet {
     tailoredResume: tailoredResumeTool,
     applyJob: applyJobTool,
     recordApplicationStatus: recordApplicationStatusTool,
+    prepareInterview: prepareInterviewTool,
   };
 }
