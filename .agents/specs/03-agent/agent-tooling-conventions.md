@@ -12,9 +12,10 @@
 
 ## 文件组织
 
-- 每个工具三文件：`tools/<name>.ts`（薄壳：校验 + 业务规则 + 落库）、`prompts/<name>.ts`（提示词）、`schemas/<name>.ts`（zod 契约，输入 + 输出同文件）
+- **LLM 工具**（需调模型产出结构化结果：analyze-resume / match-job / discover-channels / tailored-resume）三文件：`tools/<name>.ts`（薄壳：校验 + 业务规则 + 落库）、`prompts/<name>.ts`（提示词）、`schemas/<name>.ts`（zod 契约，输入 + 输出同文件）
+- **确定性工具**（纯本地逻辑，无 LLM 调用：import-resume / import-job-opportunity / list-resumes / list-job-opportunities / apply-job）单文件 `tools/<name>.ts`（输入 schema 内联或独立 `schemas/` 文件如 apply-job，**不建 prompts**）
 - 新增工具在 `agent.ts` 的 `SYSTEM_PROMPT` 能力清单中补一行说明
-- 为什么：契约与提示词独立可维护，工具文件保持编排职责
+- 为什么：契约与提示词独立可维护，工具文件保持编排职责；确定性工具无模型调用，prompts 纯属空壳（YAGNI）
 
 ## 两段式对话化审批
 

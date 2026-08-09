@@ -26,9 +26,9 @@
 ## 仓储模式（repositories）
 
 - 每个资源一个 `src/db/repositories/<resource>.ts`，纯函数导出，直接操作 `db`
-- 主键 `randomUUID()`；时间戳 `nowIso()`（ISO 字符串）；每表导出 Record 类型
+- 主键 `randomUUID()`；时间戳 `nowIso()`（ISO 字符串，定义于 `src/db/repositories/shared.ts` 共享模块）；每表导出 Record 类型
 - 变更操作 `.run()` 直接落库；查询 `.get()` / `.all()` / `.orderBy(desc(...))`
-- 为什么：better-sqlite3 同步直连，纯函数简单可测；Record 类型让路由层免掉类型推断
+- 为什么：better-sqlite3 同步直连，纯函数简单可测；Record 类型让路由层免掉类型推断；nowIso 独立成共享模块避免仓储间跨模块依赖
 
 ## JSON 列
 
