@@ -1,7 +1,7 @@
 # 设计：资源管理细节优化（删除 / 重命名 / 日期显示）
 
 日期：2026-08-05
-状态：草稿 → 待审阅
+状态：完成
 关联规范：AGENTS.md（关键硬约束）、plan-document.md
 设计依据：`docs/designs/2026-08-04-data-model-design.md`（外键）、`docs/designs/2026-08-05-ui-ux-softui-design.md`（Soft UI）
 前置：第 1、2 期已交付；上传功能已交付

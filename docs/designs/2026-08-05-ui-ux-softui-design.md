@@ -1,7 +1,7 @@
 # UI/UX 设计（Soft UI 风格全面落地）
 
 日期：2026-08-05
-状态：草稿 → 待审阅
+状态：完成
 关联规范：AGENTS.md（关键硬约束）
 设计依据：`docs/designs/2026-08-04-frontend-design.md`、`SoftUI.md`（风格权威文档，2026-08-05 修订版）
 

@@ -1,7 +1,7 @@
 # Agent 架构设计（对话驱动 Agent 应用）
 
 日期：2026-08-04
-状态：草稿 → 待审阅
+状态：完成
 关联规范：AGENTS.md（关键硬约束）、plan-document.md
 设计依据：`docs/designs/2026-08-04-job-helper-initialization-design.md`、`docs/designs/2026-08-04-find-work-experience-borrowing.md`
 经验引用：本文档中"经验 #N"均指经验借鉴文档条目

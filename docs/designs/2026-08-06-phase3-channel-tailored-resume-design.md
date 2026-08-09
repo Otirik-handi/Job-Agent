@@ -1,7 +1,7 @@
 # 第 3 期设计：渠道发现 + 专属简历生成
 
 日期：2026-08-06
-状态：草稿 → 待审阅
+状态：完成
 关联规范：AGENTS.md（关键硬约束）、plan-document.md
 设计依据：`docs/designs/2026-08-04-agent-architecture-design.md`（第 4 节工具全景 4.1/4.2、5.3 上下文策略）、`docs/designs/2026-08-04-data-model-design.md`（tailored_resumes、channels_json）、`docs/designs/2026-08-04-api-design.md`（tailored-resumes 端点）、`docs/designs/2026-08-04-find-work-experience-borrowing.md`（经验 #4 定点替换 + 逐条审批、#6 本地规则护栏）、`docs/designs/2026-08-04-frontend-design.md`（TailoredResumeDrawer）
 前置：第 2 期已交付（importJobOpportunity/matchJob、ToolLoopAgent 循环、岗位列表与匹配抽屉）

@@ -1,7 +1,7 @@
 # 设计：简历文件上传导入（手动上传文件）
 
 日期：2026-08-05
-状态：草稿 → 待审阅
+状态：完成
 关联规范：AGENTS.md（关键硬约束）、plan-document.md
 设计依据：`docs/designs/2026-08-04-agent-architecture-design.md`（工具全景）、`docs/designs/2026-08-04-data-model-design.md`（resumes）、`docs/designs/2026-08-04-api-design.md`（API 约定）、`docs/designs/2026-08-05-ui-ux-softui-design.md`（Soft UI）
 前置：第 1 期已交付（importResume/analyzeResume、对话流、UI）；第 2 期已交付

@@ -1,7 +1,7 @@
 # 输入框装饰与侧栏加宽设计
 
 日期：2026-08-05
-状态：草稿 → 待审阅
+状态：完成
 关联规范：AGENTS.md（关键硬约束）、SoftUI.md（风格权威文档）
 设计依据：`docs/designs/2026-08-05-ui-decoration-design.md`（轻量装饰系列第一期，已完成）、`SoftUI.md`（柔和界面风）
 

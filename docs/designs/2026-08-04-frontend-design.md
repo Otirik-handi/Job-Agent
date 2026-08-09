@@ -1,7 +1,7 @@
 # 前端界面设计（PC 端优先）
 
 日期：2026-08-04
-状态：草稿 → 待审阅
+状态：完成
 关联规范：AGENTS.md（关键硬约束）
 设计依据：`docs/designs/2026-08-04-agent-architecture-design.md`（第 5 节）、`docs/designs/2026-08-04-api-design.md`（第 8 节接口）、`docs/designs/2026-08-04-data-model-design.md`（第 7 节接口）
 

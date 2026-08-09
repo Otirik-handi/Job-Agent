@@ -1,7 +1,7 @@
 # 第 2 期设计：岗位导入 + 岗位匹配（含自动续问）
 
 日期：2026-08-05
-状态：草稿 → 待审阅
+状态：完成
 关联规范：AGENTS.md（关键硬约束）、plan-document.md
 设计依据：`docs/designs/2026-08-04-agent-architecture-design.md`（第 4 节工具全景、6.4 分期）、`docs/designs/2026-08-04-data-model-design.md`（job_opportunities）、`docs/designs/2026-08-04-find-work-experience-borrowing.md`（经验 #1 三段式、#3 枚举归一化、3.1 契约内嵌 prompt）
 前置：第 1 期已交付（Agent 骨架、importResume/analyzeResume、对话流、UI）

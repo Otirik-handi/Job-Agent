@@ -1,7 +1,7 @@
 # 数据结构设计（SQLite + Drizzle）
 
 日期：2026-08-04
-状态：草稿 → 待审阅
+状态：完成
 关联规范：AGENTS.md（关键硬约束）
 设计依据：`docs/designs/2026-08-04-job-helper-initialization-design.md`、`docs/designs/2026-08-04-agent-architecture-design.md`（第 7 节接口）
 经验引用：经验借鉴文档 #8（LLM 产物运行时校验适配）
