@@ -29,10 +29,12 @@ export function ResumeDrawer({ resumeId, open, onOpenChange }: {
         )}
         {detail && analysis && (
           <div className="mt-6 space-y-5 text-sm">
+            {/* 综合评分 */}
             <div className="flex items-center gap-2">
               <span className="text-2xl font-semibold">{analysis.overallScore}</span>
               <span className="text-muted-foreground">/ 100 综合评分</span>
             </div>
+            {/* 技能 */}
             <div>
               <p className="mb-1.5 font-medium">技能</p>
               <div className="flex flex-wrap gap-1.5">
@@ -40,6 +42,7 @@ export function ResumeDrawer({ resumeId, open, onOpenChange }: {
               </div>
             </div>
             <Separator />
+            {/* 优势 */}
             <div>
               <p className="mb-1.5 font-medium">优势</p>
               <ul className="list-disc space-y-1.5 pl-5">
@@ -54,6 +57,7 @@ export function ResumeDrawer({ resumeId, open, onOpenChange }: {
               </ul>
             </div>
             <Separator />
+            {/* 风险 / 短板 */}
             <div>
               <p className="mb-1.5 font-medium">风险 / 短板</p>
               <ul className="list-disc space-y-1.5 pl-5">
@@ -61,6 +65,7 @@ export function ResumeDrawer({ resumeId, open, onOpenChange }: {
               </ul>
             </div>
             <Separator />
+            {/* 改进建议 */}
             <div>
               <p className="mb-1.5 font-medium">改进建议</p>
               <ul className="list-disc space-y-1.5 pl-5">
@@ -77,6 +82,7 @@ export function ResumeDrawer({ resumeId, open, onOpenChange }: {
             {analysis.pendingConfirmations.length > 0 && (
               <>
                 <Separator />
+                {/* 待确认项 */}
                 <div>
                   <p className="mb-1.5 font-medium">待确认项</p>
                   <ul className="list-disc space-y-1.5 pl-5 text-muted-foreground">

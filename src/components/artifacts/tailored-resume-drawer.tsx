@@ -43,6 +43,7 @@ export function TailoredResumeDrawer({ tailoredResumeId, open, onOpenChange, onD
         {!detail && <p className="text-sm text-muted-foreground">加载中…</p>}
         {detail && (
           <div className="mt-4 space-y-4">
+            {/* 版本切换 */}
             {items.length > 1 && (
               <div className="flex flex-wrap items-center gap-1.5">
                 {items.map((v) => (
@@ -61,9 +62,11 @@ export function TailoredResumeDrawer({ tailoredResumeId, open, onOpenChange, onD
                 ))}
               </div>
             )}
+            {/* Markdown 预览 */}
             <div className="rounded-2xl bg-white p-4 shadow-soft">
               <MarkdownText text={detail.contentMarkdown} />
             </div>
+            {/* 删除操作 */}
             <div className="flex justify-end">
               <button
                 onClick={() => setConfirmDelete(true)}

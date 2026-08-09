@@ -66,10 +66,12 @@ export function JobDrawer({ jobId, open, onOpenChange, onOpenTailored }: {
         )}
         {detail && fit && (
           <div className="mt-4 space-y-5 text-sm">
+            {/* 匹配评分 */}
             <div className="flex items-center gap-2">
               <span className="text-2xl font-semibold">{fit.overallScore}</span>
               <span className="text-muted-foreground">/ 100 匹配评分</span>
             </div>
+            {/* 岗位理解 */}
             <div>
               <p className="mb-2 font-medium">岗位理解</p>
               {fit.understanding.city && <p className="mb-1 text-sm text-muted-foreground">城市：{fit.understanding.city}</p>}
@@ -85,6 +87,7 @@ export function JobDrawer({ jobId, open, onOpenChange, onOpenTailored }: {
             </div>
             <Separator />
 
+            {/* 逐条匹配 */}
             <div>
               <p className="mb-2 font-medium">逐条匹配</p>
               <ul className="space-y-2.5">
@@ -105,6 +108,7 @@ export function JobDrawer({ jobId, open, onOpenChange, onOpenTailored }: {
             </div>
             <Separator />
 
+            {/* 风险 */}
             {fit.risks.length > 0 && (
               <div>
                 <p className="mb-1.5 font-medium">风险</p>
@@ -115,6 +119,7 @@ export function JobDrawer({ jobId, open, onOpenChange, onOpenTailored }: {
             )}
             <Separator />
 
+            {/* 投递建议 */}
             <div>
               <p className="mb-1.5 font-medium">投递建议</p>
               <div className="space-y-3">
@@ -139,6 +144,7 @@ export function JobDrawer({ jobId, open, onOpenChange, onOpenTailored }: {
         )}
         {detail && (
           <div className="mt-5 space-y-5 border-t border-slate-200/60 pt-5 text-sm">
+            {/* 投递状态 */}
             <div>
               <p className="mb-2 font-medium">投递状态</p>
               <div className="flex items-center gap-2">
@@ -149,6 +155,7 @@ export function JobDrawer({ jobId, open, onOpenChange, onOpenTailored }: {
                 {detail.status === 'skipped' && <span className="text-xs text-muted-foreground">已跳过，可随时重新匹配</span>}
               </div>
             </div>
+            {/* 投递渠道 */}
             <div>
               <p className="mb-2 font-medium">投递渠道</p>
               {channels === null && <p className="text-muted-foreground">尚未发现渠道，可在对话中让 Agent 发现</p>}
@@ -194,6 +201,7 @@ export function JobDrawer({ jobId, open, onOpenChange, onOpenTailored }: {
               )}
             </div>
             <Separator />
+            {/* 专属简历 */}
             <div>
               <p className="mb-2 font-medium">专属简历</p>
               {tailored.length === 0 && (
