@@ -52,7 +52,7 @@ export const prepareInterviewTool = createDomainTool({
         ok: false,
         error: result.error,
         jobOpportunityId: job.id,
-        hint: '面试准备失败。可重试一次；若持续失败，检查模型配置或缩短 JD 文本。',
+        hint: '面试准备失败。可重试一次；若持续失败，检查模型配置或缩短简历文本。',
       };
     }
 
