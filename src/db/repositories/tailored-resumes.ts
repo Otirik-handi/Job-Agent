@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { and, desc, eq, max } from 'drizzle-orm';
 import { db } from '../index';
 import { tailoredResumes } from '../schema';
-import { nowIso } from './conversations';
+import { nowIso } from './shared';
 
 export type TailoredResumeRecord = {
   id: string; resumeId: string; jobOpportunityId: string;

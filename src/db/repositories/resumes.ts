@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { desc, eq } from 'drizzle-orm';
 import { db } from '../index';
 import { resumes } from '../schema';
-import { nowIso } from './conversations';
+import { nowIso } from './shared';
 
 export type ResumeRecord = {
   id: string; name: string; sourceType: string; sourceText: string;

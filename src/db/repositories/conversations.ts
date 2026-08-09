@@ -2,8 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { desc, eq } from 'drizzle-orm';
 import { db } from '../index';
 import { conversations } from '../schema';
-
-export const nowIso = () => new Date().toISOString();
+import { nowIso } from './shared';
 
 export type ConversationRecord = {
   id: string; title: string; createdAt: string; updatedAt: string;

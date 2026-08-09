@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { asc, eq } from 'drizzle-orm';
 import { db } from '../index';
 import { messages } from '../schema';
-import { nowIso } from './conversations';
+import { nowIso } from './shared';
 
 export type MessageRecord = {
   id: string; conversationId: string; role: string; messageJson: string; createdAt: string;

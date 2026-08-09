@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { desc, eq } from 'drizzle-orm';
 import { db } from '../index';
 import { jobOpportunities } from '../schema';
-import { nowIso } from './conversations';
+import { nowIso } from './shared';
 
 export type JobOpportunityRecord = {
   id: string; company: string; title: string; jdText: string; url: string | null;
