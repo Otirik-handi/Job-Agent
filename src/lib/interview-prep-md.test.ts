@@ -47,6 +47,9 @@ describe('interview-prep-md', () => {
     const md = toInterviewPrepMarkdown(sample);
     expect(md).toContain('### q2 你如何处理项目延期');
     expect(md).toContain('风险提示：简历无项目延期处理经验，建议补充真实案例');
+    // evidence 为 null 时必须省略证据行（q2 位于 q1 之后，用 q2 区块定位）
+    const q2Section = md.slice(md.indexOf('### q2'));
+    expect(q2Section).not.toContain('简历证据：');
   });
   it('包含向面试官提问节', () => {
     const md = toInterviewPrepMarkdown(sample);
