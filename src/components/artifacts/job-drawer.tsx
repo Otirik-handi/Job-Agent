@@ -1,5 +1,5 @@
 'use client';
-import { Briefcase, FilePen, Globe, Mail } from 'lucide-react';
+import { Briefcase, Download, FilePen, Globe, Mail } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/src/components/ui/sheet';
 import { StatusBadge } from '@/src/components/ui/status-badge';
 import { EmptyState } from '@/src/components/ui/empty-state';
@@ -9,6 +9,7 @@ import { cn } from '@/src/lib/utils';
 import { formatRelativeTime } from '@/src/lib/format-time';
 import { useJobDetail } from '@/src/lib/use-job-detail';
 import { useTailoredResumes } from '@/src/lib/use-tailored-resumes';
+import { toInterviewPrepMarkdown } from '@/src/lib/interview-prep-md';
 
 const LEVEL_LABELS: Record<string, string> = {
   'highly-matched': '高度匹配', matched: '匹配', partial: '部分匹配', mismatch: '不匹配',
@@ -45,6 +46,18 @@ export function JobDrawer({ jobId, open, refreshSignal, onOpenChange, onOpenTail
   const { items: tailored } = useTailoredResumes(open ? { jobOpportunityId: jobId ?? undefined } : undefined, refreshSignal);
   const fit = detail?.fitResult ?? null;
   const channels = detail?.channels?.channels ?? null;
+
+  const handleExportPrep = () => {
+    if (!detail?.interviewPrep) return;
+    const md = toInterviewPrepMarkdown(detail.interviewPrep);
+    const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${detail.company || '岗位'}-${detail.title || '未知职位'}-面试准备.md`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -154,6 +167,7 @@ export function JobDrawer({ jobId, open, refreshSignal, onOpenChange, onOpenTail
                 {detail.status === 'applied' && <span className="text-xs text-muted-foreground">已投递，等待对方反馈</span>}
                 {detail.status === 'skipped' && <span className="text-xs text-muted-foreground">已跳过，可随时重新匹配</span>}
                 {detail.status === 'interview' && <span className="text-xs text-muted-foreground">可对助手说：记录面试结果（offer/拒绝）</span>}
+                {detail.status === 'interview' && <span className="text-xs text-muted-foreground">可对助手说：准备这家公司的面试</span>}
                 {detail.status === 'offer' && <span className="text-xs text-muted-foreground">可对助手说：接受 offer 入职</span>}
                 {detail.status === 'rejected' && <span className="text-xs text-muted-foreground">已拒绝，可删除该岗位或匹配其他机会</span>}
                 {detail.status === 'hired' && <span className="text-xs text-muted-foreground">已入职，此岗位已完结</span>}
@@ -231,6 +245,67 @@ export function JobDrawer({ jobId, open, refreshSignal, onOpenChange, onOpenTail
                     </li>
                   ))}
                 </ul>
+              )}
+            </div>
+            <Separator />
+            {/* 面试准备 */}
+            <div>
+              <div className="mb-2 flex items-center justify-between gap-2">
+                <p className="font-medium">面试准备</p>
+                {detail.interviewPrep && (
+                  <button
+                    onClick={handleExportPrep}
+                    className="inline-flex items-center gap-1 rounded-lg bg-indigo-600 px-2.5 py-1 text-xs font-medium text-white transition-colors hover:bg-indigo-700"
+                  >
+                    <Download className="size-3.5" />
+                    导出 Markdown
+                  </button>
+                )}
+              </div>
+              {!detail.interviewPrep && (
+                <p className="text-muted-foreground">可在对话中让 Agent 准备面试</p>
+              )}
+              {detail.interviewPrep && (
+                <div className="space-y-3">
+                  <div className="rounded-2xl bg-slate-50 p-3.5">
+                    <p className="mb-1 text-xs font-medium text-slate-500">公司与岗位背景</p>
+                    <p className="text-sm">{detail.interviewPrep.companyBrief}</p>
+                  </div>
+                  <div className="rounded-2xl bg-slate-50 p-3.5">
+                    <p className="mb-1 text-xs font-medium text-slate-500">自我介绍</p>
+                    <p className="text-sm">{detail.interviewPrep.selfIntro}</p>
+                  </div>
+                  <div>
+                    <p className="mb-1.5 text-xs font-medium text-slate-500">预测面试问题</p>
+                    <ul className="space-y-2.5">
+                      {detail.interviewPrep.questions.map((q) => (
+                        <li key={q.id} className="rounded-2xl bg-slate-50 p-3.5">
+                          <p className="font-medium">{q.id} · {q.question}</p>
+                          <p className="mt-1 text-xs text-muted-foreground">考察意图：{q.intent}</p>
+                          <ul className="mt-1.5 list-disc space-y-0.5 pl-5 text-sm">
+                            {q.answerPoints.map((p, i) => <li key={i}>{p}</li>)}
+                          </ul>
+                          {q.evidence && (
+                            <p className="mt-2 border-t border-slate-200/60 pt-2 text-xs italic leading-relaxed text-slate-500">
+                              简历证据：{q.evidence}
+                            </p>
+                          )}
+                          {q.risk && (
+                            <p className="mt-1 text-xs text-amber-700">风险提示：{q.risk}</p>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  {detail.interviewPrep.askThem.length > 0 && (
+                    <div>
+                      <p className="mb-1.5 text-xs font-medium text-slate-500">向面试官提问</p>
+                      <ul className="list-disc space-y-0.5 pl-5 text-sm">
+                        {detail.interviewPrep.askThem.map((q, i) => <li key={i}>{q}</li>)}
+                      </ul>
+                    </div>
+                  )}
+                </div>
               )}
             </div>
           </div>
