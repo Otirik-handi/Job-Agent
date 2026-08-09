@@ -61,7 +61,7 @@
 
 - `job_opportunities` 新增 `interview_prep_json` TEXT 列（nullable，默认空），对齐现有 `fit_result_json` / `channels_json` 模式
 - 仓储 `src/db/repositories/job-opportunities.ts` 新增：
-  - `getInterviewPrep(id): InterviewPrep | null`（宽容 JSON 解析，解析失败返回 null，对齐 parseChannels 模式）
+  - `getInterviewPrep(id): string | null`（返回 `interview_prep_json` 原始 JSON 字符串；宽容解析在路由层做，对齐 fitResult/channels 的既有模式）
   - `setInterviewPrep(id, json): void`（写 JSON 字符串 + 刷新 updatedAt）
 - 前端 `use-job-detail.ts` 的岗位详情投影增加 `interviewPrep` 字段（宽容解析，对齐 fitResult 模式）
 
