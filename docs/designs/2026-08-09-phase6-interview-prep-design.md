@@ -15,7 +15,7 @@
 | 3 | 工具形态 | 新增 **prepareInterview**（LLM 生成类，对齐 analyzeResume 模式：llm-call + prompt + 输出契约 + 落库）；无两段式审批（无对外副作用） |
 | 4 | 存储 | `job_opportunities` 新增 `interview_prep_json` TEXT 列（**一次轻迁移**）；一岗一份，重新生成直接覆盖 |
 | 5 | 展示 | 岗位抽屉新增「面试准备」区块（未生成 → 引导文案；已生成 → 完整内容 + 导出按钮） |
-| 6 | 导出 | **Markdown 文件**：前端按 JSON 拼装 Markdown → Blob 下载 `.md`；零新依赖、零后端改动 |
+| 6 | 导出 | **Markdown 文件**：拼装抽纯函数 `toInterviewPrepMarkdown()`（`src/lib/`，可单测）+ 浏览器原生 Blob 下载；**零新依赖、零后端改动**（选型理由见 4.1） |
 | 7 | 真实性边界 | 预测问题应答要点必须绑定简历原文证据（evidence），简历无支撑的内容标注 risk 提示，绝不虚构经历（对齐 AGENTS.md 硬约束） |
 
 ## 2. 工具契约
@@ -70,7 +70,13 @@
 | 元素 | 设计 |
 |---|---|
 | 岗位抽屉「面试准备」区块 | 未生成 → 轻提示"可在对话中让 Agent 准备面试"（对齐投递状态区块引导文案风格）；已生成 → 展示 背景要点 / 自我介绍话术 / 预测问题列表（问题＋考察意图＋应答要点＋证据引用＋风险标注）/ 向面试官提问清单 |
-| 导出按钮 | 区块内「导出 Markdown」按钮 → 前端按 JSON 拼装 Markdown 文本 → Blob 创建 → `a[download]` 下载 `<公司>-<职位>-面试准备.md` |
+| 导出按钮 | 区块内「导出 Markdown」按钮 → 调用 `toInterviewPrepMarkdown()` 拼装 → `URL.createObjectURL` + `a[download]` 下载 `<公司>-<职位>-面试准备.md` |
+
+### 4.1 导出技术选型（2026-08-09 深入讨论确认）
+
+- **Markdown 生成方向无合适主流库**：`marked`/`markdown-it` 是渲染方向（MD→HTML，且前端展示已用 react-markdown），`mdast` 生态（AST→MD）对本场景（标题+列表+引用块）属过度设计；「结构化 JSON→MD」社区普遍做法即模板字符串拼装，属本项目"业务编排自研"范畴
+- **文件下载用浏览器原生 API**：`URL.createObjectURL()` + `<a download>` 已是现代浏览器标准；`file-saver` 本质是封装该 API，本地单用户场景无 IE 兼容需求，引依赖属冗余
+- **结论**：`toInterviewPrepMarkdown()` 纯函数（`src/lib/`，对齐 `format-time.ts` 可单测模式）+ 原生 Blob 下载；零新依赖、零后端改动。将来若需 docx/PDF（服务端库才合理的场景）或后端导出，纯函数可直接复用
 | 投递状态引导文案 | interview 状态现有"可对助手说：记录面试结果（offer/拒绝）"旁追加"可对助手说：准备这家公司的面试"（两行并存） |
 
 ## 5. 工具注册与对话联动
@@ -99,6 +105,6 @@
 
 1. 对话"帮我准备 XX 岗位的面试" → 生成准备包落库，抽屉「面试准备」区块展示完整内容（背景要点/自介话术/预测问题含应答与证据/提问清单）
 2. 未匹配岗位 → 明确错误 `JOB_MATCH_REQUIRED` + 引导先 matchJob
-3. 「导出 Markdown」按钮 → 下载 `.md` 文件内容完整可读
+3. `toInterviewPrepMarkdown()` 纯函数单测通过（JSON→MD 各节完整）；「导出 Markdown」按钮 → 下载 `.md` 文件内容完整可读
 4. 再次生成覆盖旧版本；对话中工具返回摘要不撑爆上下文
 5. 回归：第 1-5 期既有功能不受影响；lint / test / build 全绿
