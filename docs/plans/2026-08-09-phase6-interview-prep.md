@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-> **元信息**：日期 2026-08-09 · 状态：草稿 · 目标：新增 prepareInterview LLM 工具（基于匹配结果+简历生成完整面试准备包）+ interview_prep_json 列（一次迁移）+ 岗位抽屉「面试准备」区块 + Markdown 导出（纯函数+原生下载）· 关联规范：AGENTS.md、plan-document.md、`.agents/specs/02-backend/api-data-conventions.md`、`.agents/specs/03-agent/agent-tooling-conventions.md`
+> **元信息**：日期 2026-08-09 · 状态：完成 · 目标：新增 prepareInterview LLM 工具（基于匹配结果+简历生成完整面试准备包）+ interview_prep_json 列（一次迁移）+ 岗位抽屉「面试准备」区块 + Markdown 导出（纯函数+原生下载）· 关联规范：AGENTS.md、plan-document.md、`.agents/specs/02-backend/api-data-conventions.md`、`.agents/specs/03-agent/agent-tooling-conventions.md`
 
 **Goal:** 让 Agent 在对话中为已匹配岗位生成完整面试准备包（背景要点 / 自我介绍话术 / 预测问题含应答与证据 / 向面试官提问清单），落库挂靠岗位，抽屉查看，可导出 Markdown。
 
@@ -48,7 +48,7 @@ Create `docs/plans/2026-08-09-phase6-interview-prep.md`（本文件）。
 - Modify: `.agents/specs/02-backend/api-data-conventions.md`（JSON 列）
 - Modify: `.agents/specs/03-agent/agent-tooling-conventions.md`（LLM 工具清单）
 
-- [ ] **Step 1: 02-backend JSON 列补 interview_prep_json**
+- [x] **Step 1: 02-backend JSON 列补 interview_prep_json**
 
 在 `.agents/specs/02-backend/api-data-conventions.md` 的 `## JSON 列` 节（第 34 行）修改：
 
@@ -56,7 +56,7 @@ Create `docs/plans/2026-08-09-phase6-interview-prep.md`（本文件）。
 - LLM 产物（`analysisJson`/`fitResultJson`/`channelsJson`/`interviewPrepJson`）以 JSON 字符串落库
 ```
 
-- [ ] **Step 2: 03-agent LLM 工具清单补 prepareInterview**
+- [x] **Step 2: 03-agent LLM 工具清单补 prepareInterview**
 
 在 `.agents/specs/03-agent/agent-tooling-conventions.md` 的 `## 文件组织` 节（第 15 行）修改 LLM 工具清单：
 
@@ -64,7 +64,7 @@ Create `docs/plans/2026-08-09-phase6-interview-prep.md`（本文件）。
 - **LLM 工具**（需调模型产出结构化结果：analyze-resume / match-job / discover-channels / tailored-resume / prepare-interview）三文件：`tools/<name>.ts`（薄壳：校验 + 业务规则 + 落库）、`prompts/<name>.ts`（提示词）、`schemas/<name>.ts`（zod 契约，输入 + 输出同文件）
 ```
 
-- [ ] **Step 3: 提交**
+- [x] **Step 3: 提交**
 
 ```bash
 git add .agents/specs/02-backend/api-data-conventions.md .agents/specs/03-agent/agent-tooling-conventions.md
@@ -81,7 +81,7 @@ git commit -m "docs: 规范同步面试准备（02-backend interviewPrepJson + 0
 - Modify: `app/api/job-opportunities/[id]/route.ts`（GET 返回体）
 - Modify: `src/lib/use-job-detail.ts`（JobDetail 类型）
 
-- [ ] **Step 1: schema 加列**
+- [x] **Step 1: schema 加列**
 
 在 `src/db/schema.ts` 的 `jobOpportunities` 表定义（第 36 行 `channelsJson` 之后）追加：
 
@@ -89,12 +89,12 @@ git commit -m "docs: 规范同步面试准备（02-backend interviewPrepJson + 0
   interviewPrepJson: text('interview_prep_json'),
 ```
 
-- [ ] **Step 2: 生成迁移**
+- [x] **Step 2: 生成迁移**
 
 Run: `npx drizzle-kit generate --name add-interview-prep-json`
 Expected: 新建 `src/db/migrations/0001_<hash>.sql`（内容为 `ALTER TABLE \`job_opportunities\` ADD \`interview_prep_json\` text;`），`meta/_journal.json` 新增 idx 1 条目
 
-- [ ] **Step 3: 仓储 Record 类型加字段**
+- [x] **Step 3: 仓储 Record 类型加字段**
 
 在 `src/db/repositories/job-opportunities.ts` 的 `JobOpportunityRecord` 类型（第 9 行）追加：
 
@@ -102,7 +102,7 @@ Expected: 新建 `src/db/migrations/0001_<hash>.sql`（内容为 `ALTER TABLE \`
   interviewPrepJson: string | null;
 ```
 
-- [ ] **Step 4: 仓储 createJobOpportunity 初始值**
+- [x] **Step 4: 仓储 createJobOpportunity 初始值**
 
 `createJobOpportunity`（第 16 行）的 record 对象补 `interviewPrepJson: null`：
 
@@ -110,7 +110,7 @@ Expected: 新建 `src/db/migrations/0001_<hash>.sql`（内容为 `ALTER TABLE \`
     status: 'saved', fitResultJson: null, channelsJson: null, interviewPrepJson: null,
 ```
 
-- [ ] **Step 5: 仓储新增 getInterviewPrep / setInterviewPrep**
+- [x] **Step 5: 仓储新增 getInterviewPrep / setInterviewPrep**
 
 在 `src/db/repositories/job-opportunities.ts` 文件末尾追加：
 
@@ -130,7 +130,7 @@ export function setInterviewPrep(id: string, interviewPrepJson: string): void {
 
 > 注：选型用 `getJobOpportunity(id).interviewPrepJson` 更省函数，但单独取值避免整行投影，且 `getInterviewPrep` 提供给前端详情端点直接复用。
 
-- [ ] **Step 6: 详情端点返回 interviewPrep**
+- [x] **Step 6: 详情端点返回 interviewPrep**
 
 在 `app/api/job-opportunities/[id]/route.ts` 中，`channels` 解析（第 14 行）之后追加宽容解析，并在返回体（第 24 行）追加字段：
 
@@ -147,7 +147,7 @@ export function setInterviewPrep(id: string, interviewPrepJson: string): void {
     interviewPrep,
 ```
 
-- [ ] **Step 7: 前端 JobDetail 类型加字段**
+- [x] **Step 7: 前端 JobDetail 类型加字段**
 
 在 `src/lib/use-job-detail.ts` 的 `JobDetail` 类型（第 22 行 `channels` 之后、`createdAt` 之前）追加：
 
@@ -159,12 +159,12 @@ export function setInterviewPrep(id: string, interviewPrepJson: string): void {
   } | null;
 ```
 
-- [ ] **Step 8: 类型检查**
+- [x] **Step 8: 类型检查**
 
 Run: `npx tsc --noEmit`
 Expected: 无错误
 
-- [ ] **Step 9: 提交**
+- [x] **Step 9: 提交**
 
 ```bash
 git add src/db/schema.ts src/db/migrations src/db/repositories/job-opportunities.ts app/api/job-opportunities/[id]/route.ts src/lib/use-job-detail.ts
@@ -178,7 +178,7 @@ git commit -m "feat: 岗位 interview_prep_json 列（迁移+仓储+详情端点
 **Files:**
 - Create: `src/agent/schemas/interview-prep.ts`
 
-- [ ] **Step 1: 新建契约文件**
+- [x] **Step 1: 新建契约文件**
 
 Create `src/agent/schemas/interview-prep.ts`（输出契约内嵌 schemaVersion，字段对齐设计第 2 节；`id` 用 `q\d+` 正则对齐 matchJob 的 r\d+ 模式）：
 
@@ -204,12 +204,12 @@ export const interviewPrepSchemaV1 = z.object({
 export type InterviewPrepV1 = z.infer<typeof interviewPrepSchemaV1>;
 ```
 
-- [ ] **Step 2: 类型检查**
+- [x] **Step 2: 类型检查**
 
 Run: `npx tsc --noEmit`
 Expected: 无错误
 
-- [ ] **Step 3: 提交**
+- [x] **Step 3: 提交**
 
 ```bash
 git add src/agent/schemas/interview-prep.ts
@@ -223,7 +223,7 @@ git commit -m "feat: 面试准备包输出契约 v1（interviewPrepSchemaV1）"
 **Files:**
 - Create: `src/agent/prompts/interview-prep.ts`
 
-- [ ] **Step 1: 新建 prompt 文件**
+- [x] **Step 1: 新建 prompt 文件**
 
 Create `src/agent/prompts/interview-prep.ts`（system prompt 内嵌输出契约完整示例，对齐 find-work 第 1 期经验；user prompt 接收匹配结果 + 简历，不接收完整 JD 文本，对齐设计"匹配结果作为输入"）：
 
@@ -277,12 +277,12 @@ ${resumeText}`;
 }
 ```
 
-- [ ] **Step 2: 类型检查**
+- [x] **Step 2: 类型检查**
 
 Run: `npx tsc --noEmit`
 Expected: 无错误
 
-- [ ] **Step 3: 提交**
+- [x] **Step 3: 提交**
 
 ```bash
 git add src/agent/prompts/interview-prep.ts
@@ -296,7 +296,7 @@ git commit -m "feat: 面试准备提示词（准备包契约示例内嵌 + 匹�
 **Files:**
 - Create: `src/agent/tools/prepare-interview.ts`
 
-- [ ] **Step 1: 新建工具文件**
+- [x] **Step 1: 新建工具文件**
 
 Create `src/agent/tools/prepare-interview.ts`（对齐 `src/agent/tools/match-job.ts` 的 JOB_MATCH_REQUIRED 前置校验 + analyzeResume 的重复覆盖提示）：
 
@@ -379,12 +379,12 @@ export const prepareInterviewTool = createDomainTool({
 });
 ```
 
-- [ ] **Step 2: 类型检查**
+- [x] **Step 2: 类型检查**
 
 Run: `npx tsc --noEmit`
 Expected: 无错误
 
-- [ ] **Step 3: 提交**
+- [x] **Step 3: 提交**
 
 ```bash
 git add src/agent/tools/prepare-interview.ts
@@ -399,7 +399,7 @@ git commit -m "feat: prepareInterview 面试准备工具（匹配前置校验 + 
 - Modify: `src/agent/agent.ts`
 - Modify: `app/api/chat/route.ts`
 
-- [ ] **Step 1: agent.ts import**
+- [x] **Step 1: agent.ts import**
 
 在 `src/agent/agent.ts` 第 10 行 `recordApplicationStatusTool` import 之后追加：
 
@@ -407,7 +407,7 @@ git commit -m "feat: prepareInterview 面试准备工具（匹配前置校验 + 
 import { prepareInterviewTool } from './tools/prepare-interview';
 ```
 
-- [ ] **Step 2: agent.ts 能力清单**
+- [x] **Step 2: agent.ts 能力清单**
 
 在 SYSTEM_PROMPT 能力清单（第 30 行 `recordApplicationStatus` 行之后）追加：
 
@@ -415,7 +415,7 @@ import { prepareInterviewTool } from './tools/prepare-interview';
 - prepareInterview：面试准备（基于岗位匹配结果与简历生成完整准备包：背景要点/自我介绍话术/预测面试问题含应答与证据/向面试官提问清单）
 ```
 
-- [ ] **Step 3: agent.ts 原则区**
+- [x] **Step 3: agent.ts 原则区**
 
 在 SYSTEM_PROMPT 原则区（`recordApplicationStatus` 相关原则之后）追加：
 
@@ -423,7 +423,7 @@ import { prepareInterviewTool } from './tools/prepare-interview';
 - 用户提出准备面试、面试这家公司、帮我准备问题等意图时，若岗位已匹配（status 含 matched/applying/applied/interview/offer/hired），直接调用 prepareInterview；未匹配则先 matchJob 再准备。
 ```
 
-- [ ] **Step 4: agent.ts getTools**
+- [x] **Step 4: agent.ts getTools**
 
 在 `getTools()`（第 55 行 `recordApplicationStatus` 之后）追加：
 
@@ -431,7 +431,7 @@ import { prepareInterviewTool } from './tools/prepare-interview';
     prepareInterview: prepareInterviewTool,
 ```
 
-- [ ] **Step 5: route.ts 进度文案**
+- [x] **Step 5: route.ts 进度文案**
 
 在 `app/api/chat/route.ts` 的 `onToolExecutionStart` 三元链（第 106 行 `recordApplicationStatus` 分支之后）追加：
 
@@ -439,12 +439,12 @@ import { prepareInterviewTool } from './tools/prepare-interview';
             : toolName === 'prepareInterview' ? '正在准备面试…'
 ```
 
-- [ ] **Step 6: 类型检查**
+- [x] **Step 6: 类型检查**
 
 Run: `npx tsc --noEmit`
 Expected: 无错误
 
-- [ ] **Step 7: 提交**
+- [x] **Step 7: 提交**
 
 ```bash
 git add src/agent/agent.ts app/api/chat/route.ts
@@ -459,7 +459,7 @@ git commit -m "feat: prepareInterview 注册进 agent（能力清单/原则/getT
 - Create: `src/lib/interview-prep-md.ts`
 - Create: `src/lib/interview-prep-md.test.ts`
 
-- [ ] **Step 1: 写失败测试**
+- [x] **Step 1: 写失败测试**
 
 Create `src/lib/interview-prep-md.test.ts`：
 
@@ -522,12 +522,12 @@ describe('interview-prep-md', () => {
 });
 ```
 
-- [ ] **Step 2: 跑测试确认失败**
+- [x] **Step 2: 跑测试确认失败**
 
 Run: `npm run test -- interview-prep-md`
 Expected: FAIL（`Cannot find module './interview-prep-md'`）
 
-- [ ] **Step 3: 最小实现**
+- [x] **Step 3: 最小实现**
 
 Create `src/lib/interview-prep-md.ts`（返回 Markdown 字符串；risk 为空时省略该行）：
 
@@ -566,12 +566,12 @@ export function toInterviewPrepMarkdown(prep: InterviewPrepMdInput): string {
 }
 ```
 
-- [ ] **Step 4: 跑测试确认通过**
+- [x] **Step 4: 跑测试确认通过**
 
 Run: `npm run test -- interview-prep-md`
 Expected: PASS（5 个用例全过）
 
-- [ ] **Step 5: 提交**
+- [x] **Step 5: 提交**
 
 ```bash
 git add src/lib/interview-prep-md.ts src/lib/interview-prep-md.test.ts
@@ -585,7 +585,7 @@ git commit -m "feat: 面试准备包 Markdown 导出纯函数（toInterviewPrepM
 **Files:**
 - Modify: `src/components/artifacts/job-drawer.tsx`
 
-- [ ] **Step 1: import 扩展**
+- [x] **Step 1: import 扩展**
 
 在 `src/components/artifacts/job-drawer.tsx` 顶部追加 import（`Download` 图标 + 纯函数）：
 
@@ -596,7 +596,7 @@ import { toInterviewPrepMarkdown } from '@/src/lib/interview-prep-md';
 
 > 注：现有 import 首行 `import { Briefcase, FilePen, Globe, Mail } from 'lucide-react';`，`Download` 追加进同一花括号即可。
 
-- [ ] **Step 2: 导出处理函数**
+- [x] **Step 2: 导出处理函数**
 
 在 `JobDrawer` 组件函数体内（`const channels = ...` 之后）追加：
 
@@ -614,7 +614,7 @@ import { toInterviewPrepMarkdown } from '@/src/lib/interview-prep-md';
   };
 ```
 
-- [ ] **Step 3: 面试准备区块**
+- [x] **Step 3: 面试准备区块**
 
 在「专属简历」区块之后（`</div>` 收尾处，约第 236 行）追加新区块（未生成 → 引导文案；已生成 → 背景要点 / 自我介绍 / 预测问题 / 提问清单 + 导出按钮）：
 
@@ -682,7 +682,7 @@ import { toInterviewPrepMarkdown } from '@/src/lib/interview-prep-md';
             </div>
 ```
 
-- [ ] **Step 4: 投递状态引导文案补面试准备提示**
+- [x] **Step 4: 投递状态引导文案补面试准备提示**
 
 在 `src/components/artifacts/job-drawer.tsx` 的投递状态区块（第 156 行 `interview` 行）追加一行（不覆盖现有行）：
 
@@ -692,12 +692,12 @@ import { toInterviewPrepMarkdown } from '@/src/lib/interview-prep-md';
 
 > 注：加在现有 `interview` 行之后，两行并存。若需为其他投递后状态提供入口，按同样模式追加，但本期仅加 interview。
 
-- [ ] **Step 5: 类型检查 + 构建**
+- [x] **Step 5: 类型检查 + 构建**
 
 Run: `npx tsc --noEmit && npm run build`
 Expected: 无错误，build 通过
 
-- [ ] **Step 6: 提交**
+- [x] **Step 6: 提交**
 
 ```bash
 git add src/components/artifacts/job-drawer.tsx
@@ -712,12 +712,12 @@ git commit -m "feat: 岗位抽屉面试准备区块（展示 + 导出 Markdown �
 - Modify: `docs/plans/2026-08-09-phase6-interview-prep.md`（本文件，任务打勾）
 - Modify: `docs/designs/2026-08-09-phase6-interview-prep-design.md`（状态 → 完成）
 
-- [ ] **Step 1: 单测与构建**
+- [x] **Step 1: 单测与构建**
 
 Run: `npm run test && npm run build`
 Expected: 全部单测通过（含新增 interview-prep-md）+ build 通过
 
-- [ ] **Step 2: 端到端场景验证（dev 服务）**
+- [x] **Step 2: 端到端场景验证（dev 服务）**
 
 Run: `npm run dev`，在对话中依次验证：
 
@@ -729,12 +729,12 @@ Run: `npm run dev`，在对话中依次验证：
 
 Expected: 5 项全部符合预期；刷新后数据持久（SQLite 落库）；对话落库后抽屉自动刷新（refreshSignal 机制，无需手动刷新）
 
-- [ ] **Step 3: 计划与设计文档状态更新**
+- [x] **Step 3: 计划与设计文档状态更新**
 
 - 计划头部元信息 `状态：草稿` → `状态：完成`；本文件所有任务打勾 `[x]`
 - 设计文档头部 `状态：草稿` → `状态：完成`
 
-- [ ] **Step 4: 提交**
+- [x] **Step 4: 提交**
 
 ```bash
 git add docs/plans/2026-08-09-phase6-interview-prep.md docs/designs/2026-08-09-phase6-interview-prep-design.md
