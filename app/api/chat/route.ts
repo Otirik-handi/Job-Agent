@@ -103,6 +103,7 @@ export async function POST(req: Request) {
             : toolName === 'discoverChannels' ? '正在发现投递渠道…'
             : toolName === 'tailoredResume' ? '正在生成专属简历…'
             : toolName === 'applyJob' ? '正在更新投递状态…'
+            : toolName === 'recordApplicationStatus' ? '正在记录投递后状态…'
             : '正在处理…';
           writer.write({
             type: 'data-tool-progress',
