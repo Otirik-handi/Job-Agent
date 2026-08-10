@@ -6,7 +6,7 @@ import { listResumes, getResume } from '../../db/repositories/resumes';
 import { jobMatchResultSchemaV1 } from '../schemas/job-match';
 import { buildJobMatchSystemPrompt, buildJobMatchUserPrompt } from '../prompts/job-match';
 
-const inputSchema = z.object({
+const inputSchema = z.strictObject({
   jobOpportunityId: z.string().min(1).describe('岗位 ID（由 importJobOpportunity 返回）'),
 });
 

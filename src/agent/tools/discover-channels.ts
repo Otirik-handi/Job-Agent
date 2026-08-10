@@ -6,7 +6,7 @@ import { channelDiscoveryResultSchemaV1 } from '../schemas/channel-discovery';
 import { buildChannelDiscoverySystemPrompt, buildChannelDiscoveryUserPrompt } from '../prompts/channel-discovery';
 import { extractCandidates, isJobBoardDomain, verifyChannel } from '../channel-guard';
 
-const inputSchema = z.object({
+const inputSchema = z.strictObject({
   jobOpportunityId: z.string().min(1).describe('岗位 ID（由 importJobOpportunity 返回）'),
 });
 

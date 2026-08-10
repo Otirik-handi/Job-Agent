@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { createDomainTool } from '../tool-factory';
 import { getMemoryBlock, listMemoryBlocks, MEMORY_BLOCK_LABELS } from '../../db/repositories/memory-blocks';
 
-const inputSchema = z.object({
+const inputSchema = z.strictObject({
   label: z.enum(MEMORY_BLOCK_LABELS).optional().describe('记忆块 label：resume 简历画像 / preferences 用户偏好 / status_scratchpad 进度速记；缺省返回全部记忆块'),
 });
 

@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { createDomainTool } from '../tool-factory';
 import { MEMORY_BLOCK_DEFS, MEMORY_BLOCK_LABELS, setMemoryBlock } from '../../db/repositories/memory-blocks';
 
-const inputSchema = z.object({
+const inputSchema = z.strictObject({
   label: z.enum(MEMORY_BLOCK_LABELS).describe('记忆块 label：resume 简历画像 / preferences 用户偏好 / status_scratchpad 进度速记'),
   value: z.string().min(1).describe('要写入的记忆内容（受各块字符上限 limit 约束，超限将返回错误，需精简后重写）'),
 });

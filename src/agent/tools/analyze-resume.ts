@@ -5,7 +5,7 @@ import { getResume, updateResumeAnalysis } from '../../db/repositories/resumes';
 import { resumeAnalysisSchemaV1 } from '../schemas/resume-analysis';
 import { buildResumeAnalysisSystemPrompt, buildResumeAnalysisUserPrompt } from '../prompts/resume-analysis';
 
-const inputSchema = z.object({
+const inputSchema = z.strictObject({
   resumeId: z.string().min(1).describe('要分析的简历 ID（由 importResume 返回）'),
 });
 

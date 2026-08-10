@@ -38,6 +38,41 @@ export class ToolExecutionError extends Error {
 /** 未知异常兜底错误码：仅工厂 catch 兜底分支使用（禁止工具层直接包装为 TOOL_FAILED） */
 export const TOOL_FAILED_CODE = 'TOOL_FAILED';
 
+/** 非法参数拦截错误码：工厂在业务 execute 前用 inputSchema 严格校验 args，失败即返回本错误 */
+export const INVALID_INPUT_CODE = 'INVALID_INPUT';
+
+const ORIGIN_UNIT: Record<string, string> = { string: '个字符', array: '项' };
+
+/** 把 zod v4 校验 issue 转成中文描述（含具体字段路径），供 INVALID_INPUT.message 使用 */
+function describeZodIssue(issue: z.ZodIssue): string {
+  const path = issue.path.length > 0 ? `字段「${issue.path.join('.')}」` : '参数';
+  switch (issue.code) {
+    case 'invalid_type': {
+      const received =
+        issue.input === undefined ? '未提供（缺失）' : issue.input === null ? 'null' : typeof issue.input;
+      return `${path} 类型错误：期望 ${issue.expected}，实际收到 ${received}`;
+    }
+    case 'unrecognized_keys':
+      return `${path}包含未定义的字段：${issue.keys.map((k) => `"${k}"`).join('、')}`;
+    case 'invalid_value':
+      return `${path} 取值不合法：仅允许 ${issue.values.map(String).join(' / ')}`;
+    case 'too_small':
+      return `${path} 不满足最小要求：至少 ${String(issue.minimum)}${ORIGIN_UNIT[issue.origin] ?? ''}`;
+    case 'too_big':
+      return `${path} 超出上限：最多 ${String(issue.maximum)}${ORIGIN_UNIT[issue.origin] ?? ''}`;
+    case 'invalid_format':
+      return `${path} 格式不合法${
+        issue.format === 'regex' ? `（需匹配 ${issue.pattern ?? '正则表达式'}）` : `（应为 ${issue.format} 格式）`
+      }`;
+    case 'invalid_union':
+      return `${path} 取值不合法：不匹配任何允许的类型/取值`;
+    case 'not_multiple_of':
+      return `${path} 数值必须是 ${String(issue.divisor)} 的倍数`;
+    default:
+      return `${path}：${issue.message}`;
+  }
+}
+
 export type DomainToolOptions<INPUT extends ZodType, OUTPUT> = {
   name: string;
   description: string;
@@ -73,7 +108,22 @@ export function createDomainTool<INPUT extends ZodType, OUTPUT>(
     execute: async (args) => {
       const startedAt = Date.now();
       try {
-        const result = await execute(args as z.infer<INPUT>, {
+        // 非法参数拦截（双保险）：AI SDK 在 execute 前也会按 inputSchema 校验（strict
+        // 语义下多余字段在 SDK 层即被拒），此处兜底所有直接调用 execute 的路径，并把
+        // 校验失败统一为中文可行动的结构化错误 INVALID_INPUT 回到模型，业务 execute 不执行。
+        const parsed = inputSchema.safeParse(args);
+        if (!parsed.success) {
+          const details = parsed.error.issues.slice(0, 5).map(describeZodIssue).join('；');
+          return {
+            ok: false,
+            error: {
+              code: INVALID_INPUT_CODE,
+              message: `参数校验失败：${details}`,
+              hint: '工具未执行。请修正参数后重试：只传工具描述中声明的字段（字段名与取值类型须严格匹配，多余字段会被拒绝）；如不确定参数取值（如各 id），可先调用对应 list* 工具查询后再传。',
+            },
+          } as unknown as OUTPUT;
+        }
+        const result = await execute(parsed.data, {
           callStructured: (await import('./llm-call')).callStructured,
           log: (level, message) => {
             console.log(`[tool:${name}] ${level} ${message} ${Date.now() - startedAt}ms`);

@@ -1,10 +1,10 @@
 import { z } from 'zod';
 
 /** tailoredResume 输入：无 confirmedEdits → 建议阶段；提供 confirmedEdits → 生成阶段 */
-export const tailoredResumeInputSchema = z.object({
+export const tailoredResumeInputSchema = z.strictObject({
   jobOpportunityId: z.string().min(1).describe('岗位 ID（须已匹配）'),
   resumeId: z.string().optional().describe('目标简历 ID；缺省时系统自动取最近导入的简历'),
-  confirmedEdits: z.array(z.object({
+  confirmedEdits: z.array(z.strictObject({
     id: z.string().regex(/^e\d+$/).describe('沿用建议清单中的编号'),
     sourceText: z.string().describe('简历原文片段（必须与原文逐字一致）'),
     suggestedText: z.string().describe('替换后的文本'),

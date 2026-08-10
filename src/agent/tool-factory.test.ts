@@ -93,3 +93,80 @@ describe('ToolExecutionError', () => {
     });
   });
 });
+
+describe('非法参数拦截（INVALID_INPUT）', () => {
+  type StrictArgs = { jobOpportunityId: string };
+
+  function makeStrictTool(execute: (args: StrictArgs) => Promise<unknown>) {
+    return createDomainTool({
+      name: 'strictTool',
+      description: '测试工具',
+      inputSchema: z.strictObject({ jobOpportunityId: z.string().min(1) }),
+      progress: { start: '开始', done: '完成' },
+      execute,
+    });
+  }
+
+  /** 绕过静态参数类型，注入非法运行时参数（拦截发生在工厂执行期） */
+  function executeWithRawArgs(tool: ReturnType<typeof makeStrictTool>, args: unknown) {
+    return tool.execute(args as never, { toolCallId: 'test', messages: [], context: noopCtx });
+  }
+
+  it('多余字段 → INVALID_INPUT（含字段名与 hint），业务 execute 未被调用', async () => {
+    const execute = vi.fn(async () => ({ ok: true }));
+    const tool = makeStrictTool(execute);
+    const result = await executeWithRawArgs(tool, { jobOpportunityId: 'j1', hallucinatedField: 'x' });
+    expect(execute).not.toHaveBeenCalled();
+    expect(result).toMatchObject({
+      ok: false,
+      error: {
+        code: 'INVALID_INPUT',
+        hint: expect.stringContaining('重试'),
+      },
+    });
+    const message = (result as { error?: { message?: string } }).error?.message ?? '';
+    expect(message).toContain('未定义的字段');
+    expect(message).toContain('hallucinatedField');
+  });
+
+  it('缺失必填字段 → INVALID_INPUT（含字段路径），业务 execute 未被调用', async () => {
+    const execute = vi.fn(async () => ({ ok: true }));
+    const tool = makeStrictTool(execute);
+    const result = await executeWithRawArgs(tool, {});
+    expect(execute).not.toHaveBeenCalled();
+    expect(result).toMatchObject({
+      ok: false,
+      error: {
+        code: 'INVALID_INPUT',
+        message: expect.stringContaining('jobOpportunityId'),
+        hint: expect.any(String),
+      },
+    });
+  });
+
+  it('类型错误 → INVALID_INPUT（含类型说明），业务 execute 未被调用', async () => {
+    const execute = vi.fn(async () => ({ ok: true }));
+    const tool = makeStrictTool(execute);
+    const result = await executeWithRawArgs(tool, { jobOpportunityId: 42 });
+    expect(execute).not.toHaveBeenCalled();
+    expect(result).toMatchObject({
+      ok: false,
+      error: {
+        code: 'INVALID_INPUT',
+        message: expect.stringContaining('类型错误'),
+        hint: expect.any(String),
+      },
+    });
+  });
+
+  it('合法参数正常执行，业务 execute 收到解析后的数据', async () => {
+    const execute = vi.fn(async (args: StrictArgs) => ({ ok: true, id: args.jobOpportunityId }));
+    const tool = makeStrictTool(execute);
+    const result = await tool.execute(
+      { jobOpportunityId: 'j1' },
+      { toolCallId: 'test', messages: [], context: noopCtx },
+    );
+    expect(execute).toHaveBeenCalledWith({ jobOpportunityId: 'j1' }, expect.anything());
+    expect(result).toEqual({ ok: true, id: 'j1' });
+  });
+});

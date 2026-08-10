@@ -6,7 +6,7 @@ import { listResumes } from '../../db/repositories/resumes';
 import { interviewPrepSchemaV1 } from '../schemas/interview-prep';
 import { buildInterviewPrepSystemPrompt, buildInterviewPrepUserPrompt } from '../prompts/interview-prep';
 
-const inputSchema = z.object({
+const inputSchema = z.strictObject({
   jobOpportunityId: z.string().min(1).describe('岗位 ID（须已匹配）'),
 });
 

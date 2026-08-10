@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { createDomainTool } from '../tool-factory';
 import { listJobOpportunities } from '../../db/repositories/job-opportunities';
 
-const inputSchema = z.object({});
+const inputSchema = z.strictObject({});
 
 /**
  * 确定性工具（无 LLM 调用）：列出系统中已导入的岗位。

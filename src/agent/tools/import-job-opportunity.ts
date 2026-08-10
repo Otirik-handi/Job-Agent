@@ -3,7 +3,7 @@ import { createDomainTool } from '../tool-factory';
 import { createJobOpportunity } from '../../db/repositories/job-opportunities';
 import { assertTextLength, normalizeResumeText, ResumeTextError } from '../resume-text';
 
-const inputSchema = z.object({
+const inputSchema = z.strictObject({
   text: z.string().min(1).describe('岗位 JD 文本（粘贴）'),
 });
 

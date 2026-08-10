@@ -6,7 +6,7 @@ import {
   normalizeResumeText, ResumeTextError,
 } from '../resume-text';
 
-const inputSchema = z.object({
+const inputSchema = z.strictObject({
   text: z.string().min(1).optional().describe('简历文本内容（粘贴方式）'),
   filePath: z.string().min(1).optional().describe('本地简历文件路径，支持 .pdf/.docx/.txt/.md'),
 });
