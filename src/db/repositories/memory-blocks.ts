@@ -38,7 +38,10 @@ export function setMemoryBlock(label: string, value: string): MemoryBlockRecord 
     label, description: def.description, value, limit: def.limit, updatedAt: nowIso(),
   };
   db.insert(memoryBlocks).values(record)
-    .onConflictDoUpdate({ target: memoryBlocks.label, set: { value: record.value, updatedAt: record.updatedAt } })
+    .onConflictDoUpdate({
+      target: memoryBlocks.label,
+      set: { description: record.description, limit: record.limit, value: record.value, updatedAt: record.updatedAt },
+    })
     .run();
   return record;
 }

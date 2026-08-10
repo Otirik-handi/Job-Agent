@@ -12,8 +12,9 @@ export function getSessionState(conversationId: string): SessionStateRecord | nu
 }
 
 export function setSessionState(conversationId: string, stateJson: string): void {
-  db.insert(sessionState).values({ conversationId, stateJson, updatedAt: nowIso() })
-    .onConflictDoUpdate({ target: sessionState.conversationId, set: { stateJson, updatedAt: nowIso() } })
+  const updatedAt = nowIso();
+  db.insert(sessionState).values({ conversationId, stateJson, updatedAt })
+    .onConflictDoUpdate({ target: sessionState.conversationId, set: { stateJson, updatedAt } })
     .run();
 }
 

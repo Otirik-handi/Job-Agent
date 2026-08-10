@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { desc, eq } from 'drizzle-orm';
+import { desc, eq, sql } from 'drizzle-orm';
 import { db } from '../index';
 import { conversations } from '../schema';
 import { nowIso } from './shared';
@@ -31,5 +31,9 @@ export function touchConversation(id: string): void {
 }
 
 export function deleteConversation(id: string): void {
-  db.delete(conversations).where(eq(conversations.id, id)).run();
+  // 会话删除：messages 由外键级联删除，messages_fts 行须同步清理（同事务避免孤儿行）
+  db.transaction((tx) => {
+    tx.run(sql`DELETE FROM messages_fts WHERE conversation_id = ${id}`);
+    tx.delete(conversations).where(eq(conversations.id, id)).run();
+  });
 }

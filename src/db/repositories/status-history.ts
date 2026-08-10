@@ -14,16 +14,18 @@ export function recordStatusTransition(jobOpportunityId: string, fromStatus: str
   const record: StatusHistoryRecord = {
     id: randomUUID(), jobOpportunityId, fromStatus, toStatus, createdAt: nowIso(), supersededBy: null,
   };
-  // 先取最近一条未作废记录（不含本次新记录），再插入，最后把它置为被新记录覆盖
-  // （superseded_by 外键指向本表 id，更新须在新记录落库之后）
-  const previous = db.select().from(statusHistory)
-    .where(and(eq(statusHistory.jobOpportunityId, jobOpportunityId), isNull(statusHistory.supersededBy)))
-    .orderBy(desc(statusHistory.createdAt), desc(sql`rowid`))
-    .get();
-  db.insert(statusHistory).values(record).run();
-  if (previous) {
-    db.update(statusHistory).set({ supersededBy: record.id }).where(eq(statusHistory.id, previous.id)).run();
-  }
+  // 查前一条 → 插入新记录 → 覆盖前一条，三语句包进事务，避免并发下出现两条「未作废」记录（链断裂）。
+  // 顺序约束：superseded_by 外键指向本表 id，对前一条的 UPDATE 必须在新记录落库之后。
+  db.transaction((tx) => {
+    const previous = tx.select().from(statusHistory)
+      .where(and(eq(statusHistory.jobOpportunityId, jobOpportunityId), isNull(statusHistory.supersededBy)))
+      .orderBy(desc(statusHistory.createdAt), desc(sql`rowid`))
+      .get();
+    tx.insert(statusHistory).values(record).run();
+    if (previous) {
+      tx.update(statusHistory).set({ supersededBy: record.id }).where(eq(statusHistory.id, previous.id)).run();
+    }
+  });
   return record;
 }
 
