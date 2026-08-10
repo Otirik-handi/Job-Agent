@@ -18,7 +18,14 @@ export const matchJobTool = createDomainTool({
   execute: async (args, ctx) => {
     const job = getJobOpportunity(args.jobOpportunityId);
     if (!job) {
-      throw new Error('岗位不存在，请先调用 importJobOpportunity 导入');
+      return {
+        ok: false,
+        error: {
+          code: 'JOB_NOT_FOUND',
+          message: '岗位不存在，请先调用 importJobOpportunity 导入',
+          hint: '系统中没有该岗位，请先调用 importJobOpportunity 导入岗位 JD 后，再重试匹配。',
+        },
+      };
     }
 
     const resumes = listResumes();
@@ -26,9 +33,12 @@ export const matchJobTool = createDomainTool({
     if (!analyzed || !analyzed.analysisJson) {
       return {
         ok: false,
-        error: { code: 'RESUME_ANALYSIS_REQUIRED', message: '需要先导入并分析简历，才能进行岗位匹配' },
+        error: {
+          code: 'RESUME_ANALYSIS_REQUIRED',
+          message: '需要先导入并分析简历，才能进行岗位匹配',
+          hint: '请先在对话中导入并分析简历，然后再进行匹配。',
+        },
         jobOpportunityId: job.id,
-        hint: '请先在对话中粘贴简历并分析，然后再进行匹配。',
       };
     }
     const resume = getResume(analyzed.id)!;
@@ -49,9 +59,8 @@ export const matchJobTool = createDomainTool({
     if (!result.ok) {
       return {
         ok: false,
-        error: result.error,
+        error: { ...result.error, hint: '匹配失败。可重试一次；若持续失败，检查模型配置或缩短 JD 文本。' },
         jobOpportunityId: job.id,
-        hint: '匹配失败。可重试一次；若持续失败，检查模型配置或缩短 JD 文本。',
       };
     }
 
@@ -59,7 +68,15 @@ export const matchJobTool = createDomainTool({
     const validIds = new Set(data.understanding.requirements.map((r) => r.id));
     for (const fit of data.fitResults) {
       if (!validIds.has(fit.requirementId)) {
-        return { ok: false, error: { code: 'JOB_MATCH_CONSISTENCY_FAILED', message: '匹配结果引用不存在的要求编号' }, jobOpportunityId: job.id, hint: '匹配结果内部不一致，请重试。' };
+        return {
+          ok: false,
+          error: {
+            code: 'JOB_MATCH_CONSISTENCY_FAILED',
+            message: '匹配结果引用不存在的要求编号',
+            hint: '匹配结果内部不一致，请重试一次。',
+          },
+          jobOpportunityId: job.id,
+        };
       }
     }
 

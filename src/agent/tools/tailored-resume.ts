@@ -15,14 +15,24 @@ export const tailoredResumeTool = createDomainTool({
   execute: async (args, ctx) => {
     const job = getJobOpportunity(args.jobOpportunityId);
     if (!job) {
-      throw new Error('岗位不存在，请先调用 importJobOpportunity 导入');
+      return {
+        ok: false,
+        error: {
+          code: 'JOB_NOT_FOUND',
+          message: '岗位不存在，请先调用 importJobOpportunity 导入',
+          hint: '系统中没有该岗位，请先调用 importJobOpportunity 导入岗位 JD 后，再重试生成专属简历。',
+        },
+      };
     }
     if (!job.fitResultJson) {
       return {
         ok: false,
-        error: { code: 'JOB_MATCH_REQUIRED', message: '该岗位尚未完成匹配，无法生成专属简历' },
+        error: {
+          code: 'JOB_MATCH_REQUIRED',
+          message: '该岗位尚未完成匹配，无法生成专属简历',
+          hint: '请先调用 matchJob 完成岗位匹配，再生成专属简历。',
+        },
         jobOpportunityId: job.id,
-        hint: '请先调用 matchJob 完成岗位匹配，再生成专属简历。',
       };
     }
 
@@ -32,9 +42,12 @@ export const tailoredResumeTool = createDomainTool({
     if (!resume) {
       return {
         ok: false,
-        error: { code: 'RESUME_NOT_FOUND', message: '系统中没有简历，无法生成专属简历' },
+        error: {
+          code: 'RESUME_NOT_FOUND',
+          message: '系统中没有简历，无法生成专属简历',
+          hint: '请先导入并分析简历，再生成专属简历。',
+        },
         jobOpportunityId: job.id,
-        hint: '请先导入并分析简历，再生成专属简历。',
       };
     }
 
@@ -50,10 +63,9 @@ export const tailoredResumeTool = createDomainTool({
       if (!result.ok) {
         return {
           ok: false,
-          error: result.error,
+          error: { ...result.error, hint: '生成建议失败。可重试一次；若持续失败，检查模型配置。' },
           jobOpportunityId: job.id,
           resumeId: resume.id,
-          hint: '生成建议失败。可重试一次；若持续失败，检查模型配置。',
         };
       }
 
@@ -65,10 +77,10 @@ export const tailoredResumeTool = createDomainTool({
           error: {
             code: 'EDIT_SOURCE_NOT_FOUND',
             message: `全部 ${result.data.edits.length} 条建议均无法唯一匹配简历原文（${invalid[0]?.code ?? ''}）`,
+            hint: '建议清单的原文片段定位失败，请重新生成建议（提醒模型必须逐字抄录简历原文片段）。',
           },
           jobOpportunityId: job.id,
           resumeId: resume.id,
-          hint: '建议清单的原文片段定位失败，请重新生成建议（提醒模型必须逐字抄录简历原文片段）。',
         };
       }
 
@@ -98,11 +110,11 @@ export const tailoredResumeTool = createDomainTool({
         error: {
           code: applied.code,
           message: `有 ${applied.failedEdits.length} 条替换片段无法唯一匹配简历原文`,
+          hint: '部分确认的替换片段无法在简历原文中唯一匹配，请向用户展示失败条目，请其修正原文片段后重试。',
         },
         jobOpportunityId: job.id,
         resumeId: resume.id,
         failedEdits: applied.failedEdits.map((e) => ({ id: e.id, sourceText: e.sourceText })),
-        hint: '部分确认的替换片段无法在简历原文中唯一匹配，请向用户展示失败条目，请其修正原文片段后重试。',
       };
     }
 

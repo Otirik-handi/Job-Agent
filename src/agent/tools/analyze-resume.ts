@@ -11,16 +11,30 @@ const inputSchema = z.object({
 
 export const analyzeResumeTool = createDomainTool({
   name: 'analyzeResume',
-  description: '分析已导入的简历：产出结构化画像（技能、目标岗位、工作年限）、整体评分 0-100、优势、风险与改进建议。参数 resumeId 为简历 ID（importResume 返回），未提供时先调用 listResumes 获取。前置条件：简历须已导入，否则报错——先调用 importResume。返回 ok、overallScore 与 summary 统计（优势/风险/改进条数、待确认项数），完整分析已保存，可在简历详情查看。',
+  description: '分析已导入的简历：产出结构化画像（技能、目标岗位、工作年限）、整体评分 0-100、优势、风险与改进建议。参数 resumeId 为简历 ID（importResume 返回），未提供时先调用 listResumes 获取。前置条件：简历须已导入，否则返回错误——先调用 importResume。返回 ok、overallScore 与 summary 统计（优势/风险/改进条数、待确认项数），完整分析已保存，可在简历详情查看。',
   inputSchema,
   progress: { start: '正在分析简历…', done: '简历分析完成' },
   execute: async (args, ctx) => {
     const resume = getResume(args.resumeId);
     if (!resume) {
-      throw new Error('简历不存在，请先调用 importResume 导入');
+      return {
+        ok: false,
+        error: {
+          code: 'RESUME_NOT_FOUND',
+          message: '简历不存在，请先调用 importResume 导入',
+          hint: '系统中没有该简历，请先调用 importResume 导入简历后，再重试分析。',
+        },
+      };
     }
     if (!resume.sourceText.trim()) {
-      throw new Error('简历内容为空，无法分析');
+      return {
+        ok: false,
+        error: {
+          code: 'RESUME_CONTENT_EMPTY',
+          message: '简历内容为空，无法分析',
+          hint: '该简历没有可分析的文本内容，请导入包含正文内容的简历后重试。',
+        },
+      };
     }
 
     const result = await ctx.callStructured({
@@ -34,9 +48,8 @@ export const analyzeResumeTool = createDomainTool({
     if (!result.ok) {
       return {
         ok: false,
-        error: result.error,
+        error: { ...result.error, hint: '分析失败。可重试一次；若持续失败，可尝试导入文本更短的简历或检查模型配置。' },
         resumeId: resume.id,
-        hint: '分析失败。可重试一次；若持续失败，可尝试导入文本更短的简历或检查模型配置。',
       };
     }
 

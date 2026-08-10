@@ -12,13 +12,20 @@ const inputSchema = z.object({
 
 export const discoverChannelsTool = createDomainTool({
   name: 'discoverChannels',
-  description: '渠道发现：从岗位 JD 中提取投递渠道（官网/邮箱/招聘平台），经本地规则核验后保存，供投递时选择。参数 jobOpportunityId 为岗位 ID（importJobOpportunity 返回）。前置条件：岗位须已导入，否则报错——先 importJobOpportunity；渠道一律取自 JD 原文，JD 中无有效链接或邮箱时返回 0 个渠道，需用户补充投递信息。返回 ok、channelsCount 与 byType 分类统计，渠道已保存至岗位详情。',
+  description: '渠道发现：从岗位 JD 中提取投递渠道（官网/邮箱/招聘平台），经本地规则核验后保存，供投递时选择。参数 jobOpportunityId 为岗位 ID（importJobOpportunity 返回）。前置条件：岗位须已导入，否则返回错误——先 importJobOpportunity；渠道一律取自 JD 原文，JD 中无有效链接或邮箱时返回 0 个渠道，需用户补充投递信息。返回 ok、channelsCount 与 byType 分类统计，渠道已保存至岗位详情。',
   inputSchema,
   progress: { start: '正在发现投递渠道…', done: '渠道发现完成' },
   execute: async (args, ctx) => {
     const job = getJobOpportunity(args.jobOpportunityId);
     if (!job) {
-      throw new Error('岗位不存在，请先调用 importJobOpportunity 导入');
+      return {
+        ok: false,
+        error: {
+          code: 'JOB_NOT_FOUND',
+          message: '岗位不存在，请先调用 importJobOpportunity 导入',
+          hint: '系统中没有该岗位，请先调用 importJobOpportunity 导入岗位 JD 后，再重试渠道发现。',
+        },
+      };
     }
 
     // 本地提取：URL/邮箱一律来自 JD 原文，LLM 只能引用
@@ -35,9 +42,8 @@ export const discoverChannelsTool = createDomainTool({
     if (!result.ok) {
       return {
         ok: false,
-        error: result.error,
+        error: { ...result.error, hint: '渠道发现失败。可重试一次；若持续失败，检查模型配置或缩短 JD 文本。' },
         jobOpportunityId: job.id,
-        hint: '渠道发现失败。可重试一次；若持续失败，检查模型配置或缩短 JD 文本。',
       };
     }
 

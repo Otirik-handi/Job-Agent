@@ -18,14 +18,24 @@ export const prepareInterviewTool = createDomainTool({
   execute: async (args, ctx) => {
     const job = getJobOpportunity(args.jobOpportunityId);
     if (!job) {
-      throw new Error('岗位不存在，请先调用 importJobOpportunity 导入');
+      return {
+        ok: false,
+        error: {
+          code: 'JOB_NOT_FOUND',
+          message: '岗位不存在，请先调用 importJobOpportunity 导入',
+          hint: '系统中没有该岗位，请先调用 importJobOpportunity 导入岗位 JD 后，再重试面试准备。',
+        },
+      };
     }
     if (!job.fitResultJson) {
       return {
         ok: false,
-        error: { code: 'JOB_MATCH_REQUIRED', message: '该岗位尚未完成匹配，无法准备面试' },
+        error: {
+          code: 'JOB_MATCH_REQUIRED',
+          message: '该岗位尚未完成匹配，无法准备面试',
+          hint: '请先调用 matchJob 完成岗位匹配，再进行面试准备。',
+        },
         jobOpportunityId: job.id,
-        hint: '请先调用 matchJob 完成岗位匹配，再进行面试准备。',
       };
     }
     const resumes = listResumes();
@@ -33,9 +43,12 @@ export const prepareInterviewTool = createDomainTool({
     if (!analyzed || !analyzed.analysisJson) {
       return {
         ok: false,
-        error: { code: 'RESUME_ANALYSIS_REQUIRED', message: '需要先导入并分析简历，才能准备面试' },
+        error: {
+          code: 'RESUME_ANALYSIS_REQUIRED',
+          message: '需要先导入并分析简历，才能准备面试',
+          hint: '请先在对话中导入并分析简历，然后再进行面试准备。',
+        },
         jobOpportunityId: job.id,
-        hint: '请先在对话中粘贴简历并分析，然后再进行面试准备。',
       };
     }
 
@@ -50,9 +63,8 @@ export const prepareInterviewTool = createDomainTool({
     if (!result.ok) {
       return {
         ok: false,
-        error: result.error,
+        error: { ...result.error, hint: '面试准备失败。可重试一次；若持续失败，检查模型配置或缩短简历文本。' },
         jobOpportunityId: job.id,
-        hint: '面试准备失败。可重试一次；若持续失败，检查模型配置或缩短简历文本。',
       };
     }
 

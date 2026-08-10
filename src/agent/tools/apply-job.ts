@@ -28,15 +28,25 @@ export const applyJobTool = createDomainTool({
   execute: async (args) => {
     const job = getJobOpportunity(args.jobOpportunityId);
     if (!job) {
-      throw new Error('岗位不存在，请先调用 importJobOpportunity 导入');
+      return {
+        ok: false,
+        error: {
+          code: 'JOB_NOT_FOUND',
+          message: '岗位不存在，请先调用 importJobOpportunity 导入',
+          hint: '系统中没有该岗位，请先调用 importJobOpportunity 导入岗位 JD 后，再重试投递。',
+        },
+      };
     }
     if (args.action === 'apply' && !job.fitResultJson) {
       return {
         ok: false,
-        error: { code: 'JOB_MATCH_REQUIRED', message: '该岗位尚未完成匹配，无法投递' },
+        error: {
+          code: 'JOB_MATCH_REQUIRED',
+          message: '该岗位尚未完成匹配，无法投递',
+          hint: '请先调用 matchJob 完成岗位匹配，再执行投递。',
+        },
         jobOpportunityId: job.id,
         currentStatus: job.status,
-        hint: '请先调用 matchJob 完成岗位匹配，再执行投递。',
       };
     }
 
@@ -44,14 +54,17 @@ export const applyJobTool = createDomainTool({
     if (!transition.ok) {
       return {
         ok: false,
-        error: { code: transition.code, message: transition.code === 'JOB_MATCH_REQUIRED' ? '该岗位尚未完成匹配，无法投递' : `当前状态 ${job.status} 不能执行 ${args.action}` },
+        error: {
+          code: transition.code,
+          message: transition.code === 'JOB_MATCH_REQUIRED' ? '该岗位尚未完成匹配，无法投递' : `当前状态 ${job.status} 不能执行 ${args.action}`,
+          hint: transition.code === 'JOB_MATCH_REQUIRED'
+            ? '请先调用 matchJob 完成岗位匹配，再执行投递。'
+            : args.action === 'apply'
+              ? '岗位已处于终态（已投递/已跳过），无需重复投递。'
+              : '岗位已投递，不能标记为跳过。',
+        },
         jobOpportunityId: job.id,
         currentStatus: job.status,
-        hint: transition.code === 'JOB_MATCH_REQUIRED'
-          ? '请先调用 matchJob 完成岗位匹配，再执行投递。'
-          : args.action === 'apply'
-            ? '岗位已处于终态（已投递/已跳过），无需重复投递。'
-            : '岗位已投递，不能标记为跳过。',
       };
     }
 

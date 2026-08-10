@@ -16,19 +16,29 @@ export const recordApplicationStatusTool = createDomainTool({
   execute: async (args) => {
     const job = getJobOpportunity(args.jobOpportunityId);
     if (!job) {
-      throw new Error('岗位不存在，请先调用 importJobOpportunity 导入');
+      return {
+        ok: false,
+        error: {
+          code: 'JOB_NOT_FOUND',
+          message: '岗位不存在，请先调用 importJobOpportunity 导入',
+          hint: '系统中没有该岗位，请先调用 importJobOpportunity 导入岗位 JD 后，再重试记录。',
+        },
+      };
     }
 
     const transition = applicationOutcomeTransition(job.status, args.target);
     if (!transition.ok) {
       return {
         ok: false,
-        error: { code: transition.code, message: transition.code === 'NOT_APPLIED' ? '该岗位尚未投递，无法记录投递后状态' : `当前状态 ${job.status} 不能记录为 ${TARGET_LABELS[args.target]}` },
+        error: {
+          code: transition.code,
+          message: transition.code === 'NOT_APPLIED' ? '该岗位尚未投递，无法记录投递后状态' : `当前状态 ${job.status} 不能记录为 ${TARGET_LABELS[args.target]}`,
+          hint: transition.code === 'NOT_APPLIED'
+            ? '请先调用 applyJob 完成投递，再记录投递后状态。'
+            : `当前状态 ${job.status} 不能记录为 ${TARGET_LABELS[args.target]}，请检查目标状态是否正确。`,
+        },
         jobOpportunityId: job.id,
         currentStatus: job.status,
-        hint: transition.code === 'NOT_APPLIED'
-          ? '请先调用 applyJob 完成投递，再记录投递后状态。'
-          : `当前状态 ${job.status} 不能记录为 ${TARGET_LABELS[args.target]}，请检查目标状态是否正确。`,
       };
     }
 
