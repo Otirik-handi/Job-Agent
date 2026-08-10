@@ -12,7 +12,7 @@ const inputSchema = z.object({
 
 export const matchJobTool = createDomainTool({
   name: 'matchJob',
-  description: '岗位匹配：将岗位 JD 与已分析的简历做三段式匹配（岗位理解 → 逐条匹配矩阵 → 投递建议）。输入 jobOpportunityId。',
+  description: '岗位匹配：将岗位 JD 与已分析的简历做三段式匹配（岗位理解 → 逐条匹配矩阵 → 投递建议），产出匹配评分、风险点与必备修改。参数 jobOpportunityId 为岗位 ID（importJobOpportunity 返回）。前置条件：岗位须已导入，且系统中须已有导入并分析过的简历，否则失败——未导入先 importJobOpportunity，未分析先导入并分析简历；未提供岗位 ID 时先 listJobOpportunities。返回 ok、overallScore 与 summary 统计（要求数/风险数/必备修改数），完整匹配结果已保存，可在岗位详情查看。',
   inputSchema,
   progress: { start: '正在匹配岗位…', done: '岗位匹配完成' },
   execute: async (args, ctx) => {

@@ -9,7 +9,7 @@ import { applyEdits, validateEdits } from '../resume-edits';
 
 export const tailoredResumeTool = createDomainTool({
   name: 'tailoredResume',
-  description: '专属简历：针对岗位匹配结果为简历生成定点替换建议（第一段），用户确认后携带 confirmedEdits 再次调用生成专属简历版本（第二段）。输入 jobOpportunityId（须已匹配）。',
+  description: '专属简历：针对岗位匹配结果为简历生成定点替换建议，经用户逐条确认后产出专属简历版本，两段式调用。参数：jobOpportunityId（须已匹配，未匹配返回 JOB_MATCH_REQUIRED——先调用 matchJob）、resumeId（可选，缺省自动取最近导入的简历）、confirmedEdits（用户确认后的替换清单：沿用建议编号 id、原文片段 sourceText 须逐字一致、替换文本 suggestedText）。第一段不带 confirmedEdits：仅生成替换建议清单（含 factRisk 标注：confirmed 事实重述 / inferred 推断补充），不落库，须在对话中逐条向用户呈现并请求确认。用户确认后第二段携带 confirmedEdits 再次调用：应用替换生成专属简历版本并落库，返回 ok、tailoredResumeId 与 version。',
   inputSchema: tailoredResumeInputSchema,
   progress: { start: '正在生成专属简历…', done: '专属简历生成完成' },
   execute: async (args, ctx) => {

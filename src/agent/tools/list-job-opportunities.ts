@@ -10,7 +10,7 @@ const inputSchema = z.object({});
  */
 export const listJobOpportunitiesTool = createDomainTool({
   name: 'listJobOpportunities',
-  description: '列出系统中已导入的岗位（jobOpportunityId、公司、职位、状态、是否已匹配）。对已有岗位执行匹配/渠道发现/专属简历前，先调用本工具获取 jobOpportunityId。',
+  description: '列出系统中已导入的全部岗位，供获取 jobOpportunityId 复用。用户要求对已有岗位执行匹配、渠道发现、专属简历、投递或面试准备但未提供 jobOpportunityId 时，先调用本工具发现岗位。无参数，只读无副作用。返回 count 与岗位列表（jobOpportunityId、company、title、status、matched 是否已匹配）。',
   inputSchema,
   progress: { start: '正在查询系统中的岗位…', done: '岗位列表查询完成' },
   execute: async () => {

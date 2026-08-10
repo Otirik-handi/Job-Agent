@@ -13,7 +13,7 @@ const inputSchema = z.object({
  */
 export const setMemoryTool = createDomainTool({
   name: 'setMemory',
-  description: '写入/更新 Agent 记忆块（resume 简历画像 / preferences 用户偏好 / status_scratchpad 投递进度速记），按 label 覆盖写入。仅当用户显式声明偏好或事实时使用；写入前须先向用户复述将写入的内容并请求确认，用户确认后再调用本工具写入。返回写入后的记忆块（label、value、字符上限 limit、更新时间 updatedAt）。',
+  description: '写入/更新 Agent 持久记忆：按 label 覆盖写入对应记忆块。参数 label 为记忆块（resume 简历画像 / preferences 用户偏好 / status_scratchpad 投递进度速记），value 为要写入的内容（受各块字符上限 limit 约束，超限报错需精简后重写）。仅当用户显式声明偏好或事实时使用，写入前须在对话中向用户复述将写入的内容并请求确认，确认后再调用；不得推断或补全用户未表达的内容。返回写入后的记忆块（label、value、limit、updatedAt）。',
   inputSchema,
   progress: { start: '正在写入记忆…', done: '记忆写入完成' },
   execute: async (args) => {

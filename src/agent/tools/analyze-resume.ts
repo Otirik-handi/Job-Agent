@@ -11,7 +11,7 @@ const inputSchema = z.object({
 
 export const analyzeResumeTool = createDomainTool({
   name: 'analyzeResume',
-  description: '分析已导入的简历：产出结构化画像（技能/目标/年限）、评分、优势、风险与改进建议。输入 resumeId。',
+  description: '分析已导入的简历：产出结构化画像（技能、目标岗位、工作年限）、整体评分 0-100、优势、风险与改进建议。参数 resumeId 为简历 ID（importResume 返回），未提供时先调用 listResumes 获取。前置条件：简历须已导入，否则报错——先调用 importResume。返回 ok、overallScore 与 summary 统计（优势/风险/改进条数、待确认项数），完整分析已保存，可在简历详情查看。',
   inputSchema,
   progress: { start: '正在分析简历…', done: '简历分析完成' },
   execute: async (args, ctx) => {

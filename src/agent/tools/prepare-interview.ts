@@ -12,7 +12,7 @@ const inputSchema = z.object({
 
 export const prepareInterviewTool = createDomainTool({
   name: 'prepareInterview',
-  description: '面试准备：基于岗位匹配结果与已分析简历生成完整面试准备包（公司/岗位背景要点、自我介绍话术、预测面试问题含考察意图/STAR 应答要点/简历证据引用/风险提示、向面试官提问清单）。输入 jobOpportunityId，须已匹配。',
+  description: '面试准备：基于岗位匹配结果与已分析简历生成完整面试准备包（公司/岗位背景要点、自我介绍话术、预测面试问题含考察意图与 STAR 应答要点、向面试官提问清单）。参数 jobOpportunityId 为岗位 ID。前置条件：岗位须已完成匹配且系统中有已分析简历，否则失败——未匹配先调用 matchJob，未分析先导入并分析简历。返回 ok 与 summary 统计（问题数、是否有风险提示、提问数），完整准备包已保存至岗位详情，支持导出 Markdown。',
   inputSchema,
   progress: { start: '正在准备面试…', done: '面试准备完成' },
   execute: async (args, ctx) => {

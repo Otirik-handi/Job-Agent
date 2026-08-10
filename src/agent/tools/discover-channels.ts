@@ -12,7 +12,7 @@ const inputSchema = z.object({
 
 export const discoverChannelsTool = createDomainTool({
   name: 'discoverChannels',
-  description: '渠道发现：从岗位 JD 中提取投递渠道（官网/邮箱/招聘平台），经本地规则核验后保存。输入 jobOpportunityId。',
+  description: '渠道发现：从岗位 JD 中提取投递渠道（官网/邮箱/招聘平台），经本地规则核验后保存，供投递时选择。参数 jobOpportunityId 为岗位 ID（importJobOpportunity 返回）。前置条件：岗位须已导入，否则报错——先 importJobOpportunity；渠道一律取自 JD 原文，JD 中无有效链接或邮箱时返回 0 个渠道，需用户补充投递信息。返回 ok、channelsCount 与 byType 分类统计，渠道已保存至岗位详情。',
   inputSchema,
   progress: { start: '正在发现投递渠道…', done: '渠道发现完成' },
   execute: async (args, ctx) => {

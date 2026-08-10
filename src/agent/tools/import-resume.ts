@@ -13,7 +13,7 @@ const inputSchema = z.object({
 
 export const importResumeTool = createDomainTool({
   name: 'importResume',
-  description: '导入简历：接受粘贴的简历文本，或本地 .pdf/.docx/.txt/.md 文件路径。导入后返回 resumeId，可用 analyzeResume 分析。',
+  description: '导入简历：将用户粘贴的简历文本或本地简历文件保存到系统。参数二选一：text 为粘贴的简历文本，filePath 为本地 .pdf/.docx/.txt/.md 文件路径，且必须且只能提供其一。仅当用户提供新简历内容时调用；简历已在系统中时应先调用 listResumes 获取 resumeId 复用，不要重复导入。返回 resumeId、名称、来源与文本预览，导入后可用 analyzeResume 分析。',
   inputSchema,
   progress: { start: '正在读取简历…', done: '简历导入完成' },
   execute: async (args) => {
