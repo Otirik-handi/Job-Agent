@@ -10,11 +10,14 @@ import {
 import { z } from 'zod';
 import { randomUUID } from 'node:crypto';
 import { getModel, LlmConfigError } from '@/src/agent/model';
-import { getTools, SYSTEM_PROMPT } from '@/src/agent/agent';
+import { getTools } from '@/src/agent/agent';
+import { buildSystemPrompt } from '@/src/agent/context';
 import { createConversation, getConversation, touchConversation } from '@/src/db/repositories/conversations';
 import { insertMessage, listMessages } from '@/src/db/repositories/messages';
+import { listMemoryBlocks } from '@/src/db/repositories/memory-blocks';
+import { getSessionState, setSessionState } from '@/src/db/repositories/session-state';
 
-const MAX_HISTORY_ROUNDS = 20;
+const MAX_HISTORY_ROUNDS = 12;
 
 const requestSchema = z.object({
   conversationId: z.string().min(1).nullable().optional(),
@@ -30,6 +33,55 @@ function titleFromFirstMessage(messages: UIMessage[]): string {
     .replace(/\s+/g, ' ')
     .trim();
   return text.slice(0, 20) || '新对话';
+}
+
+type SessionStatePatch = { currentResumeId?: string; currentJobId?: string };
+
+/** 从工具成功结果中提取会话状态补丁；无法提取时返回 null（其他工具成功不更新状态） */
+function sessionStatePatchFromTool(toolName: string, output: unknown): SessionStatePatch | null {
+  if (typeof output !== 'object' || output === null) return null;
+  const o = output as Record<string, unknown>;
+  switch (toolName) {
+    case 'importJobOpportunity': {
+      const id = o.jobOpportunityId;
+      return typeof id === 'string' && id ? { currentJobId: id } : null;
+    }
+    case 'importResume': {
+      const id = o.resumeId;
+      return typeof id === 'string' && id ? { currentResumeId: id } : null;
+    }
+    case 'analyzeResume': {
+      const id = o.resumeId;
+      return o.ok === true && typeof id === 'string' && id ? { currentResumeId: id } : null;
+    }
+    case 'matchJob': {
+      const id = o.jobOpportunityId;
+      return o.ok === true && typeof id === 'string' && id ? { currentJobId: id } : null;
+    }
+    default:
+      return null;
+  }
+}
+
+/** 先读旧会话状态再合并补丁回写（避免覆盖）；异常仅记录日志，不阻断主流程 */
+function persistSessionState(conversationId: string, patch: SessionStatePatch): void {
+  try {
+    const prev = getSessionState(conversationId);
+    let prevState: Record<string, unknown> = {};
+    if (prev) {
+      try {
+        const parsed = JSON.parse(prev.stateJson) as unknown;
+        if (typeof parsed === 'object' && parsed !== null) {
+          prevState = parsed as Record<string, unknown>;
+        }
+      } catch {
+        // 旧状态 JSON 损坏则忽略，从空状态开始合并
+      }
+    }
+    setSessionState(conversationId, JSON.stringify({ ...prevState, ...patch }));
+  } catch (err) {
+    console.error(`[session-state] 回写失败 conversationId=${conversationId}:`, err);
+  }
 }
 
 export async function POST(req: Request) {
@@ -89,9 +141,16 @@ export async function POST(req: Request) {
         data: { conversationId: convId },
         transient: true,
       });
+      // 分层 system prompt：基础提示 + 当前记忆块 + 会话结构化状态
+      const memoryBlocks = listMemoryBlocks();
+      const sessionState = getSessionState(convId);
+      const instructions = buildSystemPrompt({
+        memoryBlocks,
+        sessionState: sessionState ? sessionState.stateJson : null,
+      });
       const agent = new ToolLoopAgent({
         model: getModel(),
-        instructions: SYSTEM_PROMPT,
+        instructions,
         tools: getTools(),
         stopWhen: isStepCount(5),
         onToolExecutionStart: ({ toolCall }) => {
@@ -124,6 +183,11 @@ export async function POST(req: Request) {
             },
             transient: true,
           });
+          // 工具成功执行后回写会话状态（导入/分析/匹配成功 → currentJobId / currentResumeId）
+          if (success) {
+            const patch = sessionStatePatchFromTool(toolName, toolOutput.output);
+            if (patch) persistSessionState(convId, patch);
+          }
         },
       });
 
