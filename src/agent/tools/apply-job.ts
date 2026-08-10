@@ -22,7 +22,7 @@ function parseChannels(json: string | null): { channels: Channel[] } | null {
 
 export const applyJobTool = createDomainTool({
   name: 'applyJob',
-  description: '投递管理：将岗位投递状态向前推进（matched→applying→applied）或标记跳过（→skipped），两段式调用。参数：jobOpportunityId、action（apply 投递推进 / skip 跳过，仅限非终态）、confirmed（用户确认后传 true）。第一段不带 confirmed 仅返回投递摘要（当前/目标状态、推荐渠道）不落库，须向用户呈现并请求确认；第二段携带 confirmed=true 校验前置条件后落库，其中 action=apply 须岗位已匹配（未匹配返回 JOB_MATCH_REQUIRED，先调用 matchJob），终态岗位不可重复投递。返回 ok、phase 与最新 status。',
+  description: '投递管理：将岗位投递状态向前推进（matched→applying→applied）或标记跳过（→skipped），两段式调用。参数：jobOpportunityId、action（apply 投递推进 / skip 跳过，仅 applied 已投递状态不可跳过，其余状态含终态均可跳过）、confirmed（用户确认后传 true）。第一段不带 confirmed 仅返回投递摘要（当前/目标状态、推荐渠道）不落库，须向用户呈现并请求确认；第二段携带 confirmed=true 校验前置条件后落库，其中 action=apply 须岗位已匹配（未匹配返回 JOB_MATCH_REQUIRED，先调用 matchJob），终态岗位不可重复投递。返回 ok、phase 与最新 status。',
   inputSchema: applyJobInputSchema,
   progress: { start: '正在更新投递状态…', done: '投递状态已更新' },
   execute: async (args) => {
