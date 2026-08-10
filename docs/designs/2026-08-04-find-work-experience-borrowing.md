@@ -41,6 +41,11 @@
 - **AI SDK v7 单请求单步**：streamText 无 maxSteps，一次请求只完成一个模型步骤；存在返回值依赖链的工具（importResume → analyzeResume）需要多轮消息完成，或由前端自动续问。设计依赖链工具时注意此行为。
 - **generateObject 的 system 提示**：v7 用 `instructions` 选项传系统提示，塞进 messages 会被 OpenAI 兼容端点拒绝。
 
+## 3.2 job-helper 第 6 期实测经验（2026-08-10 增补，来自端到端验证）
+
+- **Windows 命令行 curl 内联中文会落库乱码（GBK 编码问题）**：在 Git Bash 下用 `curl -d '{...中文...}'` 请求 `/api/chat`，中文按系统 ANSI（GBK）编码进请求体，服务端按 `Content-Type: application/json` 以 UTF-8 解码 → 非法字节变 `U+FFFD`（�）→ 会话标题与消息落库即损坏，且替换符不可逆（无法从乱码恢复原文）。浏览器 fetch（标准 UTF-8）不受影响，此**非应用 bug**。对策：端到端验证发送中文请求一律用 `curl --data-binary @request.json`（文件存 UTF-8）或 node fetch（`JSON.stringify` 显式 UTF-8），禁止命令行内联中文；脚本文件本身保持 UTF-8。
+- **验证脏数据及时清理**：curl 测试会在 SQLite 落库残留（乱码会话/测试岗位），验证结束后按标记删除，避免污染后续查看与端到端验收。
+
 
 ## 4. 使用方式
 
