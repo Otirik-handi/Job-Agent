@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer, index } from 'drizzle-orm/sqlite-core';
+import { sqliteTable, text, integer, index, type AnySQLiteColumn } from 'drizzle-orm/sqlite-core';
 
 export const conversations = sqliteTable('conversations', {
   id: text('id').primaryKey(),
@@ -39,6 +39,33 @@ export const jobOpportunities = sqliteTable('job_opportunities', {
   createdAt: text('created_at').notNull(),
   updatedAt: text('updated_at').notNull(),
 });
+
+export const memoryBlocks = sqliteTable('memory_blocks', {
+  label: text('label').primaryKey(),
+  description: text('description').notNull(),
+  value: text('value').notNull(),
+  limit: integer('limit').notNull(),
+  updatedAt: text('updated_at').notNull(),
+});
+
+export const sessionState = sqliteTable('session_state', {
+  conversationId: text('conversation_id').primaryKey()
+    .references(() => conversations.id, { onDelete: 'cascade' }),
+  stateJson: text('state_json').notNull(),
+  updatedAt: text('updated_at').notNull(),
+});
+
+export const statusHistory = sqliteTable('status_history', {
+  id: text('id').primaryKey(),
+  jobOpportunityId: text('job_opportunity_id').notNull()
+    .references(() => jobOpportunities.id, { onDelete: 'cascade' }),
+  fromStatus: text('from_status').notNull(),
+  toStatus: text('to_status').notNull(),
+  createdAt: text('created_at').notNull(),
+  supersededBy: text('superseded_by').references((): AnySQLiteColumn => statusHistory.id),
+}, (t) => [
+  index('status_history_job_opportunity_id_idx').on(t.jobOpportunityId),
+]);
 
 export const tailoredResumes = sqliteTable('tailored_resumes', {
   id: text('id').primaryKey(),
