@@ -1,5 +1,6 @@
 import { createDomainTool } from '../tool-factory';
 import { getJobOpportunity, updateJobApplication } from '../../db/repositories/job-opportunities';
+import { recordStatusTransition } from '../../db/repositories/status-history';
 import { recordApplicationStatusInputSchema } from '../schemas/record-application-status';
 import { applicationOutcomeTransition } from '../apply-state';
 
@@ -45,6 +46,8 @@ export const recordApplicationStatusTool = createDomainTool({
 
     // —— 第二段：状态推进落库 ——
     updateJobApplication(job.id, transition.next as 'interview' | 'offer' | 'hired' | 'rejected');
+    // 落库成功后同步写入状态时序记录（只追加不覆盖，自动把上一条未作废记录 supersededBy 置为最新）
+    recordStatusTransition(job.id, job.status, transition.next);
     return {
       ok: true,
       phase: transition.next,
