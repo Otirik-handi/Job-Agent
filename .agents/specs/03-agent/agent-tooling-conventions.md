@@ -1,7 +1,7 @@
 # Agent 工具层工程规范（agent-tooling-conventions.md）
 
-> Agent 领域工具的组织与写法约定（现状沉淀：固化 `src/agent/` 跨 11 个工具已稳定一致的实践）。
-> 为什么：11 个工具重复一致的工厂形态、审批分档、确定性护栏与纯函数单测，需要权威清单约束新增工具。
+> Agent 领域工具的组织与写法约定（现状沉淀：固化 `src/agent/` 跨 13 个工具已稳定一致的实践）。
+> 为什么：13 个工具重复一致的工厂形态、审批分档、确定性护栏与纯函数单测，需要权威清单约束新增工具。
 
 ## 工具形态
 
@@ -13,7 +13,7 @@
 ## 文件组织
 
 - **LLM 工具**（需调模型产出结构化结果：analyze-resume / match-job / discover-channels / tailored-resume / prepare-interview）三文件：`tools/<name>.ts`（薄壳：校验 + 业务规则 + 落库）、`prompts/<name>.ts`（提示词）、`schemas/<name>.ts`（zod 契约，输入 + 输出同文件）
-- **确定性工具**（纯本地逻辑，无 LLM 调用：import-resume / import-job-opportunity / list-resumes / list-job-opportunities / apply-job / record-application-status）单文件 `tools/<name>.ts`（输入 schema 内联或独立 `schemas/` 文件如 apply-job、record-application-status，**不建 prompts**）
+- **确定性工具**（纯本地逻辑，无 LLM 调用：import-resume / import-job-opportunity / list-resumes / list-job-opportunities / get-memory / set-memory / apply-job / record-application-status）单文件 `tools/<name>.ts`（输入 schema 内联或独立 `schemas/` 文件如 apply-job、record-application-status，**不建 prompts**）
 - 新增工具在 `agent.ts` 的 `SYSTEM_PROMPT` 能力清单中补一行说明
 - 为什么：契约与提示词独立可维护，工具文件保持编排职责；确定性工具无模型调用，prompts 纯属空壳（YAGNI）
 
@@ -43,7 +43,7 @@
 
 - 确认强度与动作成本匹配，三档分级，避免确认疲劳：
   1. **免确认**：只读工具（list* / get* / analyze 等），无副作用，直接执行
-  2. **轻量确认**：可逆操作（如 recordApplicationStatus），仍走两段式但确认为轻量（前端轻量确认或支持撤销），不打断对话节奏
+  2. **轻量确认**：可逆操作（如 recordApplicationStatus、setMemory），确认为轻量（前端轻量确认或支持撤销），不打断对话节奏
   3. **强确认**：不可逆 / 对外动作（applyJob 投递、tailoredResume 覆盖简历），两段式 `confirmed` 由**代码强制**校验，确认超时一律 fail-closed（不执行）
 - 两段式工具（tailoredResume / applyJob / recordApplicationStatus）调用契约：
   1. **第一段**（不带 `confirmed`）：只读取/生成摘要，**不落库**，返回给用户确认
