@@ -53,6 +53,11 @@ export function ChatPanel({
     },
   });
 
+  const busy = status === 'streaming' || status === 'submitted';
+  /** 发送用户消息（复用会话 id）；recordApplicationStatus 确认按钮亦经此发送确认消息 */
+  const sendText = (text: string) =>
+    sendMessage({ text }, internalConvId ? { body: { conversationId: internalConvId } } : undefined);
+
   // —— 滚动跟随底部：新消息/流式输出时若用户处于底部附近则自动滚到最下方 ——
   const scrollRef = useRef<HTMLDivElement>(null);
   const [stickToBottom, setStickToBottom] = useState(true);
@@ -93,15 +98,21 @@ export function ChatPanel({
         ) : (
           messages.map((message, index) => (
             // key 兜底：存量历史消息可能无 id（服务端补 id 前的数据），用索引兜底避免 React key 冲突
-            <MessageBubble key={message.id || `msg-${index}`} message={message} />
+            <MessageBubble
+              key={message.id || `msg-${index}`}
+              message={message}
+              onConfirmRecordStatus={sendText}
+              busy={busy}
+            />
           ))
         )}
-        {progress && progress.status === 'running' && <ToolProgressCard progress={progress} />}
+        {/* 运行中/失败状态展示进度卡片（完成态由 onFinish 清空，不展示） */}
+        {progress && progress.status !== 'completed' && <ToolProgressCard progress={progress} />}
       </div>
       <ChatInput
-        disabled={status === 'streaming' || status === 'submitted'}
-        streaming={status === 'streaming' || status === 'submitted'}
-        onSend={(text) => sendMessage({ text }, internalConvId ? { body: { conversationId: internalConvId } } : undefined)}
+        disabled={busy}
+        streaming={busy}
+        onSend={sendText}
         onStop={stop}
       />
     </div>

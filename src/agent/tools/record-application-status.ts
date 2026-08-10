@@ -10,7 +10,7 @@ const TARGET_LABELS: Record<string, string> = {
 
 export const recordApplicationStatusTool = createDomainTool({
   name: 'recordApplicationStatus',
-  description: '投递后状态记录：将已投递岗位推进到投递后阶段（applied→interview→offer→hired，或任一→rejected），两段式调用。参数：jobOpportunityId、target（interview 面试中 / offer 拿到 offer / hired 入职 / rejected 已拒绝）、confirmed（用户确认后传 true）。第一段不带 confirmed 仅返回变更摘要（当前/目标状态）不落库，须向用户呈现并请求确认；第二段携带 confirmed=true 校验前置条件后落库，其中岗位须已投递（未投递返回 NOT_APPLIED，先调用 applyJob 完成投递）。返回 ok、phase 与最新 status。',
+  description: '投递后状态记录：将已投递岗位推进到投递后阶段（applied→interview→offer→hired，或任一→rejected），两段式调用。参数：jobOpportunityId、target（interview 面试中 / offer 拿到 offer / hired 入职 / rejected 已拒绝）、confirmed（用户确认后传 true）。第一段不带 confirmed 仅返回变更摘要（当前/目标状态）不落库，向用户呈现即可，界面会展示「确认记录」按钮完成确认（用户点击后以确认消息形式触发），不必请求用户打字确认；第二段在收到用户确认消息后携带 confirmed=true 校验前置条件后落库，其中岗位须已投递（未投递返回 NOT_APPLIED，先调用 applyJob 完成投递）。返回 ok、phase 与最新 status。',
   inputSchema: recordApplicationStatusInputSchema,
   progress: { start: '正在记录投递后状态…', done: '投递后状态已记录' },
   execute: async (args) => {
@@ -50,7 +50,7 @@ export const recordApplicationStatusTool = createDomainTool({
         jobOpportunityId: job.id,
         currentStatus: job.status,
         targetStatus: transition.next,
-        hint: `请向用户呈现变更摘要：将把岗位从 ${job.status} 记录为 ${TARGET_LABELS[transition.next]}（${transition.next}），并请求确认。用户确认后，携带 confirmed=true 再次调用本工具。`,
+        hint: `请向用户呈现变更摘要：将把岗位从 ${job.status} 记录为 ${TARGET_LABELS[transition.next]}（${transition.next}）。界面会展示「确认记录」按钮完成确认；在收到用户确认消息前不得携带 confirmed=true 调用本工具，收到确认消息后携带 confirmed=true 再次调用落库。`,
       };
     }
 

@@ -173,7 +173,14 @@ export async function POST(req: Request) {
         },
         onToolExecutionEnd: ({ toolCall, toolOutput }) => {
           const toolName = toolCall.toolName;
-          const success = toolOutput.type === 'tool-result';
+          // 业务失败（{ ok:false, error } 结构化错误结果）与抛异常同等视为失败，
+          // 进度卡片显示「失败」而非「完成」；只读工具等其他成功结果无 ok 字段不受影响
+          const businessFailed =
+            toolOutput.type === 'tool-result' &&
+            typeof toolOutput.output === 'object' &&
+            toolOutput.output !== null &&
+            (toolOutput.output as { ok?: unknown }).ok === false;
+          const success = toolOutput.type === 'tool-result' && !businessFailed;
           writer.write({
             type: 'data-tool-progress',
             data: {
