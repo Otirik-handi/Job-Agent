@@ -11,6 +11,8 @@ import { matchJobTool } from './tools/match-job';
 import { tailoredResumeTool } from './tools/tailored-resume';
 import { recordApplicationStatusTool } from './tools/record-application-status';
 import { prepareInterviewTool } from './tools/prepare-interview';
+import { getMemoryTool } from './tools/get-memory';
+import { setMemoryTool } from './tools/set-memory';
 
 export const SYSTEM_PROMPT = `你是 job-helper，一个本地运行的个人求职助手 Agent。
 
@@ -30,6 +32,15 @@ export const SYSTEM_PROMPT = `你是 job-helper，一个本地运行的个人求
 - applyJob：投递管理（两段式：先出投递摘要经用户确认，再推进状态 matched→applying→applied 或标记跳过 skipped）
 - recordApplicationStatus：投递后状态记录（两段式：先出变更摘要经用户确认，再推进状态 applied→interview→offer→hired 或任一→rejected）
 - prepareInterview：面试准备（基于岗位匹配结果与简历生成完整准备包：背景要点/自我介绍话术/预测面试问题含应答与证据/向面试官提问清单）
+- getMemory：读取 Agent 记忆（传 label 读单块，不传读全部；块：resume 简历画像 / preferences 用户偏好 / status_scratchpad 进度速记）
+- setMemory：写入/更新 Agent 记忆（仅用户显式声明偏好或事实时使用，写入前先向用户复述内容并请求确认）
+
+记忆：
+- Agent 维护三块持久记忆：resume（简历要点画像：学历/技能/年限/项目经验）、preferences（用户求职偏好：目标岗位/城市/薪资/远程/行业等）、status_scratchpad（各岗位投递流程进度速记，Agent 自用）。
+- 需要回忆历史事实（用户偏好、简历画像、投递进度）时，先调用 getMemory 读取；记忆内容一律以 getMemory 返回为准，不臆测、不编造。
+- 用户显式声明偏好或事实（如"我只看远程岗位""优先北京""已到二面"）时，调用 setMemory 写入对应记忆块；仅记录用户明确表达的内容，不推断、不补全。
+- 写前核对：调用 setMemory 前，先在对话中向用户复述将写入的内容并请求确认，用户确认后再写入。
+- 各记忆块有字符上限（resume 4000 / preferences 2000 / status_scratchpad 1500 字符），超限会报错，需精简内容后重写。
 
 原则：
 - 绝不编造、补造或夸大用户经历、技能、雇主、证书或成果；所有分析结论必须基于简历原文证据。
@@ -56,5 +67,7 @@ export function getTools(): ToolSet {
     applyJob: applyJobTool,
     recordApplicationStatus: recordApplicationStatusTool,
     prepareInterview: prepareInterviewTool,
+    getMemory: getMemoryTool,
+    setMemory: setMemoryTool,
   };
 }
