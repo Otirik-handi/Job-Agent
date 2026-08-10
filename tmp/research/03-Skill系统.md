@@ -1,16 +1,15 @@
 # 03 Agent Skill / 插件系统
 
-> 调研日期：2026-08-10。对象：Anthropic Agent Skills 开放标准、Claude Code、obra/superpowers、ZCode/Codex、OpenAI ChatGPT/Codex。核心结论：Agent Skills 已是**跨平台开放标准**（2025-12-18 Anthropic 发布），ChatGPT/Codex/Windsurf/Cascade 均采纳，job-helper 应直接遵循该标准而非自造格式。
+> 调研日期：2026-08-10。对象：Anthropic Agent Skills 开放标准、Claude Code、obra/superpowers、ZCode/Codex、OpenAI ChatGPT/Codex。核心结论：Agent Skills 已是**跨平台开放标准**（2025-12 发布，规范仓库 agentskills/agentskills 于 2025-12-16 创建），Claude Code、ChatGPT/Codex、Cursor、Gemini CLI、GitHub Copilot、VS Code 等均采纳（见 agentskills.io 客户列表），job-helper 应直接遵循该标准而非自造格式。
 
 ## 调研对象（标准/仓库/链接 + 一句话）
 
-- **Agent Skills 开放规范（agentskills.io）**：SKILL.md 文件格式的权威标准，Anthropic 于 2025-12-18 发布，跨平台可移植。
+- **Agent Skills 开放规范（agentskills.io）**：SKILL.md 文件格式的权威标准，由 Anthropic 开发并于 2025-12 发布为开放标准（规范讨论仓库 github.com/agentskills/agentskills，2025-12-16 创建），跨平台可移植。
 - **Anthropic 官方博客《Introducing Agent Skills》（claude.com/blog/skills, 2025-10-16）**：宣布 Skills 上线，描述"可组合/可移植/高效/强大"四大特性。
 - **Anthropic 工程博客《Equipping agents for the real world with Agent Skills》**：渐进式披露架构的权威解释（元数据→SKILL.md→附带文件三层）。
 - **Claude Code Docs（skills / slash commands / subagents / plugins）**：skill=command 超集、subagent 独立执行、plugin 打包分发。
 - **obra/superpowers（GitHub）**：13 个超能力 skill 的集合仓库，单仓库通过 `.claude-plugin/.codex-plugin/.cursor-plugin` 等清单多平台分发；本机 `~/.zcode/skills/`、`~/.agents/skills/` 即其安装实例。
-- **OpenAI/ChatGPT/Codex《Build skills》文档**：明确声明"build on the open agent skills standard"，含上下文预算与目录扫描优先级。
-- **Windsurf Cascade Skills**：同一规范，@mention 显式调用，指向 agentskills.io。
+- **OpenAI/ChatGPT/Codex《Build skills》文档**：明确声明"build on the open agent skills standard"，含上下文预算与目录扫描优先级（实测 `developers.openai.com/agents/skills/` 已 404，现地址为 `developers.openai.com/codex/skills/`）。
 
 ## SKILL.md 规范（格式、frontmatter 字段、正文组织）
 
@@ -86,11 +85,10 @@ skill-name/
 
 ## 来源清单
 
-- Agent Skills 规范：https://agentskills.io（github.com/anthropics/agent-skills-spec）
-- Anthropic 博客（发布）：https://claude.com/blog/skills
+- Agent Skills 规范：https://agentskills.io ；规范讨论仓库：https://github.com/agentskills/agentskills
+- Anthropic 博客（发布，2025-10-16）：https://claude.com/blog/skills
 - Anthropic 工程博客（架构）：https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills
 - Claude Docs：https://docs.claude.com/en/docs/agents-and-tools/agent-skills/overview 、skill-authoring best practices、Claude Code skills/slash commands/sub-agents/plugins
 - obra/superpowers：https://github.com/obra/superpowers
-- OpenAI Build skills：https://developers.openai.com/agents/skills/ （Build skills for ChatGPT & Codex）
-- Windsurf Cascade Skills 文档
+- OpenAI Build skills：https://developers.openai.com/codex/skills/ （Build skills for ChatGPT & Codex）
 - 本机实例：`C:\Users\Otirik\.zcode\skills\`（28 个）、`C:\Users\Otirik\.agents\skills\`（15 个）下的 SKILL.md

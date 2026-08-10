@@ -19,7 +19,7 @@
 **对 job-helper 的三个核心判断**：
 - **单 Agent 路线正确，不引入多 Agent**（任务量小、无并行需求、7-11 个工具未到选择劣化阈值；子 Agent 只作为"主 Agent 的工具"形态预留）；
 - **不需要引入 MCP 做运行架构**（工具集固定、本地单用户，动态发现零收益；直接用好 AI SDK 的 tool() + 按 MCP 语义补强工具层设计）；
-- **Skill 系统直接遵循开放标准**（agentskills.io 的 SKILL.md 规范，已被 Claude/ChatGPT/Codex 采纳），不自造格式。
+- **Skill 系统直接遵循开放标准**（agentskills.io 的 SKILL.md 规范，已被 Claude/ChatGPT/Codex/Cursor 等采纳），不自造格式。
 
 ## 2. 通用 Agent 架构蓝图（7 层）
 
@@ -43,7 +43,7 @@
 - **落地建议**：SQLite `memory_blocks` 表预置 resume/preferences/status_scratchpad 三块常驻；`messages` 全量落库 + FTS5 全文检索（零依赖）；`applications` + `status_history`（valid_from/superseded_by 模拟时序作废，借鉴 Graphiti 不删旧状态）。
 
 ### 3.2 Skill 系统（专题 03）
-- **开放标准**：Agent Skills（2025-12 Anthropic 发布，agentskills.io），ChatGPT/Codex/Windsurf 均采纳，**应直接遵循，勿自造格式**。
+- **开放标准**：Agent Skills（2025-12 发布为开放标准，agentskills.io；规范仓库 agentskills/agentskills），Claude Code、ChatGPT/Codex、Cursor、Gemini CLI、GitHub Copilot、VS Code 等均采纳，**应直接遵循，勿自造格式**。
 - **SKILL.md 规范**：YAML frontmatter（name ≤64 字符小写连字符 = 目录名；description ≤1024 字符写"做什么+何时用+触发词"）+ Markdown 正文（≤500 行）；目录结构 SKILL.md + scripts/ + references/ + assets/。
 - **双层触发**：隐式（启动时所有 skill 的 name+description 预载入 system prompt，description 语义匹配自动选）+ 显式（/命令、@、$）。上下文预算限制初始列表 ≤2%/8000 字符——**skill 库须控量（12-15 个内）**。
 - **渐进式披露三层**：元数据 ~100 tokens 常驻 → 触发后读 SKILL.md → references/scripts 按需读；未触发文件零 token 成本；文件引用保持一层深。
