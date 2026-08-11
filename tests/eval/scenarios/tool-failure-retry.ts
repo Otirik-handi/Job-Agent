@@ -2,7 +2,6 @@ import { expect } from 'vitest';
 import type { Scenario } from './types';
 
 const RESUME_TEXT = '张伟\n前端开发工程师，5 年经验\n技能：React、TypeScript';
-const ANALYSIS_JSON = JSON.stringify({ schemaVersion: 1, overallScore: 72, strengths: [{ point: '前端经验' }], risks: [], improvements: [], profile: { skills: ['React'], experienceYears: 5, targetRoles: [], targetCities: [] }, pendingConfirmations: [] });
 
 export const toolFailureRetryScenario: Scenario = {
   id: 'tool-failure-retry',
