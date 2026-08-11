@@ -17,7 +17,7 @@ const inputSchema = z.strictObject({
  */
 export const planUpdateTool = createDomainTool({
   name: 'planUpdate',
-  description: '更新执行计划中某一步的状态：每步执行后把状态推进为 in_progress/done，遇到障碍标记为 blocked 并附 note 记录原因。仅用于既有计划的进度推进；计划不存在或目标状态为终态（done/blocked）时不要调用。参数 taskId 为计划标识，stepIndex 为步骤索引（从 0 开始），status 为目标状态（todo/in_progress/done/blocked，终态不可回退），note 在 blocked 时必填失败原因。返回 ok、taskId 与 planSummary（总步数、各状态计数、当前进行中步骤）；计划不存在/步骤越界/非法流转返回结构化错误 PLAN_NOT_FOUND/PLAN_STEP_INVALID/PLAN_STATUS_INVALID。',
+  description: '更新执行计划中某一步的状态：每步执行后把状态推进为 in_progress/done，遇到障碍标记为 blocked 并附 note 记录原因。仅用于既有计划的进度推进；计划不存在、或步骤已处于终态（done/blocked）时不要调用。参数 taskId 为计划标识，stepIndex 为步骤索引（从 0 开始），status 为目标状态（todo/in_progress/done/blocked，终态不可回退），note 在 blocked 时必填失败原因。返回 ok、taskId 与 planSummary（总步数、各状态计数、当前进行中步骤）；计划不存在/步骤越界/非法流转返回结构化错误 PLAN_NOT_FOUND/PLAN_STEP_INVALID/PLAN_STATUS_INVALID。',
   inputSchema,
   progress: { start: '正在更新计划…', done: '计划更新完成' },
   execute: async (args) => {
