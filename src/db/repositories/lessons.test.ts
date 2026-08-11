@@ -126,6 +126,28 @@ describe('searchLessons（FTS 检索 + 降级）', () => {
     expect(rows).toEqual([]);
   });
 
+  it('非法 FTS5 语法查询词不抛错：降级为最近列表（front-end / node.js / js/ts / 未闭合引号）', () => {
+    insertLesson({ content: '前端岗位投递技巧', category: 'application', sourceTaskId: `${TEST_PREFIX}fts-bad` });
+    insertLesson({ content: 'node 项目部署教训', category: 'tooling', sourceTaskId: `${TEST_PREFIX}fts-bad` });
+    for (const evil of ['front-end', 'node.js', 'js/ts', '未闭合"引号', '前缀 - 排除']) {
+      let rows: ReturnType<typeof searchLessons>;
+      expect(() => {
+        rows = searchLessons(evil, { limit: 10 });
+      }, `查询词「${evil}」不应抛异常`).not.toThrow();
+      // 降级路径返回按时间倒序的最近列表（含刚插入的 2 条）
+      expect(rows!.map((r) => r.content), `查询词「${evil}」应降级为最近列表`).toEqual(['node 项目部署教训', '前端岗位投递技巧']);
+    }
+  });
+
+  it('含 FTS5 通配符的查询（a*b）合法执行无命中：返回空列表而非报错', () => {
+    insertLesson({ content: '前端岗位投递技巧', category: 'application', sourceTaskId: `${TEST_PREFIX}fts-star` });
+    let rows: ReturnType<typeof searchLessons>;
+    expect(() => {
+      rows = searchLessons('a*b', { limit: 10 });
+    }).not.toThrow();
+    expect(rows!).toEqual([]);
+  });
+
   it('FTS 检索可组合 category 过滤', () => {
     insertLesson({ content: '简历匹配的教训', category: 'matching', sourceTaskId: `${TEST_PREFIX}comb` });
     insertLesson({ content: '简历相关通用内容', category: 'general', sourceTaskId: `${TEST_PREFIX}comb` });

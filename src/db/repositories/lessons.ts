@@ -52,7 +52,9 @@ export function listLessons({ category, limit = LESSON_DEFAULT_LIMIT }: { catego
   return rows.orderBy(desc(lessons.createdAt), desc(sql`rowid`)).limit(limit).all();
 }
 
-/** FTS MATCH 检索（trigram）：查询为空/过短（<3 字符）时不命中，降级为按时间倒序列表 */
+/** FTS MATCH 检索（trigram）：查询为空/过短（<3 字符）时不命中，降级为按时间倒序列表；
+ *  检索词含 FTS5 特殊语法（如 front-end / node.js / 未闭合引号）时 MATCH 会抛异常，
+ *  同样降级为列表，保证「无匹配返回空结果而非报错」的契约（异常不暴露为 TOOL_FAILED） */
 export function searchLessons(query: string, { category, limit = LESSON_DEFAULT_LIMIT }: { category?: string; limit?: number } = {}): LessonRecord[] {
   const normalized = query.trim();
   if (normalized.length < LESSON_FTS_MIN_QUERY_LENGTH) {
@@ -62,11 +64,15 @@ export function searchLessons(query: string, { category, limit = LESSON_DEFAULT_
     sql`${lessons.id} IN (SELECT id FROM lessons_fts WHERE lessons_fts MATCH ${normalized})`,
   ];
   if (category) conditions.push(eq(lessons.category, category));
-  return db.select().from(lessons)
-    .where(and(...conditions))
-    .orderBy(desc(lessons.createdAt), desc(sql`rowid`))
-    .limit(limit)
-    .all();
+  try {
+    return db.select().from(lessons)
+      .where(and(...conditions))
+      .orderBy(desc(lessons.createdAt), desc(sql`rowid`))
+      .limit(limit)
+      .all();
+  } catch {
+    return listLessons({ category, limit });
+  }
 }
 
 /** 按来源任务（如计划 taskId）删除教训并同步删除对应 FTS 行（清理联动/测试清理用） */
