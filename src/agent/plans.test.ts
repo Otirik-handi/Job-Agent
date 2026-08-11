@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import {
   createPlan,
+  getActivePlans,
   listPlans,
   parsePlanMarkdown,
   readPlan,
@@ -306,6 +307,83 @@ describe('listPlans（目录遍历 + 状态汇总）', () => {
     const result = listPlans(plansDir);
     expect(result.map((item) => item.taskId)).toEqual(['good']);
     expect(console.warn).toHaveBeenCalled();
+  });
+});
+
+describe('getActivePlans（中断恢复用：进行中计划判定）', () => {
+  it('目录不存在返回空数组，不抛错', () => {
+    expect(getActivePlans(path.join(plansDir, 'not-exists'))).toEqual([]);
+  });
+
+  it('仅返回存在 in_progress 或 blocked 步骤的计划，并附 blocked 备注', () => {
+    createPlan('plan-b', THREE_STEPS, { dir: plansDir, title: 'B 计划' });
+    createPlan('plan-a', THREE_STEPS, { dir: plansDir });
+    createPlan('plan-done', THREE_STEPS, { dir: plansDir });
+    updatePlanStep('plan-b', 0, 'in_progress', undefined, { dir: plansDir });
+    updatePlanStep('plan-b', 1, 'blocked', '数据缺失', { dir: plansDir });
+    updatePlanStep('plan-a', 0, 'in_progress', undefined, { dir: plansDir });
+    updatePlanStep('plan-done', 0, 'done', undefined, { dir: plansDir });
+    updatePlanStep('plan-done', 1, 'done', undefined, { dir: plansDir });
+    updatePlanStep('plan-done', 2, 'done', undefined, { dir: plansDir });
+
+    const active = getActivePlans(plansDir);
+    expect(active.map((item) => item.taskId).sort()).toEqual(['plan-a', 'plan-b']); // 全部 done 的计划不返回
+    const b = active.find((item) => item.taskId === 'plan-b')!;
+    expect(b).toMatchObject({
+      title: 'B 计划',
+      total: 3,
+      in_progress: 1,
+      blocked: 1,
+      currentStepIndex: 0,
+      blockedNotes: ['步骤 2：数据缺失'],
+    });
+    expect(b.createdAt).toBe(readPlan('plan-b', plansDir)?.createdAt);
+  });
+
+  it('按创建时间倒序；仅 blocked（无 in_progress）也视为进行中', () => {
+    // old 用手写文件固定早期 createdAt（2026-01），保证与运行时创建的 newer 顺序确定
+    const oldPlan: Plan = {
+      taskId: 'old',
+      title: 'old',
+      createdAt: '2026-01-01T00:00:00.000Z',
+      steps: [
+        {
+          title: 's1',
+          successCriteria: 'x',
+          status: 'blocked',
+          dependsOn: [],
+          artifactPath: null,
+          note: '外部依赖缺失',
+        },
+        { title: 's2', successCriteria: 'x', status: 'done', dependsOn: [], artifactPath: null, note: null },
+      ],
+    };
+    writeFileSync(path.join(plansDir, 'old.md'), renderPlanMarkdown(oldPlan), 'utf-8');
+    createPlan('newer', THREE_STEPS, { dir: plansDir });
+    updatePlanStep('newer', 0, 'in_progress', undefined, { dir: plansDir });
+
+    const active = getActivePlans(plansDir);
+    expect(active.map((item) => item.taskId)).toEqual(['newer', 'old']); // 创建时间倒序
+    const old = active.find((item) => item.taskId === 'old')!;
+    expect(old.currentStepIndex).toBeNull(); // 无 in_progress 步骤
+    expect(old.blockedNotes).toEqual(['步骤 1：外部依赖缺失']);
+  });
+
+  it('blocked 无 note 的步骤不进入 blockedNotes（手写文件模拟工具校验外的数据）', () => {
+    const plan: Plan = {
+      taskId: 'no-note',
+      title: 'no-note',
+      createdAt: '2026-08-11T00:00:00.000Z',
+      steps: [
+        { title: 's1', successCriteria: 'x', status: 'blocked', dependsOn: [], artifactPath: null, note: null },
+        { title: 's2', successCriteria: 'x', status: 'blocked', dependsOn: [], artifactPath: null, note: '原因' },
+        { title: 's3', successCriteria: 'x', status: 'done', dependsOn: [], artifactPath: null, note: null },
+      ],
+    };
+    writeFileSync(path.join(plansDir, 'no-note.md'), renderPlanMarkdown(plan), 'utf-8');
+    const active = getActivePlans(plansDir);
+    expect(active).toHaveLength(1);
+    expect(active[0].blockedNotes).toEqual(['步骤 2：原因']);
   });
 });
 

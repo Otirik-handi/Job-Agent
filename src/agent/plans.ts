@@ -418,3 +418,44 @@ export function listPlans(dir: string = DEFAULT_PLANS_DIR): PlanListItem[] {
   result.sort((a, b) => a.taskId.localeCompare(b.taskId));
   return result;
 }
+
+export type ActivePlanSummary = PlanStatusSummary & {
+  taskId: string;
+  title: string;
+  /** 创建时间（ISO 字符串），用于按创建时间倒序 */
+  createdAt: string;
+  /** blocked 步骤的失败备注（`步骤 N：原因`），无 blocked 或备注为空则为空数组 */
+  blockedNotes: string[];
+};
+
+/**
+ * 列出「进行中计划」：存在 in_progress 或 blocked 步骤的计划摘要，
+ * 供会话组装注入上下文做中断恢复（规范见 agent-tooling-conventions.md「中断恢复」）。
+ *
+ * - 复用 listPlans 的遍历/损坏跳过/状态汇总，仅对活跃计划二次读文件取 createdAt 与 blocked 备注。
+ * - 按创建时间倒序（最近创建在前）；createdAt 相同时按 taskId 升序兜底，保持输出确定性。
+ * - 全部步骤 done 的计划不返回；目录不存在返回空数组。
+ */
+export function getActivePlans(dir: string = DEFAULT_PLANS_DIR): ActivePlanSummary[] {
+  const active: ActivePlanSummary[] = [];
+  for (const item of listPlans(dir)) {
+    if (item.summary.in_progress === 0 && item.summary.blocked === 0) continue;
+    const plan = readPlan(item.taskId, dir);
+    if (!plan) continue; // listPlans 已跳过损坏文件，理论上不可达；兜底防空
+    const blockedNotes = plan.steps
+      .map((step, i) => (step.status === 'blocked' && step.note ? `步骤 ${i + 1}：${step.note}` : null))
+      .filter((note): note is string => note !== null);
+    active.push({
+      taskId: plan.taskId,
+      title: plan.title,
+      createdAt: plan.createdAt,
+      ...summarizeStatus(plan),
+      blockedNotes,
+    });
+  }
+  active.sort((a, b) => {
+    const byCreated = b.createdAt.localeCompare(a.createdAt);
+    return byCreated !== 0 ? byCreated : a.taskId.localeCompare(b.taskId);
+  });
+  return active;
+}
