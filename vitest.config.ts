@@ -10,9 +10,9 @@ export default defineConfig({
     },
   },
   test: {
-    // initDb 是全局连接切换（ESM live binding 替换 db）：文件并行会让评测临时库
-    // （:memory:）与直连 dev 库的测试互相污染；同时串行也避免共享 SQLite 文件
-    // 并发写入触发 better-sqlite3「database is locked」
+    // 共享同一 dev 库文件（data/job-helper.db）：并行写入会触发 better-sqlite3
+    // 「database is locked」，串行执行保证确定性。initDb 切换只影响当前文件
+    // （vitest 默认 isolate: true，各文件模块图独立，不跨文件泄漏）
     fileParallelism: false,
   },
 });

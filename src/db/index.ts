@@ -9,10 +9,11 @@ export let db: ReturnType<typeof drizzle<typeof schema>>;
 /** 初始化数据库连接（默认 data/job-helper.db；评测等隔离场景传 :memory: 或临时路径）。
  * 重复调用会关闭旧连接并替换全局 db——所有 repository 经 ESM live binding 读到新连接。 */
 export function initDb(path: string = 'data/job-helper.db'): void {
-  if (sqlite) sqlite.close();
+  // 先打开新连接再关旧连接：新连接失败（路径非法/权限不足）时旧连接保持可用
   const next = new Database(path);
   next.pragma('journal_mode = WAL');
   next.pragma('foreign_keys = ON');
+  if (sqlite) sqlite.close();
   sqlite = next;
   db = drizzle(next, { schema });
 }
