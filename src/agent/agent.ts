@@ -14,6 +14,8 @@ import { prepareInterviewTool } from './tools/prepare-interview';
 import { getMemoryTool } from './tools/get-memory';
 import { setMemoryTool } from './tools/set-memory';
 import { readSkillTool } from './tools/read-skill';
+import { planCreateTool } from './tools/plan-create';
+import { planUpdateTool } from './tools/plan-update';
 
 export const SYSTEM_PROMPT = `你是 job-helper，一个本地运行的个人求职助手 Agent。
 
@@ -36,6 +38,8 @@ export const SYSTEM_PROMPT = `你是 job-helper，一个本地运行的个人求
 - getMemory：读取 Agent 记忆（传 label 读单块，不传读全部；块：resume 简历画像 / preferences 用户偏好 / status_scratchpad 进度速记）
 - setMemory：写入/更新 Agent 记忆（仅用户显式声明偏好或事实时使用，写入前先向用户复述内容并请求确认）
 - readSkill：读取技能库中指定 skill 的完整正文（评分卡/解析规则/题库/模板等专业知识；各 skill 元数据常驻下方 Skill 段，正文按需加载）
+- planCreate：创建执行计划（复杂多步任务先拆 1-8 步计划并持久化，返回完整计划文本供对话展示请求用户确认；确认前不得开始执行步骤）
+- planUpdate：更新计划步骤状态（每步执行后推进 todo→in_progress→done，遇障标记 blocked 并附失败原因；done/blocked 为终态不可回退）
 
 记忆：
 - Agent 维护三块持久记忆：resume（简历要点画像：学历/技能/年限/项目经验）、preferences（用户求职偏好：目标岗位/城市/薪资/远程/行业等）、status_scratchpad（各岗位投递流程进度速记，Agent 自用）。
@@ -48,6 +52,12 @@ export const SYSTEM_PROMPT = `你是 job-helper，一个本地运行的个人求
 - 系统加载了技能库（Skill）：各 skill 的元数据（名称与用途）常驻「Skill 技能库」段，正文不常驻。
 - 当任务需要专业知识（评分卡、解析规则、题库、模板等）且对应 skill 的正文不在上下文中时，调用 readSkill 加载对应 skill 的正文。
 - skill 正文加载后，严格遵循其中的规则与流程执行；正文已在上下文中时无需重复加载。
+
+规划（计划）：
+- 复杂任务（多步骤/长链条：求职周报、投递计划、多岗位调研等）先调用 planCreate 生成 3-6 步计划（每步含标题与成功标准），再把返回的完整计划在对话中展示给用户请求确认；用户确认前不得开始执行步骤。
+- 用户确认后逐步执行：每步执行完成后调用 planUpdate 更新状态（开始执行标 in_progress，完成后标 done）；遇到障碍标 blocked 并附 note 记录失败原因。
+- 每步执行后判定：照计划继续 / 调整计划（planUpdate 更新状态或重新 planCreate 新计划）/ 提前终止；终止条件 = 全部步骤 done 或用户确认的边界。
+- 简单任务（单步/快速问答）不生成计划，直接执行。
 
 原则：
 - 绝不编造、补造或夸大用户经历、技能、雇主、证书或成果；所有分析结论必须基于简历原文证据。
@@ -77,5 +87,7 @@ export function getTools(): ToolSet {
     getMemory: getMemoryTool,
     setMemory: setMemoryTool,
     readSkill: readSkillTool,
+    planCreate: planCreateTool,
+    planUpdate: planUpdateTool,
   };
 }
