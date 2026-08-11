@@ -102,3 +102,42 @@
 - skill 承载知识/流程（提示词、评分卡、题库、模板），**不新增工具能力**；现有 13 个工具与两段式审批不变
 - skill 数量受控：元数据常驻有 token 成本，建议 ≤15 个
 - 为什么：知识层与工具层解耦——skill 回答"怎么做"，工具负责执行；数量上限控制常驻 token 成本
+
+## 显式规划
+
+> 复杂任务的计划承载层：`data/plans/<taskId>.md` 计划文件持久化，由 planCreate/planUpdate 工具自主管理（与 readSkill 同构），对用户「创建时确认 + 执行中进度」（对齐设计 P1-2 定稿）。
+
+### 计划文件结构
+
+- 存储位置 `data/plans/<taskId>.md`：数据目录下的计划文件，**不入库**；与 `docs/plans/`（设计/计划文档目录）、`.zcode/plans`（客户端计划目录）区分，三者用途不同不得混放
+- 文件内容（Markdown）：任务标题、步骤列表、创建时间（createdAt）
+  - 步骤列表每步含：标题 / 成功标准 successCriteria（可判定完成与否）/ 状态 status（todo · in_progress · done · blocked）/ 依赖 depends_on（可空）/ 产出物路径（可选）/ 失败备注（blocked 时必填原因）
+- 为什么：计划文件是当前任务执行状态的单一事实来源，中断后读文件即续跑（设计 P1-2「分层混合规划」）；独立数据目录避免与文档、客户端目录混淆
+
+### planCreate / planUpdate 工具契约
+
+- `planCreate`：
+  - inputSchema：`taskId`、`steps: [{ title, successCriteria }]`、`dependsOn?`（可选，声明步骤间依赖，简单字段不做 DAG 引擎）
+  - 创建计划文件并返回计划全文（Markdown），供 Agent 在对话中展示给用户确认；用户确认前不得开始执行步骤
+  - `taskId` 格式：小写连字符或会话关联 id；防路径穿越：限定 `data/plans/` 目录内，拒绝路径分隔符/上级目录引用
+- `planUpdate`：
+  - inputSchema：`taskId`、`stepIndex`、`status`（枚举 todo / in_progress / done / blocked）、`note?`（可选，blocked 时记录原因）
+  - 更新步骤状态；状态流转校验：done / blocked 为终态**不可回退**，非法流转（如 blocked → in_progress）返回结构化错误
+  - 返回更新后的计划摘要
+- 错误契约复用 `{ ok: false, error: { code, message, hint } }`（对齐「结构化错误契约」），错误码如 `PLAN_NOT_FOUND` / `PLAN_STEP_INVALID` / `PLAN_STATUS_INVALID`
+- planCreate / planUpdate 均为可逆本地文件操作，不属「审批分档」强确认档；「创建时用户确认」由「规划原则」的对话流程保证
+- 为什么：与 readSkill 同构——工具自主读写，路径穿越与状态机由代码强制而非模型自律；状态单向推进保证计划文件进度可信
+
+### 规划原则（SYSTEM_PROMPT 层面）
+
+- 复杂任务（多步骤/长链条，如求职周报/投递计划）先 `planCreate` 出 3-6 步计划 → 对话展示请求用户确认 → 确认后逐步执行；步骤粒度任务级（宏观），微观 ReAct 循环不预先穷举
+- 每步执行后 `planUpdate` 更新状态；blocked 步骤记录原因（note）
+- 每步后判定「照计划继续 / 调整计划 / 提前终止」；终止条件 = 全部 done 或用户确认的边界
+- 简单任务（单步/快速问答）不生成计划
+- 为什么：复杂任务先确认计划再执行，避免大方向偏离；每步进度可见，长任务不失控（对齐 P1-5 UX 卡片的"第 N 步"进度联动）
+
+### 中断恢复
+
+- 会话组装时若存在进行中计划（含未 done 步骤），把计划状态段注入上下文（进行中的步骤 / blocked 备注），支持续跑
+- 计划文件与记忆层边界：**计划 = 当前任务执行状态**；`memory_blocks` 的 `status_scratchpad` = 跨任务进度笔记；二者不混用（步骤状态不进 scratchpad，scratchpad 不承载步骤状态）
+- 为什么：计划文件回答"这个任务进行到哪"，中断恢复直接读文件注入；跨任务进度/画像归记忆层，职责分离避免双写漂移
