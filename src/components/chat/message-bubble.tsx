@@ -4,23 +4,28 @@ import { Bot, User } from 'lucide-react';
 import { MarkdownText } from './markdown-text';
 import { cn } from '@/src/lib/utils';
 import { collectRecordStatusPreviews, RecordStatusCard } from './record-status-card';
+import { collectToolSteps, ToolStepCard } from './tool-step-card';
 
 /** 消息气泡：带角色头像指示器（user 右侧 / assistant 左侧）；
- *  assistant 消息附带 recordApplicationStatus 预览结果时，在气泡下方渲染确认卡片 */
+ *  assistant 消息附带 recordApplicationStatus 预览结果时渲染确认卡片，
+ *  其余工具调用渲染三态步骤卡片（运行中/完成/失败+重试） */
 export function MessageBubble({
   message,
   onConfirmRecordStatus,
+  onRetryTool,
   busy,
 }: {
   message: UIMessage;
   onConfirmRecordStatus?: (text: string) => void;
+  onRetryTool?: (text: string) => void;
   busy?: boolean;
 }) {
   const textParts = message.parts.filter((p) => p.type === 'text');
   const isUser = message.role === 'user';
   const text = textParts.map((p) => (p as { text: string }).text).join('\n');
   const recordStatusPreviews = collectRecordStatusPreviews(message);
-  if (textParts.length === 0 && recordStatusPreviews.length === 0) return null;
+  const toolSteps = collectToolSteps(message);
+  if (textParts.length === 0 && recordStatusPreviews.length === 0 && toolSteps.length === 0) return null;
 
   return (
     <div className={cn('mb-4 flex items-start gap-2.5', isUser ? 'flex-row-reverse' : 'flex-row')}>
@@ -53,6 +58,14 @@ export function MessageBubble({
             key={preview.toolCallId}
             preview={preview}
             onConfirm={onConfirmRecordStatus}
+            busy={busy ?? false}
+          />
+        ))}
+        {toolSteps.map((step) => (
+          <ToolStepCard
+            key={step.toolCallId}
+            step={step}
+            onRetry={onRetryTool}
             busy={busy ?? false}
           />
         ))}

@@ -2,8 +2,9 @@
 import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport } from 'ai';
 import { useEffect, useRef, useState } from 'react';
-import { Sparkles } from 'lucide-react';
+import { ListChecks, Sparkles } from 'lucide-react';
 import { EmptyState } from '@/src/components/ui/empty-state';
+import { useActivePlans, type ActivePlanProgress } from '@/src/lib/use-active-plans';
 import { MessageBubble } from './message-bubble';
 import { ToolProgressCard } from './tool-progress-card';
 import { ChatInput } from './chat-input';
@@ -13,6 +14,9 @@ export type ToolProgress = { toolName: string; status: 'running' | 'completed' |
 
 /** 距底部多少像素内视为"跟随底部"（避免用户上滑查看历史时被强制拉回） */
 const STICK_THRESHOLD = 80;
+
+/** 有当前进行中步骤（currentStepIndex 非空）的活跃计划，用于进度横幅渲染 */
+type PlanProgressWithStep = ActivePlanProgress & { currentStepIndex: number; currentStepTitle: string };
 
 export function ChatPanel({
   conversationId, initialMessages, title, onChatSettled, onConversationCreated,
@@ -28,6 +32,12 @@ export function ChatPanel({
   // 服务端创建新会话后通过 conversation-id 事件回传真实 id，后续消息复用它
   const [internalConvId, setInternalConvId] = useState<string | null>(conversationId);
   useEffect(() => { setInternalConvId(conversationId); }, [conversationId]);
+  // 消息流结束计数：每次对话流结束 +1，驱动活跃计划进度刷新（挂载时也会拉一次）
+  const [settleCount, setSettleCount] = useState(0);
+  const { plans } = useActivePlans(settleCount);
+  const activeProgress = plans.filter(
+    (p): p is PlanProgressWithStep => p.currentStepIndex !== null && p.currentStepTitle !== null,
+  );
 
   const { messages, sendMessage, stop, status } = useChat({
     id: internalConvId ?? undefined,
@@ -50,6 +60,8 @@ export function ChatPanel({
       settledRef.current = true;
       onChatSettled();
       setProgress(null);
+      // 计划进度单一事实来源为计划文件，消息流结束后重新拉取对齐（含计划推进/完成）
+      setSettleCount((c) => c + 1);
     },
   });
 
@@ -78,6 +90,23 @@ export function ChatPanel({
         <span className="h-2 w-2 rounded-full bg-indigo-500" />
         <h2 className="truncate text-sm font-semibold text-slate-700">{title}</h2>
       </div>
+      {/* 规划进度联动：有进行中步骤的活跃计划时显示「第 N 步（共 M 步）+ 当前步骤名」；
+          计划全部完成或无活跃计划时不渲染（数据源：data/plans 计划文件，经 /api/plans/active） */}
+      {activeProgress.length > 0 && (
+        <div
+          role="status"
+          className="flex items-center gap-2.5 border-b border-indigo-100 bg-indigo-50/70 px-6 py-2"
+        >
+          <ListChecks className="size-4 shrink-0 text-indigo-600" aria-hidden />
+          <div className="flex min-w-0 flex-col gap-0.5">
+            {activeProgress.map((p) => (
+              <span key={p.taskId} className="truncate text-sm text-indigo-700">
+                计划「{p.title}」第 {p.currentStepIndex + 1} 步（共 {p.totalSteps} 步）：{p.currentStepTitle}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
       <div
         ref={scrollRef}
         onScroll={handleScroll}
@@ -102,6 +131,7 @@ export function ChatPanel({
               key={message.id || `msg-${index}`}
               message={message}
               onConfirmRecordStatus={sendText}
+              onRetryTool={sendText}
               busy={busy}
             />
           ))
