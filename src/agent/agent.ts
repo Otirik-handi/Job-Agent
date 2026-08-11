@@ -16,6 +16,7 @@ import { setMemoryTool } from './tools/set-memory';
 import { readSkillTool } from './tools/read-skill';
 import { planCreateTool } from './tools/plan-create';
 import { planUpdateTool } from './tools/plan-update';
+import { planReadTool } from './tools/plan-read';
 
 export const SYSTEM_PROMPT = `你是 job-helper，一个本地运行的个人求职助手 Agent。
 
@@ -40,6 +41,7 @@ export const SYSTEM_PROMPT = `你是 job-helper，一个本地运行的个人求
 - readSkill：读取技能库中指定 skill 的完整正文（评分卡/解析规则/题库/模板等专业知识；各 skill 元数据常驻下方 Skill 段，正文按需加载）
 - planCreate：创建执行计划（复杂多步任务先拆 1-8 步计划并持久化，返回完整计划文本供对话展示请求用户确认；确认前不得开始执行步骤）
 - planUpdate：更新计划步骤状态（每步执行后推进 todo→in_progress→done，遇障标记 blocked 并附失败原因；done/blocked 为终态不可回退）
+- planRead：读取执行计划全文（taskId 查计划文件，返回完整 Markdown：每步标题/成功标准/依赖/备注；中断恢复续跑前先读全文核对当前进度）
 
 记忆：
 - Agent 维护三块持久记忆：resume（简历要点画像：学历/技能/年限/项目经验）、preferences（用户求职偏好：目标岗位/城市/薪资/远程/行业等）、status_scratchpad（各岗位投递流程进度速记，Agent 自用）。
@@ -89,5 +91,6 @@ export function getTools(): ToolSet {
     readSkill: readSkillTool,
     planCreate: planCreateTool,
     planUpdate: planUpdateTool,
+    planRead: planReadTool,
   };
 }
