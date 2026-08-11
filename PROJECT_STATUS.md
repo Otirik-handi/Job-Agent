@@ -1,0 +1,72 @@
+# PROJECT STATUS — job-helper 项目状态
+
+> 本文档记录项目当前状态、已完成工作与下一步计划。随里程碑更新（最后一次更新：2026-08-11，P1 全部落地）。
+
+## 当前状态
+
+- **基线稳定**：184 个测试全绿（`npm test`），`lint` / `tsc --noEmit` / `build` 全部通过
+- **里程碑**：P0（Agent 基础骨架）+ P1（Agent 进阶能力）全部落地并合并至 main，已推送 GitHub
+- 分支：`main`（与 origin/main 同步）；历史 feature 分支均已合并清理
+
+## 已完成：P0（Agent 基础骨架）
+
+### 第一期（phase7：记忆层 + 会话状态 + 上下文策略）
+
+| 能力 | 实现 |
+|---|---|
+| 记忆层 | `memory_blocks` 表（resume / preferences / status_scratchpad 三块常驻 + limit 校验）+ `getMemory` / `setMemory` 工具（显式写入、写前核对）；`messages` 全量落库 + FTS5（trigram，中文子串检索） |
+| 状态时序 | `status_history` 表（from→to + superseded_by 链式作废，只追加不覆盖），applyJob / recordApplicationStatus 落库自动记录 |
+| 会话状态 | `session_state` 表（机器可读 JSON：currentResumeId / currentJobId），工具结果自动回写 |
+| 上下文策略 | 分层组装（SYSTEM_PROMPT → 记忆 → Skill → 会话状态 → 最近 12 轮），轮数截断 + 记忆补偿（20→12 轮） |
+
+### 第二期（phase8：工具层补强 + 审批分级）
+
+| 能力 | 实现 |
+|---|---|
+| 工具描述规范化 | 13 个工具按 3-4 句规范重写（做什么/何时用/前置条件/参数/返回），SYSTEM_PROMPT 同步 |
+| 结构化错误 | 统一 `{ok:true/false, error:{code,message,hint}}` 契约（对齐 MCP isError）；工厂层透传，TOOL_FAILED 仅兜底未知异常；7 处业务 throw 收敛 |
+| 输入严格校验 | 13 个工具 schema 全部 `z.strictObject`；工厂层 INVALID_INPUT 拦截（中文逐字段可行动错误） |
+| 审批三档 | 只读免确认 / recordApplicationStatus 轻量确认（前端「确认记录」按钮）/ applyJob、tailoredResume 两段式强确认（fail-closed） |
+
+## 已完成：P1（Agent 进阶能力）
+
+| 期 | 能力 | 实现 |
+|---|---|---|
+| phase9 | Skill 系统 | 遵循 agentskills.io 开放标准；6 个求职 skill（简历评分卡/JD 解析/匹配框架/求职信/面试准备/offer 评估）；元数据常驻 system prompt + `readSkill` 工具按需加载（CLI 机制同构，三道闸防路径穿越） |
+| phase10 | 显式规划 | `data/plans/<taskId>.md` 计划文件（步骤/状态/依赖/成功标准）；`planCreate` / `planUpdate` / `planRead` 三工具；复杂任务先出 3-6 步计划请求用户确认；会话组装注入进行中计划（中断恢复） |
+| phase11 | 反思环 | `lessons` 表 + FTS5；`recordLesson`（失败/被纠正后按"发生了什么/为什么/下次怎么做"沉淀教训）、`searchLessons`（FTS 检索，非法语法自动降级） |
+| phase12 | 会话摘要 | `conversations.summary`；会话首次达到轮数上限时对旧轮 LLM 生成一次滚动摘要（失败降级不阻塞），注入上下文 |
+| phase13 | UX 步骤卡片 | 工具调用渲染为三态步骤卡片留在消息流（运行/完成折叠一行可展开/失败红色 + 重试按钮）；`GET /api/plans/active` + 规划进度横幅（"第 N 步（共 M 步）"） |
+
+## 工程基线
+
+- **测试**：184 个（纯函数单测为主：apply-state / channel-guard / llm-call / resume-* / tool-factory / skills / plans / lessons / summary / tool-step-card 等）
+- **规范体系**：`.agents/specs/`（00 治理 / 01 前端 / 02 后端 / 03 Agent / 04 注释）随实现补充了记忆、Skill、规划、反思、摘要、步骤卡片等约定
+- **文档链**：调研报告 → 讨论纪要 → 计划文档（phase7-13）→ 本状态文件
+
+## 接下来要做什么
+
+### P2 队列（调研报告路线图，未开始）
+
+1. **评测基线**：20-30 个真实求职场景 τ-bench 式终态评测集 + pass^k 一致性
+2. **语义检索**：embedding 存 SQLite（sqlite-vec 或自算余弦），FTS5 + 向量 + 时间衰减混合检索
+3. **Prompt caching 优化**：稳定段前置已就位，按 provider 能力启用缓存
+4. **子 Agent（最小 supervisor）**：仅在出现"单任务多路并行调研"或"工具表 >10-15 个"两信号时引入
+5. **其他增强**：skill 库扩展（company-research / salary-benchmark 等）、审计日志、token 预算自监控
+
+### 已知限制（各期验收记录，后续处理）
+
+- FTS trigram 对 2 字以内中文查询不命中（检索工具注意）
+- `drizzle-kit push` 不识别 FTS 虚拟表（应用走 migrate 流程）
+- 会话摘要触发存在一轮偏差（缺口 ≤1 条旧消息，全量落库可溯源）
+- blocked-only 活跃计划在进度横幅不显示
+- 重试按钮点击后置灰至重跑结束（与确认卡一致）
+- SDK 生产路径非法参数先被 AI SDK 英文校验拒绝（中文 INVALID_INPUT 仅直接 execute 路径）
+- 测试基建：lessons 等 repository 测试直连 dev 库（前缀清理 + 串行化）
+
+## 文档索引
+
+- 调研报告：`docs/designs/2026-08-10-agent-architecture-research.md`（12 专题，分篇在 `tmp/research/`）
+- 讨论纪要：`docs/designs/2026-08-10-agent-roadmap-discussion.md`（P0 五项 + P1 五项定稿）
+- 计划文档：`docs/plans/2026-08-10-phase7~13-*.md`（每期含验收记录与已知限制）
+- 本文件：`PROJECT_STATUS.md`
