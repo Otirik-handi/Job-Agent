@@ -141,3 +141,32 @@
 - 会话组装时若存在进行中计划（含未 done 步骤），把计划状态段注入上下文（进行中的步骤 / blocked 备注），支持续跑
 - 计划文件与记忆层边界：**计划 = 当前任务执行状态**；`memory_blocks` 的 `status_scratchpad` = 跨任务进度笔记；二者不混用（步骤状态不进 scratchpad，scratchpad 不承载步骤状态）
 - 为什么：计划文件回答"这个任务进行到哪"，中断恢复直接读文件注入；跨任务进度/画像归记忆层，职责分离避免双写漂移
+
+## 反思环（经验沉淀）
+
+> 失败经验的沉淀与复用承载层：`lessons` 表由 recordLesson / searchLessons 两个确定性工具读写（对齐设计 P1-3 定稿）。
+
+### recordLesson 工具契约
+
+- 工具名 `recordLesson`：inputSchema 含 `content`（教训内容文本，非空校验，为空返回结构化错误）、`category`（zod enum：`matching` / `marketing` / `interview` / `application` / `tooling` / `general` 等，非法分类返回错误）、`sourceTaskId?`（可选，来源任务/场景标识，如计划 `taskId`）
+- 写入 `lessons` 表（含 `lessons_fts` 同步，对齐后端规范「lessons 表」）；返回写入结果（含教训 `id`）
+- 写入类工具（非只读），但为本地可逆操作（认识纠偏可新增纠正性教训，无对外副作用），不属「审批分档」强确认档
+- 错误契约复用 `{ ok: false, error: { code, message, hint } }`（对齐「结构化错误契约」），错误码如 `LESSON_INVALID`（content 为空）/ `LESSON_CATEGORY_INVALID`（category 非法）
+- 为什么：失败复盘写入是高频低风险动作，确认点应放在教训内容本身而非工具调用；枚举由代码校验，防分类语义漂移
+
+### searchLessons 工具契约
+
+- 工具名 `searchLessons`：inputSchema 含 `query?`（检索词）、`category?`（按分类过滤）、`limit?`（默认 5，上限 20）
+- 有 `query` 走 `lessons_fts` 检索；无 `query` 按时间返回最近 N 条；返回教训列表（含 `category` / `created_at` 时间）
+- 无匹配结果返回空列表（非错误，不抛结构化错误）
+- 只读工具，免确认（对齐「审批分档」第一档）
+- 为什么：检索契约与读取频率匹配，教训按需取回、不常驻上下文（对齐设计 P1-3「多条目、按需检索」）
+
+### 反思原则（SYSTEM_PROMPT 层面）
+
+- 任务失败/受阻（blocked 步骤、工具报错、被用户纠正）后主动调用 `recordLesson` 复盘；用户认可的关键反馈也可沉淀
+- 教训要具体可复用：写清「发生了什么 / 为什么 / 下次怎么做」，避免空泛描述
+- 新任务开始或再次失败时先调用 `searchLessons` 查经验，复用后再行动
+- 教训不常驻上下文：按需检索取回，用后即弃
+- 与规划联动：计划 blocked 步骤的失败原因可沉淀为教训（`sourceTaskId` 关联计划 `taskId`）
+- 为什么：失败不沉淀则反复踩坑（对齐设计 P1-3 反思环），具体化要求保证教训可迁移复用，按需检索控制上下文 token 成本

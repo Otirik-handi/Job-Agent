@@ -70,3 +70,11 @@
 - `messages_fts` 为 FTS5 虚拟表，索引 `messages.messageJson` 中的文本内容；插入消息时应用层同步写入 FTS 行
 - 约定：FTS 表仅为检索辅助，不承担业务数据；内容与 `messages` 表同生命周期（删除消息需同步删除对应 FTS 行）
 - 为什么：SQLite FTS5 提供高效全文检索；虚拟表不落业务约束，应用层同步保证检索内容与消息一致
+
+## lessons 表（经验教训）
+
+- 主键 `id`；`content` 教训内容文本（notNull）；`category` 分类枚举：`matching` / `marketing` / `interview` / `application` / `tooling` / `general` 等，由代码层（zod enum）校验，新增分类必须先更新本规范再落库；`sourceTaskId` 可空，来源任务/场景标识（如计划 `taskId`）；`created_at` 记录时间（notNull）
+- 存储介质：`lessons` 表 + `lessons_fts` FTS5 虚拟表（trigram tokenizer，参照 `messages_fts` 模式）；插入教训时应用层同步写入 FTS 行，删除教训需同步删除对应 FTS 行
+- 约定：只追加不修改——教训落库后不可编辑，认识纠偏以新增纠正性教训沉淀；检索一律走 FTS 按需取回，教训不常驻上下文
+- 与 `memory_blocks` 边界：`lessons` = 经验性教训（失败复盘产出，低频按需检索）；`memory_blocks` = 偏好事实与进度（常驻/高频读写）；两者不混用
+- 为什么：失败复盘教训是跨会话资产，独立表沉淀 + FTS 按需检索，避免常驻上下文挤占 token 预算（对齐设计 P1-3 反思环定稿）
