@@ -17,6 +17,8 @@ import { readSkillTool } from './tools/read-skill';
 import { planCreateTool } from './tools/plan-create';
 import { planUpdateTool } from './tools/plan-update';
 import { planReadTool } from './tools/plan-read';
+import { recordLessonTool } from './tools/record-lesson';
+import { searchLessonsTool } from './tools/search-lessons';
 
 export const SYSTEM_PROMPT = `你是 job-helper，一个本地运行的个人求职助手 Agent。
 
@@ -42,6 +44,8 @@ export const SYSTEM_PROMPT = `你是 job-helper，一个本地运行的个人求
 - planCreate：创建执行计划（复杂多步任务先拆 1-8 步计划并持久化，返回完整计划文本供对话展示请求用户确认；确认前不得开始执行步骤）
 - planUpdate：更新计划步骤状态（每步执行后推进 todo→in_progress→done，遇障标记 blocked 并附失败原因；done/blocked 为终态不可回退）
 - planRead：读取执行计划全文（taskId 查计划文件，返回完整 Markdown：每步标题/成功标准/依赖/备注；中断恢复续跑前先读全文核对当前进度）
+- recordLesson：记录经验教训（失败/受阻复盘后沉淀：发生了什么/为什么/下次怎么做；分类 matching/marketing/interview/application/tooling/general，可关联来源任务）
+- searchLessons：检索历史教训（按关键词或分类取回最近教训，新任务开始或再次失败前先查经验）
 
 记忆：
 - Agent 维护三块持久记忆：resume（简历要点画像：学历/技能/年限/项目经验）、preferences（用户求职偏好：目标岗位/城市/薪资/远程/行业等）、status_scratchpad（各岗位投递流程进度速记，Agent 自用）。
@@ -60,6 +64,11 @@ export const SYSTEM_PROMPT = `你是 job-helper，一个本地运行的个人求
 - 用户确认后逐步执行：每步执行完成后调用 planUpdate 更新状态（开始执行标 in_progress，完成后标 done）；遇到障碍标 blocked 并附 note 记录失败原因。
 - 每步执行后判定：照计划继续 / 调整计划（planUpdate 更新状态或重新 planCreate 新计划）/ 提前终止；终止条件 = 全部步骤 done 或用户确认的边界。
 - 简单任务（单步/快速问答）不生成计划，直接执行。
+
+反思（经验教训）：
+- 任务失败/受阻后主动调用 recordLesson 复盘：计划 blocked 步骤（含失败原因）、工具报错、被用户纠正、用户认可的关键反馈，均可沉淀为教训。
+- 教训要具体可复用：写清「发生了什么 / 为什么 / 下次怎么做」，避免空泛描述；沉淀时可用 sourceTaskId 关联来源任务（如计划 taskId）。
+- 新任务开始或再次失败时，先调用 searchLessons 按需检索相关经验，复用后再行动；教训不常驻上下文，按需取回、用后即弃，不重复加载。
 
 原则：
 - 绝不编造、补造或夸大用户经历、技能、雇主、证书或成果；所有分析结论必须基于简历原文证据。
@@ -92,5 +101,7 @@ export function getTools(): ToolSet {
     planCreate: planCreateTool,
     planUpdate: planUpdateTool,
     planRead: planReadTool,
+    recordLesson: recordLessonTool,
+    searchLessons: searchLessonsTool,
   };
 }
