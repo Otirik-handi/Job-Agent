@@ -50,6 +50,51 @@
 
 ## 待讨论项（队列，P1）
 
+### 已定稿
+
+### P1-1（2026-08-10）：Skill 系统落地
+
+**结论：遵循 agentskills.io 开放标准，加载机制 = CLI 机制同构移植「元数据常驻 + readSkill 工具」**。
+- 机制原理：CLI（Claude Code/Codex/ZCode）的渐进式披露靠"元数据层（name+description 常驻 system prompt，~100 token/个）+ Agent 用 Read/Bash 工具自读正文"自然实现；job-helper 无读文件工具，需新增 `readSkill` 工具（限定 skills/ 目录）作为等价物
+- 目录：`skills/<skill-name>/SKILL.md`（frontmatter name/description + 正文 ≤500 行，长内容拆 references/）
+- 首批 6 个：resume-analysis（简历评分卡）、jd-analysis（JD 解析规则）、job-matching（匹配框架）、cover-letter-generation（求职信模板）、interview-prep（面试题库+STAR）、offer-evaluation（offer 比较）
+- 现有 13 个工具与两段式审批不动；skill 承载知识/流程，不新增工具能力
+
+### P1-2（2026-08-10）：显式规划（plans 计划文件）
+
+**结论：分层混合规划 + 计划文件持久化；计划由 Agent 工具自主管理；对用户「创建时确认 + 执行中进度」**。
+- 分层混合：宏观 plan-then-execute（3-6 个任务级步骤 + 成功标准），微观 ReAct 循环不预先穷举
+- 载体：`plans/<taskId>.md`（步骤/状态 todo/in_progress/done/blocked/依赖/产出物路径/失败备注），中断读文件续跑；不引入独立 planner Agent（prompt 承担），依赖用 depends_on 简单字段
+- 管理：新增 planCreate/planUpdate Agent 工具自主管理（与 readSkill 同构）
+- 显示：复杂任务创建时先出计划给用户确认/调整再执行，执行中轻量显示"第 N 步"进度；简单任务不生成计划；不做深研式实时来源侧栏
+- 每步执行后更新计划，Agent 判定"照计划/调整/提前终止"
+
+### P1-3（2026-08-10）：反思环（经验沉淀）
+
+**结论：独立 lessons 表 + 失败后自动复盘**。
+- 载体：`lessons` 表（content/category/sourceTaskId/createdAt + FTS 检索），教训多条目、按需检索，不常驻上下文
+- 写入：Agent 在任务失败/受阻（blocked 步骤、被用户纠正）后主动复盘生成教训（Reflexion 式语言自省）；用户认可的关键反馈也可沉淀
+- 读取：新任务开始或失败时查 lessons 复用经验
+
+### P1-4（2026-08-10）：会话级摘要（compaction）
+
+**结论：首次截断时 LLM 生成一次滚动摘要**。
+- 触发：会话首次达到轮数上限时，对将被截断的旧轮用 LLM 生成一次摘要（复用 callStructured 通道），此后"摘要+最近 12 轮"常驻，不再重复压缩
+- 内容侧重：用户偏好与画像变化、已投递进度、未决事项/进行中任务、关键决策；丢弃冗余工具输出
+- 存储：`conversations.summary` 字段，作为上下文段注入（稳定段之后、最近轮之前）
+- 安全：原始消息全量落库可溯源，摘要失真可回查
+
+### P1-5（2026-08-10）：UX 三态步骤卡片
+
+**结论：工具调用作为正式步骤卡片落进消息流；失败卡附重试按钮**。
+- 完成态：折叠成一行（工具名 + ✓ 一句摘要）留在消息流，可展开详情（不再完成即消失）
+- 失败态：红色 + 错误摘要 + 「重试」按钮（复用会话 id 发重试消息，一键重试临时失败）
+- 运行态：流式卡片（现状保留）；长任务配轻量"第 N 步"进度（与 P1-2 规划显示联动）
+
+## P1 讨论完成（2026-08-10）
+
+五项全部定稿（P1-1 Skill 系统 / P1-2 显式规划 / P1-3 反思环 / P1-4 会话摘要 / P1-5 UX 卡片），待写实现计划。
+
 - 第 2 项：结构化会话状态（session_state 表，P0-2）
 - 第 3 项：上下文策略（SYSTEM_PROMPT 分节 + 简历/JD 按需注入，P0-3）
 - 第 4 项：工具层补强（description 重写 + 结构化错误返回 + zod strict，P0-4）
