@@ -69,3 +69,36 @@
 - 系统已有资源（简历/岗位）经 `listResumes` / `listJobOpportunities` 获取 id 复用，避免重复导入
 - 用户未提供 resumeId/jobOpportunityId 时，先调用对应 list 工具再操作
 - 为什么：对话中已导入的资源可直接复用（修复"上传简历无法被分析"的历史教训）
+
+## Skill 系统
+
+> 知识/流程承载层：`skills/<skill-name>/SKILL.md` 技能正文按需加载，元数据常驻 system prompt（CLI 机制同构移植，遵循 agentskills.io 开放标准）。
+
+### 目录与文件结构
+
+- 每个 skill 一个目录，正文固定于 `skills/<skill-name>/SKILL.md`；目录名 = skill 名，小写连字符（如 `resume-analysis`）
+- frontmatter 必填两字段：
+  - `name`：与目录名一致，≤64 字符，小写连字符
+  - `description`：≤1024 字符，写"做什么 + 何时用"，包含触发词
+- 正文 Markdown，中文，≤500 行；长内容拆入 `references/` 子目录按需引用，引用保持一层深（references 内不再嵌套）
+- 为什么：目录名即 skill 唯一标识，frontmatter 提供注入与确认所需的元数据；正文限长约束常驻成本，references 拆分控制单次加载量
+
+### 元数据常驻注入
+
+- 会话组装时遍历 `skills/` 目录，把每个 skill 的 name + description 注入 system prompt 的 Skill 元数据段（约 100 token/个）；正文不常驻
+- 为什么：模型需知道"有哪些 skill、何时用"以触发 readSkill；正文低频且体积大，按需加载省 token
+
+### readSkill 工具契约
+
+- 工具名 `readSkill`：inputSchema 含 `skillName`（zod enum 或存在性校验）；该工具同样遵循「工具形态」「工具描述（description）规范」的既有约定
+- 读取 `skills/<skillName>/SKILL.md` 正文返回，返回内容含 frontmatter 解析出的 name/description，供模型确认命中正确的 skill
+- 限定 `skills/` 目录内的已知 skill，防路径穿越；不得读取目录外任何文件
+- 不存在/非法 skill 返回结构化错误，复用既有 `{ ok: false, error: { code, message, hint } }` 契约（对齐「结构化错误契约」），错误码如 `SKILL_NOT_FOUND`
+- 只读工具，免确认（对齐「审批分档」第一档）
+- 为什么：技能正文按需加载，模型凭元数据判断后读取；路径穿越是安全边界，由代码强制而非模型自律
+
+### 与既有体系边界
+
+- skill 承载知识/流程（提示词、评分卡、题库、模板），**不新增工具能力**；现有 13 个工具与两段式审批不变
+- skill 数量受控：元数据常驻有 token 成本，建议 ≤15 个
+- 为什么：知识层与工具层解耦——skill 回答"怎么做"，工具负责执行；数量上限控制常驻 token 成本
