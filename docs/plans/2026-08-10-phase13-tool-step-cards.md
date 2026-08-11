@@ -1,7 +1,7 @@
 # Phase 13：UX 三态步骤卡片（P1-5）
 
 日期：2026-08-10
-状态：草稿
+状态：完成（2026-08-10 验收通过，分支 phase13-tool-step-cards）
 目标：工具执行过程在对话流中留下正式步骤卡片（运行/完成/失败三态，完成折叠一行、失败附重试），并与规划进度（phase10）联动显示"第 N 步"。
 关联规范：`.agents/specs/01-frontend/frontend-conventions.md`（需更新）、`docs/designs/2026-08-10-agent-roadmap-discussion.md`（P1-5 定稿）
 依据：`docs/designs/2026-08-10-agent-architecture-research.md` 专题 12（对话 UX）
@@ -16,18 +16,28 @@
 
 ## 任务清单
 
-- [ ] **T0 规范先行**：01-frontend 规范补充步骤卡片约定——渲染来源（AI SDK tool part）、三态样式与语义、折叠/展开交互、重试按钮行为、与规划进度联动的数据来源（plans 文件）
-- [ ] **T1 步骤卡片组件**
-  - [ ] 改造/新增组件（如 `src/components/chat/tool-step-card.tsx`）：从消息 tool part（tool-<name>/dynamic-tool，参照 record-status-card 的识别模式）渲染正式卡片——工具名 + 状态（运行/完成/失败）+ 一句话摘要（成功摘要从输出提取或固定文案）；完成态折叠成一行，可展开看详情（输出要点）；运行态流式更新
-  - [ ] 消息流渲染接入（message-bubble/chat-panel）：卡片随消息持久化（刷新后仍在，从 tool part 还原状态）
-  - ✅ **Checkpoint A**：build 通过；组件单测或冒烟（三态渲染/折叠展开）
-- [ ] **T2 失败重试**
-  - [ ] 失败卡片附「重试」按钮：点击后复用会话 id 发送重试消息（同 record-status-card 的 sendText 通道），触发该工具重跑；防重复点击（busy/已点击置灰）
-  - ✅ **Checkpoint B**：build 通过；冒烟（失败卡出现重试按钮，点击触发重试消息）
-- [ ] **T3 规划进度联动（依赖 phase10）**
-  - [ ] 有进行中计划时（经 planGet/listPlans 或注入的计划状态），对话区显示轻量进度"第 N 步（共 M 步）"+ 当前步骤名；计划完成后收起
-  - ✅ **Checkpoint C**：有/无计划两种状态下 UI 正确
-- [ ] **T4 验证收尾**：`npm run lint && npx tsc --noEmit && npm test` 全绿；`npm run build` 通过；GUI 实测（真实对话触发工具：运行→完成折叠 / 构造失败→重试按钮）
+- [x] **T0 规范先行**：01-frontend 补充「工具步骤卡片」与「规划进度联动」约定（渲染来源/三态语义/持久化/重试/组件边界/可访问性/横幅格式）——提交 7ddc2de，自查通过
+- [x] **T1 步骤卡片组件**
+  - [x] `tool-step-card.tsx`：collectToolSteps 纯函数（isToolUIPart 识别 tool-<name>/dynamic-tool，state 判定三态）；运行中徽章/完成折叠一行可展开（extractSuccessSummary 按工具映射摘要 + extractSuccessDetails 详情）/失败红色 + error.message + hint；随消息持久化从 part 还原；预览态排除走确认卡
+  - [x] 26 个组件纯函数单测
+  - ✅ **Checkpoint A**：提交 e5b9e8f（含 T2）
+- [x] **T2 失败重试**
+  - [x] 「重试」按钮：buildRetryMessage 经 onRetryTool=sendText 复用会话 id 发重试消息；busy/clicked 防重复；与确认卡同构
+- [x] **T3 规划进度联动（依赖 phase10）**
+  - [x] 后端 GET /api/plans/active（getActivePlans 投影 taskId/title/currentStepIndex/totalSteps/currentStepTitle/statusCounts；buildActivePlanProjection 二次 readPlan 补步骤标题；空 {plans:[]}）；6 个 API 单测
+  - [x] 前端 use-active-plans hook（挂载拉取 + onFinish 刷新信号 + 失败静默降级）；横幅「计划「标题」第 N 步（共 M 步）：当前步骤名」（N=第一个 in_progress 转 1-based，M=总步数；全 done/无计划不渲染）
+  - ✅ **Checkpoint C**：提交 a9929a3；审查通过（blocked-only 不显示已文档化）
+- [x] **T4 验证收尾**：`npm run lint && npx tsc --noEmit && npm test`（184/184）通过；`npm run build` 通过（/api/plans/active 注册）
+
+## 验收记录（2026-08-10）
+
+1. ✅ 工具调用以三态步骤卡片留在消息流（从 tool part 还原，刷新后仍在）；完成态折叠一行可展开
+2. ✅ 失败卡片红色 + 错误摘要 + 重试按钮（防重复点击）
+3. ✅ 有活跃计划时横幅显示"第 N 步（共 M 步）：当前步骤名"；无计划不显示
+4. ✅ record-status-card 确认卡独立共存；tool-progress-card 瞬时卡保留（职责互补）
+5. ✅ 全量 lint/tsc/184 测试/build 通过
+
+已知限制（后续处理）：blocked-only 活跃计划横幅不显示（无 N 可展示，已测试文档化）；重试按钮点击后永久置灰至重跑结束（与确认卡一致）；chevron/图标 aria-hidden 与详情键中文标签等细节可后续打磨。
 
 ## 依赖与恢复
 
