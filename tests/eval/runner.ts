@@ -32,7 +32,7 @@ export type ScenarioResult =
 /** 执行单个场景（临时库隔离；mock/真实两层共用）。结束后恢复默认连接供后续测试文件使用 */
 export async function runScenario(
   scenario: Scenario,
-  opts: { model: LanguageModel; timeoutMs?: number },
+  opts: { model: LanguageModel; timeoutMs?: number; assert?: (ctx: ScenarioContext) => void },
 ): Promise<ScenarioResult> {
   // 超时定时器句柄：真实层传 timeoutMs 时启用（mock 层不传，vitest 已有 60s 用例超时）
   let timeoutTimer: ReturnType<typeof setTimeout> | undefined;
@@ -77,7 +77,7 @@ export async function runScenario(
           if (text) assistantTexts.push(text);
         }
       }
-      scenario.assertFinalState(ctx);
+      (opts.assert ?? scenario.assertFinalState)(ctx);
     };
 
     if (opts.timeoutMs === undefined) {

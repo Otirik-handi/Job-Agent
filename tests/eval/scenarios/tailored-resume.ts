@@ -52,4 +52,12 @@ export const tailoredResumeScenario: Scenario = {
     expect(row).not.toBeNull();
     expect(row!.content_markdown).toContain(SUGGESTED_TEXT);
   },
+  assertFinalStateReal: (ctx) => {
+    // 真实模型生成的专属简历是自己的表述（不保证含 mock 脚本预设的替换文本）：
+    // 只验证落库产物非空且基于简历原文（含姓名）
+    const row = ctx.query<{ content_markdown: string }>('SELECT content_markdown FROM tailored_resumes WHERE resume_id = ? AND job_opportunity_id = ?', ['resume-eval-1', 'job-eval-1']);
+    expect(row).not.toBeNull();
+    expect(row!.content_markdown.length).toBeGreaterThan(0);
+    expect(row!.content_markdown).toContain('张伟');
+  },
 };

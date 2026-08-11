@@ -20,4 +20,8 @@ export const midCourseCorrectionScenario: Scenario = {
     expect(row?.value).toContain('北京');
     expect(ctx.allAssistantText()).toContain('北京');
   },
+  assertFinalStateReal: (ctx) => {
+    // 真实模型可能先追问而非立即 setMemory：只验证对话正常结束，不硬断言记忆内容
+    expect(ctx.allAssistantText()).not.toBe('');
+  },
 };

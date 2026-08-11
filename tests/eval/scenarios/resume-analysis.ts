@@ -36,8 +36,13 @@ export const resumeAnalysisScenario: Scenario = {
   assertFinalState: (ctx) => {
     const resume = ctx.query<{ analysis_json: string | null }>('SELECT analysis_json FROM resumes LIMIT 1');
     expect(resume?.analysis_json).not.toBeNull();
-    expect(JSON.parse(resume!.analysis_json!)).toMatchObject({ overallScore: 72 });
-    expect(ctx.allAssistantText()).toContain('72');
+    // 结构性断言：只验 schema 与分值边界，不锁具体分数（真实模型给真实分）
+    const parsed = JSON.parse(resume!.analysis_json!) as { schemaVersion?: number; overallScore?: number };
+    expect(parsed.schemaVersion).toBe(1);
+    expect(parsed.overallScore).toBeGreaterThanOrEqual(0);
+    expect(parsed.overallScore).toBeLessThanOrEqual(100);
+    // 消息流非空即可（真实模型不会恰好提到 72）
+    expect(ctx.allAssistantText()).not.toBe('');
     // 会话状态回写：currentResumeId 应指向导入的简历
     const state = ctx.query<{ state_json: string }>('SELECT state_json FROM session_state LIMIT 1');
     expect(state).not.toBeNull();

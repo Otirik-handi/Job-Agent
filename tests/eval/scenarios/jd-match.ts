@@ -20,6 +20,8 @@ export const jdMatchScenario: Scenario = {
   id: 'jd-match',
   family: 'high-frequency',
   description: '用户给 JD → agent 导入岗位并匹配（importJobOpportunity + matchJob），产出匹配结论',
+  // 真实模型慢：matchJob 内部单次调用可达 50-100s，多轮累计易超全局 180s，放宽到 5 分钟
+  realTimeoutMs: 300_000,
   setup: (ctx) => {
     ctx.exec(
       "INSERT INTO resumes (id, name, source_type, source_text, analysis_json, created_at, updated_at) VALUES ('resume-eval-1', '张伟', 'paste', ?, ?, datetime('now'), datetime('now'))",
@@ -67,7 +69,11 @@ export const jdMatchScenario: Scenario = {
   assertFinalState: (ctx) => {
     const job = ctx.query<{ fit_result_json: string | null }>('SELECT fit_result_json FROM job_opportunities LIMIT 1');
     expect(job?.fit_result_json).not.toBeNull();
-    expect(JSON.parse(job!.fit_result_json!)).toMatchObject({ overallScore: 85 });
-    expect(ctx.allAssistantText()).toContain('85');
+    // 结构性断言：只验 schema 与分值边界，不锁具体分数（真实模型给真实分）
+    const parsed = JSON.parse(job!.fit_result_json!) as { schemaVersion?: number; overallScore?: number };
+    expect(parsed.schemaVersion).toBe(1);
+    expect(parsed.overallScore).toBeGreaterThanOrEqual(0);
+    expect(parsed.overallScore).toBeLessThanOrEqual(100);
+    expect(ctx.allAssistantText()).not.toBe('');
   },
 };

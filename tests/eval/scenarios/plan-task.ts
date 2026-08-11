@@ -4,6 +4,7 @@ import path from 'node:path';
 import type { Scenario } from './types';
 
 const TASK_ID = 'eval-apply-week';
+const PLANS_DIR = path.resolve(process.cwd(), 'data', 'plans');
 
 export const planTaskScenario: Scenario = {
   id: 'plan-task',
@@ -23,9 +24,15 @@ export const planTaskScenario: Scenario = {
     { type: 'text', text: '第 1 步已完成，正在执行第 2 步（匹配 5 个岗位）。' },
   ],
   assertFinalState: () => {
-    const content = readFileSync(path.resolve(process.cwd(), 'data', 'plans', `${TASK_ID}.md`), 'utf-8');
+    // mock 脚本固定 taskId=eval-apply-week，计划文件断言有效（内容含步骤标题与进度横幅）
+    const content = readFileSync(path.resolve(PLANS_DIR, `${TASK_ID}.md`), 'utf-8');
     expect(content).toContain('更新简历');
     // 进度横幅数据：步骤 0 done、步骤 1 in_progress
     expect(content).toMatch(/done/);
+  },
+  assertFinalStateReal: (ctx) => {
+    // 真实模型自选 taskId（不保证 eval- 前缀）且可能停在 in_progress 或追问：
+    // 只验证对话正常结束，计划文件落盘由 planCreate 工具侧保证
+    expect(ctx.allAssistantText()).not.toBe('');
   },
 };

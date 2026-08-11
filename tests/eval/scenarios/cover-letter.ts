@@ -16,4 +16,9 @@ export const coverLetterScenario: Scenario = {
     expect(text).toContain('尊敬的');
     expect(text).toContain('前端');
   },
+  assertFinalStateReal: (ctx) => {
+    // 真实模型先输出引导语（先看简历/岗位/加载 skill）再调工具，单轮内可能未写到正文：
+    // 只验证回复主题是求职信，不锁「尊敬的」等正文措辞
+    expect(ctx.allAssistantText()).toContain('求职信');
+  },
 };

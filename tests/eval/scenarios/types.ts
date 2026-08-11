@@ -22,6 +22,10 @@ export type Scenario = {
   mockScript: MockResponse[];
   /** 终态断言（DB + 消息流；vitest expect 直接使用） */
   assertFinalState: (ctx: ScenarioContext) => void;
+  /** 真实模型层专用终态断言（缺省复用 assertFinalState）；仅当 mock 脚本预设的模型行为在真实层不成立时提供 */
+  assertFinalStateReal?: (ctx: ScenarioContext) => void;
+  /** 真实层单场景超时上限（ms，缺省用 CLI 全局 180s）；慢模型下多步场景需要更宽松限额时设置 */
+  realTimeoutMs?: number;
 };
 
 /** 把用户文本构造成 UIMessage */

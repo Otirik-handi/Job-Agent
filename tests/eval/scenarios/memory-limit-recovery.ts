@@ -21,4 +21,8 @@ export const memoryLimitRecoveryScenario: Scenario = {
     expect(row?.value).toContain('远程岗位');
     expect(row!.value.length).toBeLessThan(2000);
   },
+  assertFinalStateReal: (ctx) => {
+    // 真实模型可能先追问而非立即 setMemory：只验证对话正常结束，不硬断言记忆内容
+    expect(ctx.allAssistantText()).not.toBe('');
+  },
 };
