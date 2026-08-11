@@ -76,12 +76,6 @@ export type AgentTurnResult = {
   conversationId: string;
   /** 本轮新增的 assistant 消息（含工具调用过程） */
   messages: UIMessage[];
-  /**
-   * tee 出的客户端流分支（与 messages 同源同内容）：route 层把它 merge 进响应流，
-   * 客户端 useChat 据此渲染助手回复；评测 runner 不消费本字段（tee 未读分支会自动缓冲，无副作用）。
-   * 注意：流在 runAgentTurn 返回时已完整产出，route 末尾 merge 的时序是「整批到达」而非边生成边推。
-   */
-  stream: ReadableStream<InferUIMessageChunk<UIMessage>>;
 };
 
 const TOOL_PROGRESS_TEXT: Record<string, string> = {
@@ -107,7 +101,7 @@ export function isBusinessFailure(toolOutput: unknown): boolean {
 
 /**
  * Agent 回合核心：查历史 → 合并去重 → 截断 → 组装分层 prompt → ToolLoopAgent 循环
- * → 收集输出 → 持久化 → 返回新增 assistant 消息（含给客户端的流分支）。route 与评测 runner 共用。
+ * → 收集输出 → 持久化 → 返回新增 assistant 消息。route 与评测 runner 共用。
  * 业务逻辑与 route.ts 原 POST 等价（进度事件经 onToolProgress 回调交给路由层渲染）。
  */
 export async function runAgentTurn(options: {
@@ -115,8 +109,13 @@ export async function runAgentTurn(options: {
   messages: UIMessage[];
   model?: LanguageModel;
   onToolProgress?: (event: ToolProgressEvent) => void;
+  /**
+   * 客户端流分支回调（tee 后同步触发，与内部收集并行消费）：route 层在此 merge 进响应流，
+   * 保持「边生成边推流」的原有时序；评测 runner 不传（tee 未读分支自动缓冲，无副作用）。
+   */
+  onClientStream?: (stream: ReadableStream<InferUIMessageChunk<UIMessage>>) => void;
 }): Promise<AgentTurnResult> {
-  const { conversationId, messages: incoming, model = getModel(), onToolProgress } = options;
+  const { conversationId, messages: incoming, model = getModel(), onToolProgress, onClientStream } = options;
 
   // 注意：history 在入站消息落库前读取（与 route 原 POST 顺序一致），摘要触发/去重都以这份为准
   const historyRecords = listMessages(conversationId);
@@ -189,6 +188,9 @@ export async function runAgentTurn(options: {
 
   const stream = await createAgentUIStream({ agent, uiMessages: trimmed });
   const [clientSide, collectSide] = stream.tee();
+  // 立即把客户端分支交给回调（route 层 merge 进响应流）：与下方 collector 并行消费
+  // tee 两分支，恢复原实现「边生成边推流」时序；不传回调时该分支自动缓冲，无副作用
+  if (onClientStream) onClientStream(clientSide);
   const collected: UIMessage[] = [];
   const collector = (async () => {
     for await (const msg of readUIMessageStream({ stream: collectSide })) {
@@ -212,6 +214,5 @@ export async function runAgentTurn(options: {
   return {
     conversationId,
     messages: [...byId.values()].filter((m) => m.role === 'assistant'),
-    stream: clientSide,
   };
 }

@@ -53,10 +53,14 @@ export async function POST(req: Request) {
         transient: true,
       });
       // Agent 循环、消息持久化与会话状态回写全部收敛在 runAgentTurn 内；
-      // 路由层只负责 UI 侧职责：进度事件转 data-tool-progress 推流
-      const result = await runAgentTurn({
+      // 路由层只负责 UI 侧职责：进度事件转 data-tool-progress 推流、助手回复流经
+      // onClientStream 并行 merge 进响应流（tee 后同步回调，保持边生成边推流的原有时序）
+      await runAgentTurn({
         conversationId: convId,
         messages: incoming,
+        onClientStream: (stream) => {
+          writer.merge(stream);
+        },
         onToolProgress: (event) => {
           writer.write({
             type: 'data-tool-progress',
@@ -65,9 +69,6 @@ export async function POST(req: Request) {
           });
         },
       });
-      // 助手回复 chunk 流回客户端（原 writer.merge(clientSide) 语义）；
-      // runAgentTurn 返回时流已完整产出，此处为整批 merge，非边生成边推
-      writer.merge(result.stream);
     },
   });
 
