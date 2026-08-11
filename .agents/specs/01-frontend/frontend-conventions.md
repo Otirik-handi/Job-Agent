@@ -39,6 +39,24 @@
 - 确认型操作（删除/重命名）用 `ConfirmDialog`
 - 为什么：统一视觉与交互语言，验收过的组件复用而非重写
 
+## 工具步骤卡片
+
+- 渲染来源：工具调用以正式步骤卡片渲染进消息流，数据源为 AI SDK 消息的 tool part（`tool-<name>` 或 `dynamic-tool` 形态），按 part 的 `state` 判定状态；识别模式参照 `record-status-card.tsx` 的 `collectRecordStatusPreviews`（遍历 `message.parts`，识别 tool part 并校验 state/output 结构），逻辑放组件同文件的纯函数
+- 持久化：卡片随消息落库，刷新/会话恢复后仍在，三态从 tool part 还原；区别于 phase8 的 running 瞬时卡（`tool-progress-card`），步骤卡片非瞬时，是消息流的正式记录
+- 三态语义：
+  - 运行中：工具名 + running 状态徽章，随流式更新
+  - 完成：折叠成一行（工具名 + ✓ 一句摘要），可展开看详情（输出要点），保持对话流简洁
+  - 失败：红色 + 错误摘要（结构化错误契约的 `message`）+「重试」按钮（复用会话 id 发重试消息触发重跑；点击后置灰防重复点击，直至重跑结束）
+- 与既有组件关系：`record-status-card`（确认卡）保持独立，步骤卡片是通用工具渲染层，两者不冲突；`tool-progress-card`（瞬时提示）保留或收敛——持久化职责由三态卡片承担
+- 可访问性：按钮带文字标签、状态有语义（aria 标注 running/failed）、折叠/展开可用键盘操作
+- 为什么：工具动作从瞬时提示升级为消息流中的正式记录，用户可回看、可重试、可追踪任务进度
+
+## 规划进度联动
+
+- 有进行中计划（`data/plans` 的活跃计划，即存在 in_progress/blocked 步骤）时，对话区显示轻量进度「第 N 步（共 M 步）」+ 当前步骤名（N 取第一个 in_progress 步骤，M 为总步数）
+- 计划完成（全部 done）收起进度显示；无进行中计划不显示
+- 为什么：长任务执行时用户需要感知整体进度，与显式规划的落点联动，进度单一事实来源仍为计划文件
+
 ## 样式边界
 
 - 样式令牌遵循 `SoftUI.md`（primary indigo-600、muted slate-600、input slate-300）与 AGENTS.md 对比度要求
