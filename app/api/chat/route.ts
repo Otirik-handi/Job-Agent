@@ -12,12 +12,11 @@ import { randomUUID } from 'node:crypto';
 import { getModel, LlmConfigError } from '@/src/agent/model';
 import { getTools } from '@/src/agent/agent';
 import { buildSystemPrompt } from '@/src/agent/context';
+import { MAX_HISTORY_ROUNDS, maybeGenerateSummary } from '@/src/agent/summary';
 import { createConversation, getConversation, touchConversation } from '@/src/db/repositories/conversations';
 import { insertMessage, listMessages } from '@/src/db/repositories/messages';
 import { listMemoryBlocks } from '@/src/db/repositories/memory-blocks';
 import { getSessionState, setSessionState } from '@/src/db/repositories/session-state';
-
-const MAX_HISTORY_ROUNDS = 12;
 
 const requestSchema = z.object({
   conversationId: z.string().min(1).nullable().optional(),
@@ -141,12 +140,15 @@ export async function POST(req: Request) {
         data: { conversationId: convId },
         transient: true,
       });
-      // 分层 system prompt：基础提示 + 当前记忆块 + 会话结构化状态
+      // 分层 system prompt：基础提示 + 当前记忆块 + 会话级摘要（首次截断时生成，常驻注入）+ 会话结构化状态
       const memoryBlocks = listMemoryBlocks();
       const sessionState = getSessionState(convId);
+      // 摘要生成/读取走降级通道：失败不影响本次请求（内部不抛错）
+      const conversationSummary = await maybeGenerateSummary(convId, historyRecords);
       const instructions = buildSystemPrompt({
         memoryBlocks,
         sessionState: sessionState ? sessionState.stateJson : null,
+        conversationSummary,
       });
       const agent = new ToolLoopAgent({
         model: getModel(),
