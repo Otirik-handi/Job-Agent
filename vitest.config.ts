@@ -10,8 +10,9 @@ export default defineConfig({
     },
   },
   test: {
-    // 测试文件共享同一 SQLite 文件（data/job-helper.db），并行写入会触发
-    // better-sqlite3「database is locked」；串行执行测试文件保证确定性
+    // initDb 是全局连接切换（ESM live binding 替换 db）：文件并行会让评测临时库
+    // （:memory:）与直连 dev 库的测试互相污染；同时串行也避免共享 SQLite 文件
+    // 并发写入触发 better-sqlite3「database is locked」
     fileParallelism: false,
   },
 });
