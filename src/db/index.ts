@@ -18,6 +18,12 @@ export function initDb(path: string = 'data/job-helper.db'): void {
   db = drizzle(next, { schema });
 }
 
+/** 读取当前 db 实例。必须经函数而非直接导入 `db`：tsx CLI 下 src/db 以 CJS 编译，
+ * Node ESM→CJS 互操作对 `export let` 重绑定不实时（导入方拿到快照），函数绑定则实时。 */
+export function getDb(): ReturnType<typeof drizzle<typeof schema>> {
+  return db;
+}
+
 // 模块加载即建立默认连接，保持「不调 initDb 也直连 dev 库」的既有行为
 initDb();
 

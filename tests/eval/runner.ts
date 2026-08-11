@@ -1,7 +1,7 @@
 import { migrate } from 'drizzle-orm/better-sqlite3/migrator';
 import type { LanguageModel } from 'ai';
 import type Database from 'better-sqlite3';
-import { initDb, db } from '../../src/db';
+import { getDb, initDb } from '../../src/db';
 import { createConversation } from '../../src/db/repositories/conversations';
 import { clearModelOverride, setModelOverride } from '../../src/agent/model';
 import { runAgentTurn } from '../../src/agent/run-agent';
@@ -20,9 +20,9 @@ function cleanupEvalPlans(): void {
   } catch { /* 目录不存在则忽略 */ }
 }
 
-/** initDb 后的原生 better-sqlite3 连接（drizzle 实例经 $client 暴露） */
+/** initDb 后的原生 better-sqlite3 连接（drizzle 实例经 $client 暴露；经 getDb 实时读取当前连接） */
 function rawDb(): Database.Database {
-  return (db as unknown as { $client: Database.Database }).$client;
+  return (getDb() as unknown as { $client: Database.Database }).$client;
 }
 
 export type ScenarioResult =
@@ -32,11 +32,10 @@ export type ScenarioResult =
 /** 执行单个场景（临时库隔离；mock/真实两层共用）。结束后恢复默认连接供后续测试文件使用 */
 export async function runScenario(
   scenario: Scenario,
-  opts: { model: LanguageModel },
+  opts: { model: LanguageModel; timeoutMs?: number },
 ): Promise<ScenarioResult> {
-  initDb(':memory:');
-  migrate(db, { migrationsFolder: 'src/db/migrations' });
-  cleanupEvalPlans();
+  // 超时定时器句柄：真实层传 timeoutMs 时启用（mock 层不传，vitest 已有 60s 用例超时）
+  let timeoutTimer: ReturnType<typeof setTimeout> | undefined;
 
   const assistantTexts: string[] = [];
   const ctx: ScenarioContext = {
@@ -50,25 +49,50 @@ export async function runScenario(
     allAssistantText: () => assistantTexts.join('\n'),
   };
 
-  const conversation = createConversation(scenario.id);
-  setModelOverride(opts.model);
   try {
-    scenario.setup(ctx);
-    for (let i = 0; i < scenario.userMessages.length; i++) {
-      const result = await runAgentTurn({
-        conversationId: conversation.id,
-        messages: [toUserMessage(scenario.userMessages[i], i)],
-        model: opts.model,
-      });
-      for (const m of result.messages) {
-        const text = m.parts
-          .filter((p): p is { type: 'text'; text: string } => p.type === 'text')
-          .map((p) => p.text)
-          .join('');
-        if (text) assistantTexts.push(text);
+    // 临时库初始化随 try 走：migrate 抛错也会落入 catch 计 fail，且 finally 一定执行恢复
+    initDb(':memory:');
+    migrate(getDb(), { migrationsFolder: 'src/db/migrations' });
+    cleanupEvalPlans();
+
+    const conversation = createConversation(scenario.id);
+    setModelOverride(opts.model);
+
+    // 执行段：setup + 逐轮 runAgentTurn + 终态断言。真实层传 timeoutMs 时整段限时——
+    // 挂起的 LLM 调用无法强制中断，超时后底层 runAgentTurn 可能仍在跑，但 CLI 会继续
+    // 下一场景；每场景独立 :memory: 库，无状态污染。
+    const runExecution = async (): Promise<void> => {
+      scenario.setup(ctx);
+      for (let i = 0; i < scenario.userMessages.length; i++) {
+        const result = await runAgentTurn({
+          conversationId: conversation.id,
+          messages: [toUserMessage(scenario.userMessages[i], i)],
+          model: opts.model,
+        });
+        for (const m of result.messages) {
+          const text = m.parts
+            .filter((p): p is { type: 'text'; text: string } => p.type === 'text')
+            .map((p) => p.text)
+            .join('');
+          if (text) assistantTexts.push(text);
+        }
       }
+      scenario.assertFinalState(ctx);
+    };
+
+    if (opts.timeoutMs === undefined) {
+      await runExecution();
+    } else {
+      await Promise.race([
+        runExecution(),
+        new Promise<never>((_, reject) => {
+          timeoutTimer = setTimeout(
+            () => reject(new Error(`场景超时（>${opts.timeoutMs}ms）`)),
+            opts.timeoutMs,
+          );
+        }),
+      ]);
     }
-    scenario.assertFinalState(ctx);
     return { ok: true, scenarioId: scenario.id, messageCount: assistantTexts.length };
   } catch (err) {
     return {
@@ -78,6 +102,7 @@ export async function runScenario(
       messageCount: assistantTexts.length,
     };
   } finally {
+    if (timeoutTimer) clearTimeout(timeoutTimer);
     clearModelOverride();
     cleanupEvalPlans();
     // 恢复默认连接：评测临时库只在本场景内有效，供后续测试文件（串行）正常使用 dev 库

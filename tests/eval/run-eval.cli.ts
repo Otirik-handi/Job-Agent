@@ -22,7 +22,8 @@ async function main() {
     let scenarioPassed = true;
     let lastError = '';
     for (let i = 0; i < k; i++) {
-      const result = await runScenario(scenario, { model });
+      // 单场景 2 分钟超时：真实模型挂起时该次计 fail，继续下一场景（防跑飞阻塞全量）
+      const result = await runScenario(scenario, { model, timeoutMs: 120_000 });
       if (!result.ok) {
         scenarioPassed = false;
         lastError = result.error;

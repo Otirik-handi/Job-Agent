@@ -28,7 +28,7 @@
 **Files:**
 - Modify: `src/db/index.ts`
 
-- [ ] **Step 1: 改写 `src/db/index.ts`**
+- [x] **Step 1: 改写 `src/db/index.ts`**
 
 ```ts
 import Database from 'better-sqlite3';
@@ -66,7 +66,7 @@ export function initDb(path: string = 'data/job-helper.db'): void {
 }
 ```
 
-- [ ] **Step 2: 创建 `vitest.config.ts`（关闭文件并行）**
+- [x] **Step 2: 创建 `vitest.config.ts`（关闭文件并行）**
 
 initDb 是全局连接切换：任何测试文件 initDb 都会影响其他文件。vitest 默认文件并行，必须改为文件串行，否则评测/run-agent 测试会与直连 dev 库的既有测试互相污染。
 
@@ -84,12 +84,12 @@ export default defineConfig({
 Run: `npx vitest run`
 Expected: 184 个测试全绿（串行后耗时略增，秒级可接受）
 
-- [ ] **Step 3: 验证现有测试不受影响**
+- [x] **Step 3: 验证现有测试不受影响**
 
 Run: `npm test`
 Expected: 184 个测试全绿（repository 经 live binding 读到默认连接，行为不变）
 
-- [ ] **Step 4: 提交**
+- [x] **Step 4: 提交**
 
 ```bash
 git add src/db/index.ts vitest.config.ts
@@ -106,7 +106,7 @@ git commit -m "refactor: db 连接支持 initDb 路径注入 + 测试文件串�
 
 背景：5 个工具内部直接调 `getModel()`（analyzeResume/matchJob/tailoredResume/prepareInterview/discoverChannels）。mock 层必须让这些调用也拿到 scripted model。
 
-- [ ] **Step 1: 写失败测试 `src/agent/model-override.test.ts`**
+- [x] **Step 1: 写失败测试 `src/agent/model-override.test.ts`**
 
 ```ts
 import { afterEach, describe, expect, it } from 'vitest';
@@ -147,12 +147,12 @@ describe('setModelOverride（评测注入点）', () => {
 });
 ```
 
-- [ ] **Step 2: 运行确认失败**
+- [x] **Step 2: 运行确认失败**
 
 Run: `npx vitest run src/agent/model-override.test.ts`
 Expected: FAIL（`setModelOverride` 未定义）
 
-- [ ] **Step 3: 实现 `src/agent/model.ts` 注入**
+- [x] **Step 3: 实现 `src/agent/model.ts` 注入**
 
 在 `getModel` 前增加：
 
@@ -179,12 +179,12 @@ export function getModel(): LanguageModel {
 }
 ```
 
-- [ ] **Step 4: 运行确认通过**
+- [x] **Step 4: 运行确认通过**
 
 Run: `npx vitest run src/agent/model-override.test.ts`
 Expected: PASS
 
-- [ ] **Step 5: 提交**
+- [x] **Step 5: 提交**
 
 ```bash
 git add src/agent/model.ts src/agent/model-override.test.ts
@@ -199,7 +199,7 @@ git commit -m "feat: model override 注入点（评测 mock 层前置，工具�
 - Create: `tests/eval/mock-model.ts`
 - Test: `tests/eval/mock-model.test.ts`
 
-- [ ] **Step 1: 写失败测试 `tests/eval/mock-model.test.ts`**
+- [x] **Step 1: 写失败测试 `tests/eval/mock-model.test.ts`**
 
 ```ts
 import { describe, expect, it } from 'vitest';
@@ -272,12 +272,12 @@ describe('createScriptedModel', () => {
 });
 ```
 
-- [ ] **Step 2: 运行确认失败**
+- [x] **Step 2: 运行确认失败**
 
 Run: `npx vitest run tests/eval/mock-model.test.ts`
 Expected: FAIL（模块不存在）
 
-- [ ] **Step 3: 实现 `tests/eval/mock-model.ts`**
+- [x] **Step 3: 实现 `tests/eval/mock-model.ts`**
 
 ```ts
 import type { LanguageModel } from 'ai';
@@ -381,12 +381,12 @@ export function createScriptedModel(script: MockResponse[]): LanguageModel {
 }
 ```
 
-- [ ] **Step 4: 运行确认通过**
+- [x] **Step 4: 运行确认通过**
 
 Run: `npx vitest run tests/eval/mock-model.test.ts`
 Expected: PASS
 
-- [ ] **Step 5: 提交**
+- [x] **Step 5: 提交**
 
 ```bash
 git add tests/eval/mock-model.ts tests/eval/mock-model.test.ts
@@ -404,7 +404,7 @@ git commit -m "feat: scripted mock model（按调用序号返回 + 占位符解�
 
 背景：把 route.ts 的 Agent 循环组装抽成可复用函数（业务逻辑零变化），route 与评测共用。进度事件经可选回调保留在路由层，会话状态回写留在核心函数内。
 
-- [ ] **Step 1: 写失败测试 `src/agent/run-agent.test.ts`（用 scripted model 跑通一轮）**
+- [x] **Step 1: 写失败测试 `src/agent/run-agent.test.ts`（用 scripted model 跑通一轮）**
 
 ```ts
 import { describe, expect, it, beforeAll, afterAll } from 'vitest';
@@ -466,12 +466,12 @@ describe('runAgentTurn（完整 Agent 循环）', () => {
 });
 ```
 
-- [ ] **Step 2: 运行确认失败**
+- [x] **Step 2: 运行确认失败**
 
 Run: `npx vitest run src/agent/run-agent.test.ts`
 Expected: FAIL（`run-agent` 模块不存在）
 
-- [ ] **Step 3: 创建 `src/agent/run-agent.ts`**
+- [x] **Step 3: 创建 `src/agent/run-agent.ts`**
 
 从 route.ts 迁移组装逻辑（progress 事件改为可选回调，状态回写保留在核心内）：
 
@@ -678,7 +678,7 @@ export async function runAgentTurn(options: {
 
 注意：`crypto.randomUUID()` 为 Node 20+ 全局（route.ts 原来用 `node:crypto` 的 randomUUID，等价；若环境不支持全局 crypto，改回 `import { randomUUID } from 'node:crypto'`）。
 
-- [ ] **Step 4: 改造 `app/api/chat/route.ts` 复用 runAgentTurn**
+- [x] **Step 4: 改造 `app/api/chat/route.ts` 复用 runAgentTurn**
 
 删除 route.ts 内原 execute 中的组装逻辑（`memoryBlocks`/`sessionState`/`maybeGenerateSummary`/`ToolLoopAgent`/`createAgentUIStream`/collector/`sessionStatePatchFromTool`/`persistSessionState`），替换为：
 
@@ -713,12 +713,12 @@ execute 内替换为：
 
 注意：`trimmed` 在 route.ts 中原先只用于 `createAgentUIStream`，改造后 runAgentTurn 内部重新读取历史（含本轮已持久化的 incoming 去重逻辑）——**行为等价性要求**：runAgentTurn 内部合并历史与 incoming 的逻辑与 route 原实现完全一致（均已实现于 Task 4 Step 3）。改造后 `trimmed` 变量不再需要，route.ts 删除对应代码。
 
-- [ ] **Step 5: 全量验证**
+- [x] **Step 5: 全量验证**
 
 Run: `npm test && npm run lint && npx tsc --noEmit`
 Expected: 全部通过（原 184 + run-agent 2 + model-override 2 + mock-model 4）
 
-- [ ] **Step 6: 提交**
+- [x] **Step 6: 提交**
 
 ```bash
 git add src/agent/run-agent.ts src/agent/run-agent.test.ts app/api/chat/route.ts
@@ -735,7 +735,7 @@ git commit -m "refactor: 抽取 runAgentTurn 核心函数（route 与评测共�
 - Create: `tests/eval/eval.test.ts`
 - Modify: `package.json`
 
-- [ ] **Step 1: 定义场景类型 `tests/eval/scenarios/types.ts`**
+- [x] **Step 1: 定义场景类型 `tests/eval/scenarios/types.ts`**
 
 ```ts
 import type { UIMessage } from 'ai';
@@ -772,7 +772,7 @@ export function toUserMessage(text: string, index: number): UIMessage {
 }
 ```
 
-- [ ] **Step 2: 实现共享 runner `tests/eval/runner.ts`**
+- [x] **Step 2: 实现共享 runner `tests/eval/runner.ts`**
 
 ```ts
 import { migrate } from 'drizzle-orm/better-sqlite3/migrator';
@@ -864,7 +864,7 @@ export async function runScenario(
 }
 ```
 
-- [ ] **Step 3: 模板场景 `tests/eval/scenarios/resume-analysis.ts`（高频族 1/5）**
+- [x] **Step 3: 模板场景 `tests/eval/scenarios/resume-analysis.ts`（高频族 1/5）**
 
 ```ts
 import { expect } from 'vitest';
@@ -915,7 +915,7 @@ export const resumeAnalysisScenario: Scenario = {
 };
 ```
 
-- [ ] **Step 4: mock 层入口 `tests/eval/eval.test.ts`**
+- [x] **Step 4: mock 层入口 `tests/eval/eval.test.ts`**
 
 ```ts
 import { describe, expect, it } from 'vitest';
@@ -933,7 +933,7 @@ describe.each(scenarios.map((s) => [s.id, s] as const))('评测场景 %s', (_id,
 
 注意：`scenarios` 索引文件在 Task 6-8 逐步追加场景，Task 5 先只含 resume-analysis（见 Step 6），后续任务把其余场景加入数组。
 
-- [ ] **Step 5: 场景索引 `tests/eval/scenarios/index.ts`（初始仅 1 个）**
+- [x] **Step 5: 场景索引 `tests/eval/scenarios/index.ts`（初始仅 1 个）**
 
 ```ts
 import type { Scenario } from './types';
@@ -944,14 +944,14 @@ export const scenarios: Scenario[] = [
 ];
 ```
 
-- [ ] **Step 6: 运行确认**
+- [x] **Step 6: 运行确认**
 
 Run: `npx vitest run tests/eval/eval.test.ts`
 Expected: PASS（1 个场景；若 unexpected LLM call 或断言失败，按错误信息调整——首次跑通管线是本节目标）
 
 若 `unexpected LLM call`：检查调用序号（importResume/readSkill/analyzeResume 后必须紧跟一个 text JSON 响应，共 5 条）；若断言失败：用 `ctx.allAssistantText()` 输出的实际消息核对。
 
-- [ ] **Step 7: 提交**
+- [x] **Step 7: 提交**
 
 ```bash
 git add tests/eval/runner.ts tests/eval/scenarios/ tests/eval/eval.test.ts
@@ -971,7 +971,7 @@ git commit -m "feat: 评测 runner + mock 层入口 + 模板场景（resume-anal
 
 每个场景独立文件；完成 4 个后统一跑 mock 层验证。
 
-- [ ] **Step 1: `tests/eval/scenarios/jd-match.ts`**
+- [x] **Step 1: `tests/eval/scenarios/jd-match.ts`**
 
 ```ts
 import { expect } from 'vitest';
@@ -1049,7 +1049,7 @@ export const jdMatchScenario: Scenario = {
 };
 ```
 
-- [ ] **Step 2: `tests/eval/scenarios/interview-prep.ts`**
+- [x] **Step 2: `tests/eval/scenarios/interview-prep.ts`**
 
 ```ts
 import { expect } from 'vitest';
@@ -1109,7 +1109,7 @@ export const interviewPrepScenario: Scenario = {
 };
 ```
 
-- [ ] **Step 3: `tests/eval/scenarios/offer-compare.ts`（skill 文本链路，无业务工具）**
+- [x] **Step 3: `tests/eval/scenarios/offer-compare.ts`（skill 文本链路，无业务工具）**
 
 ```ts
 import { expect } from 'vitest';
@@ -1132,7 +1132,7 @@ export const offerCompareScenario: Scenario = {
 };
 ```
 
-- [ ] **Step 4: `tests/eval/scenarios/cover-letter.ts`（skill 文本链路）**
+- [x] **Step 4: `tests/eval/scenarios/cover-letter.ts`（skill 文本链路）**
 
 ```ts
 import { expect } from 'vitest';
@@ -1156,7 +1156,7 @@ export const coverLetterScenario: Scenario = {
 };
 ```
 
-- [ ] **Step 5: 更新 `tests/eval/scenarios/index.ts`**
+- [x] **Step 5: 更新 `tests/eval/scenarios/index.ts`**
 
 ```ts
 import type { Scenario } from './types';
@@ -1175,12 +1175,12 @@ export const scenarios: Scenario[] = [
 ];
 ```
 
-- [ ] **Step 6: 运行确认**
+- [x] **Step 6: 运行确认**
 
 Run: `npx vitest run tests/eval/eval.test.ts`
 Expected: PASS（5 个场景）
 
-- [ ] **Step 7: 提交**
+- [x] **Step 7: 提交**
 
 ```bash
 git add tests/eval/scenarios/
@@ -1198,7 +1198,7 @@ git commit -m "feat: 评测高频族场景（jd-match/interview-prep/offer-compa
 - Create: `tests/eval/scenarios/record-status.ts`
 - Modify: `tests/eval/scenarios/index.ts`
 
-- [ ] **Step 1: `tests/eval/scenarios/tailored-resume.ts`**
+- [x] **Step 1: `tests/eval/scenarios/tailored-resume.ts`**
 
 关键约束：第一段建议 JSON 的 `sourceText` 必须逐字匹配简历原文（validateEdits 唯一匹配校验）；第二段 `confirmedEdits` 的 `sourceText` 同前。
 
@@ -1260,7 +1260,7 @@ export const tailoredResumeScenario: Scenario = {
 };
 ```
 
-- [ ] **Step 2: `tests/eval/scenarios/apply-job.ts`**
+- [x] **Step 2: `tests/eval/scenarios/apply-job.ts`**
 
 ```ts
 import { expect } from 'vitest';
@@ -1301,7 +1301,7 @@ export const applyJobScenario: Scenario = {
 };
 ```
 
-- [ ] **Step 3: `tests/eval/scenarios/plan-task.ts`**
+- [x] **Step 3: `tests/eval/scenarios/plan-task.ts`**
 
 计划文件写 `data/plans/eval-*.md`（runner 已做 eval- 前缀清理）；`isStepCount(5)` 限制单轮最多 5 次模型调用，故跨轮推进。
 
@@ -1339,7 +1339,7 @@ export const planTaskScenario: Scenario = {
 };
 ```
 
-- [ ] **Step 4: `tests/eval/scenarios/record-status.ts`**
+- [x] **Step 4: `tests/eval/scenarios/record-status.ts`**
 
 ```ts
 import { expect } from 'vitest';
@@ -1380,7 +1380,7 @@ export const recordStatusScenario: Scenario = {
 };
 ```
 
-- [ ] **Step 5: 更新 `tests/eval/scenarios/index.ts`**
+- [x] **Step 5: 更新 `tests/eval/scenarios/index.ts`**
 
 ```ts
 import type { Scenario } from './types';
@@ -1400,14 +1400,14 @@ export const scenarios: Scenario[] = [
 ];
 ```
 
-- [ ] **Step 6: 运行确认**
+- [x] **Step 6: 运行确认**
 
 Run: `npx vitest run tests/eval/eval.test.ts`
 Expected: PASS（9 个场景）
 
 若 tailored-resume 失败：检查第一段 JSON 的 `sourceText` 是否与 setup 的 `RESUME_TEXT` 逐字一致（含标点）；若 apply-job/record-status 断言失败，用 `SELECT * FROM status_history` 核对时序记录。
 
-- [ ] **Step 7: 提交**
+- [x] **Step 7: 提交**
 
 ```bash
 git add tests/eval/scenarios/
@@ -1425,7 +1425,7 @@ git commit -m "feat: 评测编排压力族场景（tailored-resume/apply-job/pla
 - Create: `tests/eval/scenarios/memory-recall.ts`
 - Modify: `tests/eval/scenarios/index.ts`
 
-- [ ] **Step 1: `tests/eval/scenarios/mid-course-correction.ts`**
+- [x] **Step 1: `tests/eval/scenarios/mid-course-correction.ts`**
 
 ```ts
 import { expect } from 'vitest';
@@ -1453,7 +1453,7 @@ export const midCourseCorrectionScenario: Scenario = {
 };
 ```
 
-- [ ] **Step 2: `tests/eval/scenarios/tool-failure-retry.ts`**
+- [x] **Step 2: `tests/eval/scenarios/tool-failure-retry.ts`**
 
 ```ts
 import { expect } from 'vitest';
@@ -1490,7 +1490,7 @@ export const toolFailureRetryScenario: Scenario = {
 };
 ```
 
-- [ ] **Step 3: `tests/eval/scenarios/memory-limit-recovery.ts`**
+- [x] **Step 3: `tests/eval/scenarios/memory-limit-recovery.ts`**
 
 ```ts
 import { expect } from 'vitest';
@@ -1519,7 +1519,7 @@ export const memoryLimitRecoveryScenario: Scenario = {
 };
 ```
 
-- [ ] **Step 4: `tests/eval/scenarios/memory-recall.ts`**
+- [x] **Step 4: `tests/eval/scenarios/memory-recall.ts`**
 
 ```ts
 import { expect } from 'vitest';
@@ -1543,7 +1543,7 @@ export const memoryRecallScenario: Scenario = {
 };
 ```
 
-- [ ] **Step 5: 更新 `tests/eval/scenarios/index.ts`（追加 4 个）**
+- [x] **Step 5: 更新 `tests/eval/scenarios/index.ts`（追加 4 个）**
 
 ```ts
 import { midCourseCorrectionScenario } from './mid-course-correction';
@@ -1558,12 +1558,12 @@ export const scenarios: Scenario[] = [
 ];
 ```
 
-- [ ] **Step 6: 运行确认**
+- [x] **Step 6: 运行确认**
 
 Run: `npx vitest run tests/eval/eval.test.ts`
 Expected: PASS（13 个场景，全量）
 
-- [ ] **Step 7: 全量验证 + 提交**
+- [x] **Step 7: 全量验证 + 提交**
 
 Run: `npm test && npm run lint && npx tsc --noEmit`
 Expected: 全绿（184 + 评测 13 + mock-model 4 + model-override 2 + run-agent 2 = 205）
@@ -1581,12 +1581,12 @@ git commit -m "feat: 评测边界恢复族场景（纠正/失败重试/记忆超
 - Create: `tests/eval/run-eval.cli.ts`
 - Modify: `package.json`
 
-- [ ] **Step 1: 安装 tsx（CLI TS 运行环境）**
+- [x] **Step 1: 安装 tsx（CLI TS 运行环境）**
 
 Run: `npm install -D tsx`
 Expected: tsx 进入 devDependencies
 
-- [ ] **Step 2: 实现 `tests/eval/run-eval.cli.ts`**
+- [x] **Step 2: 实现 `tests/eval/run-eval.cli.ts`**
 
 ```ts
 import { scenarios } from './scenarios';
@@ -1638,13 +1638,13 @@ main().catch((err) => {
 });
 ```
 
-- [ ] **Step 3: package.json 增加脚本**
+- [x] **Step 3: package.json 增加脚本**
 
 ```json
 "eval": "tsx tests/eval/run-eval.cli.ts"
 ```
 
-- [ ] **Step 4: 验证 CLI 可启动（不真跑真实模型）**
+- [x] **Step 4: 验证 CLI 可启动（不真跑真实模型）**
 
 无 LLM_* 环境变量时命令应抛 LlmConfigError 并退出非 0（说明 CLI 骨架可用）：
 
@@ -1656,7 +1656,7 @@ Expected: 抛 `LLM 环境变量缺失` 错误，exit 非 0
 Run: `npx tsx tests/eval/run-eval.cli.ts --k 1`（若已配置 LLM 环境变量）
 Expected: 输出每场景 PASS/FAIL 与汇总（首次跑真实模型建议先 --k 1 观察稳定性）
 
-- [ ] **Step 5: 提交**
+- [x] **Step 5: 提交**
 
 ```bash
 git add tests/eval/run-eval.cli.ts package.json package-lock.json
@@ -1672,7 +1672,7 @@ git commit -m "feat: 真实模型层评测 CLI（npm run eval，pass^k 一致性
 - Modify: `PROJECT_STATUS.md`
 - Modify: `docs/designs/2026-08-10-agent-roadmap-discussion.md`（补实现状态）
 
-- [ ] **Step 1: 故意破坏审批放行逻辑（验证评测能抓回归）**
+- [x] **Step 1: 故意破坏审批放行逻辑（验证评测能抓回归）**
 
 在 `src/agent/tools/apply-job.ts` 第二段落库处临时注释状态推进（约 93 行 `updateJobApplication(...)` 与 `recordStatusTransition(...)` 两行）：
 
@@ -1682,21 +1682,21 @@ git commit -m "feat: 真实模型层评测 CLI（npm run eval，pass^k 一致性
     // recordStatusTransition(job.id, job.status, transition.next);
 ```
 
-- [ ] **Step 2: 运行 mock 层评测确认失败**
+- [x] **Step 2: 运行 mock 层评测确认失败**
 
 Run: `npx vitest run tests/eval/eval.test.ts`
 Expected: `apply-job` 场景 FAIL（断言 status=applying 不满足）——证明评测集真能抓回归；其余 12 个场景应仍 PASS
 
-- [ ] **Step 3: 还原破坏**
+- [x] **Step 3: 还原破坏**
 
 恢复 Step 1 注释的两行代码。
 
-- [ ] **Step 4: 全量验证**
+- [x] **Step 4: 全量验证**
 
 Run: `npm test && npm run lint && npx tsc --noEmit && npm run build`
 Expected: 全绿（205 测试）+ build 通过
 
-- [ ] **Step 5: 更新 `PROJECT_STATUS.md`**
+- [x] **Step 5: 更新 `PROJECT_STATUS.md`**
 
 在「接下来要做什么」的 P2 队列第 1 项标注状态，并更新「工程基线」测试数：
 
@@ -1712,7 +1712,7 @@ Expected: 全绿（205 测试）+ build 通过
 
 工程基线测试数改为 `184 + 13 评测场景 + 8 新单测 ≈ 205`（以实际为准）。
 
-- [ ] **Step 6: 提交**
+- [x] **Step 6: 提交**
 
 ```bash
 git add -A src/agent/tools/apply-job.ts PROJECT_STATUS.md
@@ -1730,5 +1730,16 @@ git commit -m "docs: P2-1 评测基线验收（有效性验证通过：故意破
   1. drizzle `db.get/run` 不接受 `{sql, params}` 对象 → runner 改用原生 `$client` 的 `prepare().get(...params)`（Task 5 Step 2）
   2. `initDb` 全局连接切换与 vitest 文件并行冲突 → 新增 `vitest.config.ts`（`fileParallelism: false`），runner 场景结束 `finally` 恢复默认连接（Task 1 Step 2、Task 5 Step 2）
   3. `--model` CLI 参数对 provider 实例展开不可靠 → 统一走 `LLM_MODEL` 环境变量（Task 9 Step 2）
+
+## 实现偏离记录
+
+执行中相对本计划的四处实现偏离（均已正确实现，仅补记录）：
+
+- **Task 4 流式方案**：计划为「AgentTurnResult.stream + 末尾整批 merge」→ 实现为 `onClientStream` 回调 + tee 后同步触发并行 merge（e2bd3b0），保持原实现「边生成边推流」时序。
+- **Task 3 占位符**：计划参考实现直接 `JSON.stringify` 替换会在引号内产生双重引号 → 实现为「匹配整个带引号 token 替换为 JSON 字面量 + 裸 token 兜底」（tests/eval/mock-model.ts）。
+- **Task 8**：memory_blocks 的 `limit` 列是 SQLite 保留字 → 3 处 INSERT 用反引号 `` `limit` ``（不修正会 SQL 语法错误）。
+- **Task 9**：新增 `tests/eval/package.json`（`{"type":"module"}`）——vitest 4 为 ESM-only，根项目无 type:module，tsx CJS 模式加载场景文件 require(vitest) 崩溃；目录级 ESM 声明为 CLI 必需。
+- （附）场景 12 由设计文档的 memory-verify-write 实现为 memory-limit-recovery——已在此记录。
+- **补充（2026-08-11 收尾）**：runner 直接导入 src/db 的 `db` 在真实层 CLI（tsx）下拿到的是导入时快照——src/db 以 CJS 编译，Node ESM→CJS 互操作对 `export let` 重绑定不实时，`initDb(':memory:')` 后 `migrate` 报「connection is not open」→ src/db 新增 `getDb()` 函数导出，runner 经函数实时读取当前连接（vitest ESM 路径不受影响）。
 
 
