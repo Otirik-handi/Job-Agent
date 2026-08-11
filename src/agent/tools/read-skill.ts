@@ -23,7 +23,7 @@ export const readSkillTool = createDomainTool({
         error: {
           code: 'SKILL_NOT_FOUND',
           message: `未找到技能「${args.skillName}」，技能库中不存在该 skill。`,
-          hint: '可用 skill 列表见 system prompt 的 Skill 元数据段或先调用 listSkill 类工具；确认 skill 名（小写连字符）后重试。',
+          hint: '可用 skill 列表见 system prompt 的 Skill 元数据段；确认 skill 名（小写连字符）后重试。',
         },
       };
     }
