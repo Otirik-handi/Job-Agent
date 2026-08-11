@@ -4,7 +4,7 @@
 
 ## 当前状态
 
-- **基线稳定**：184 个测试全绿（`npm test`），`lint` / `tsc --noEmit` / `build` 全部通过
+- **基线稳定**：210 个测试全绿（`npm test`，含 13 个评测场景 + mock-model 等），`lint` / `tsc --noEmit` / `build` 全部通过
 - **里程碑**：P0（Agent 基础骨架）+ P1（Agent 进阶能力）全部落地并合并至 main，已推送 GitHub
 - 分支：`main`（与 origin/main 同步）；历史 feature 分支均已合并清理
 
@@ -40,19 +40,19 @@
 
 ## 工程基线
 
-- **测试**：184 个（纯函数单测为主：apply-state / channel-guard / llm-call / resume-* / tool-factory / skills / plans / lessons / summary / tool-step-card 等）
+- **测试**：210 个（含 13 个评测场景 + mock-model 等；纯函数单测为主：apply-state / channel-guard / llm-call / resume-* / tool-factory / skills / plans / lessons / summary / tool-step-card 等）
 - **规范体系**：`.agents/specs/`（00 治理 / 01 前端 / 02 后端 / 03 Agent / 04 注释）随实现补充了记忆、Skill、规划、反思、摘要、步骤卡片等约定
 - **文档链**：调研报告 → 讨论纪要 → 计划文档（phase7-13）→ 本状态文件
 
 ## 接下来要做什么
 
-### P2 队列（调研报告路线图，未开始）
+### P2 队列（调研报告路线图，第 1 项已落地）
 
-1. **评测基线**：20-30 个真实求职场景 τ-bench 式终态评测集 + pass^k 一致性
-2. **语义检索**：embedding 存 SQLite（sqlite-vec 或自算余弦），FTS5 + 向量 + 时间衰减混合检索
-3. **Prompt caching 优化**：稳定段前置已就位，按 provider 能力启用缓存
-4. **子 Agent（最小 supervisor）**：仅在出现"单任务多路并行调研"或"工具表 >10-15 个"两信号时引入
-5. **其他增强**：skill 库扩展（company-research / salary-benchmark 等）、审计日志、token 预算自监控
+1. **评测基线** ✅ 已落地（2026-08-11）：双层评测（mock 层入 vitest 13 场景防编排回归 + `npm run eval` 真实模型层 pass^2 能力验证），设计见 docs/designs/2026-08-11-eval-baseline-design.md，实现见 docs/plans/2026-08-11-eval-baseline.md
+2. **语义检索**：embedding 存 SQLite（sqlite-vec 或自算余弦），FTS5 + 向量 + 时间衰减混合检索（待讨论）
+3. **Prompt caching 优化**：稳定段前置已就位，按 provider 能力启用缓存（待讨论）
+4. **子 Agent（最小 supervisor）**：仅在出现"单任务多路并行调研"或"工具表 >10-15 个"两信号时引入（待讨论）
+5. **其他增强**：skill 库扩展（company-research / salary-benchmark 等）、审计日志、token 预算自监控（待讨论）
 
 ### 已知限制（各期验收记录，后续处理）
 
@@ -68,5 +68,7 @@
 
 - 调研报告：`docs/designs/2026-08-10-agent-architecture-research.md`（12 专题，分篇在 `tmp/research/`）
 - 讨论纪要：`docs/designs/2026-08-10-agent-roadmap-discussion.md`（P0 五项 + P1 五项定稿）
+- 评测基线设计：`docs/designs/2026-08-11-eval-baseline-design.md`（双层评测）
+- 评测基线计划：`docs/plans/2026-08-11-eval-baseline.md`
 - 计划文档：`docs/plans/2026-08-10-phase7~13-*.md`（每期含验收记录与已知限制）
 - 本文件：`PROJECT_STATUS.md`
