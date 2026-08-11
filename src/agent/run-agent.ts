@@ -99,10 +99,21 @@ export function isBusinessFailure(toolOutput: unknown): boolean {
   );
 }
 
+/** 按 id 归一化收集的消息：同 id 仅保留最后一条；无 id（含空串）补 randomUUID。
+ * 持久化与返回值共用同一归一化结果——SDK 流中 assistant 消息 id 为空串，若两处各自
+ * 处理会产生不同 UUID，导致返回 id 与 DB 对不上（评测 runner 比对会踩坑）。
+ * 注意：仅入库/返回侧归一化；送入模型的 merged/trimmed 不去重（与原实现一致）。 */
+function dedupeCollected(collected: UIMessage[]): UIMessage[] {
+  const byId = new Map<string, UIMessage>();
+  for (const m of collected) byId.set(m.id, m);
+  return [...byId.values()].map((m) => (m.id ? m : { ...m, id: randomUUID() }));
+}
+
 /**
- * Agent 回合核心：查历史 → 合并去重 → 截断 → 组装分层 prompt → ToolLoopAgent 循环
+ * Agent 回合核心：查历史 → 合并截断 + 入库去重 → 组装分层 prompt → ToolLoopAgent 循环
  * → 收集输出 → 持久化 → 返回新增 assistant 消息。route 与评测 runner 共用。
- * 业务逻辑与 route.ts 原 POST 等价（进度事件经 onToolProgress 回调交给路由层渲染）。
+ * 业务逻辑与 route.ts 原 POST 等价（进度事件经 onToolProgress 回调交给路由层渲染）；
+ * 注意 merged/trimmed 送模型时不去重（与原实现一致），id 去重只发生在入库/返回侧。
  */
 export async function runAgentTurn(options: {
   conversationId: string;
@@ -116,6 +127,8 @@ export async function runAgentTurn(options: {
   onClientStream?: (stream: ReadableStream<InferUIMessageChunk<UIMessage>>) => void;
 }): Promise<AgentTurnResult> {
   const { conversationId, messages: incoming, model = getModel(), onToolProgress, onClientStream } = options;
+  // 与原 route 差异：原实现先落库入站消息、execute 内才取模型，LLM 配置错误时会留下
+  // 「只有用户消息」的孤儿记录；此处默认参数在入口求值，配置错误整轮不落库，更合理
 
   // 注意：history 在入站消息落库前读取（与 route 原 POST 顺序一致），摘要触发/去重都以这份为准
   const historyRecords = listMessages(conversationId);
@@ -189,30 +202,29 @@ export async function runAgentTurn(options: {
   const stream = await createAgentUIStream({ agent, uiMessages: trimmed });
   const [clientSide, collectSide] = stream.tee();
   // 立即把客户端分支交给回调（route 层 merge 进响应流）：与下方 collector 并行消费
-  // tee 两分支，恢复原实现「边生成边推流」时序；不传回调时该分支自动缓冲，无副作用
+  // tee 两分支，恢复原实现「边生成边推流」时序；不传回调时该分支未读内容仅瞬时内存缓冲
+  //（量与 collector 相当），runAgentTurn 返回后即被 GC，无持久成本
   if (onClientStream) onClientStream(clientSide);
   const collected: UIMessage[] = [];
   const collector = (async () => {
     for await (const msg of readUIMessageStream({ stream: collectSide })) {
       collected.push(msg);
     }
-    const byId = new Map<string, UIMessage>();
-    for (const m of collected) byId.set(m.id, m);
-    for (const m of byId.values()) {
+    // 归一化一次（按 id 去重 + 无 id 补 UUID），持久化与返回值共用同一结果，
+    // 保证返回 id 与 DB 一致（SDK 流中 assistant 消息 id 为空串，两处各自处理会产生不同 UUID）
+    const deduped = dedupeCollected(collected);
+    for (const m of deduped) {
       if (m.role === 'assistant') {
-        // 服务端生成的 UIMessage 可能无 id（id 由客户端 useChat 生成）：持久化前补 UUID
-        const withId = m.id ? m : { ...m, id: randomUUID() };
-        insertMessage(conversationId, 'assistant', JSON.stringify(withId));
+        insertMessage(conversationId, 'assistant', JSON.stringify(m));
       }
     }
     touchConversation(conversationId);
+    return deduped;
   })();
-  await collector;
+  const deduped = await collector;
 
-  const byId = new Map<string, UIMessage>();
-  for (const m of collected) byId.set(m.id, m);
   return {
     conversationId,
-    messages: [...byId.values()].filter((m) => m.role === 'assistant'),
+    messages: deduped.filter((m) => m.role === 'assistant'),
   };
 }
