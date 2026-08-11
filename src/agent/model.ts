@@ -3,7 +3,20 @@ import type { LanguageModel } from 'ai';
 
 export class LlmConfigError extends Error {}
 
+let modelOverride: LanguageModel | null = null;
+
+/** 评测注入点：mock 层把 scripted model 设为全局 override（工具内部 getModel() 也走注入）；
+ * 仅评测 runner 使用，业务路径不调用。 */
+export function setModelOverride(model: LanguageModel | null): void {
+  modelOverride = model;
+}
+
+export function clearModelOverride(): void {
+  modelOverride = null;
+}
+
 export function getModel(): LanguageModel {
+  if (modelOverride) return modelOverride;
   const baseURL = process.env.LLM_BASE_URL;
   const apiKey = process.env.LLM_API_KEY;
   const modelName = process.env.LLM_MODEL;
