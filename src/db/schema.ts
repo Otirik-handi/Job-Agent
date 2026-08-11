@@ -67,6 +67,16 @@ export const statusHistory = sqliteTable('status_history', {
   index('status_history_job_opportunity_id_idx').on(t.jobOpportunityId),
 ]);
 
+export const lessons = sqliteTable('lessons', {
+  id: text('id').primaryKey(),
+  content: text('content').notNull(),
+  category: text('category').notNull(),
+  sourceTaskId: text('source_task_id'),
+  createdAt: text('created_at').notNull(),
+}, (t) => [
+  index('lessons_category_idx').on(t.category),
+]);
+
 export const tailoredResumes = sqliteTable('tailored_resumes', {
   id: text('id').primaryKey(),
   resumeId: text('resume_id').notNull().references(() => resumes.id, { onDelete: 'cascade' }),
