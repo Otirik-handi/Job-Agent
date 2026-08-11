@@ -5,6 +5,8 @@ export const conversations = sqliteTable('conversations', {
   title: text('title').notNull(),
   createdAt: text('created_at').notNull(),
   updatedAt: text('updated_at').notNull(),
+  // 会话级滚动摘要：首次达轮数上限截断时由 LLM 生成一次（规范见 02-backend「会话摘要」）；空 = 未生成
+  summary: text('summary'),
 });
 
 export const messages = sqliteTable('messages', {

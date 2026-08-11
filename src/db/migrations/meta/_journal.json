@@ -29,6 +29,13 @@
       "when": 1786417795782,
       "tag": "0003_add-lessons",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1786420771757,
+      "tag": "0004_low_korg",
+      "breakpoints": true
     }
   ]
 }

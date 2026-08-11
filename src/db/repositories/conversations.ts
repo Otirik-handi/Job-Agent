@@ -6,10 +6,12 @@ import { nowIso } from './shared';
 
 export type ConversationRecord = {
   id: string; title: string; createdAt: string; updatedAt: string;
+  /** 会话级滚动摘要（无则 null；规范见 02-backend「会话摘要」） */
+  summary: string | null;
 };
 
 export function createConversation(title: string): ConversationRecord {
-  const record: ConversationRecord = { id: randomUUID(), title, createdAt: nowIso(), updatedAt: nowIso() };
+  const record: ConversationRecord = { id: randomUUID(), title, createdAt: nowIso(), updatedAt: nowIso(), summary: null };
   db.insert(conversations).values(record).run();
   return record;
 }
@@ -20,6 +22,19 @@ export function listConversations(): ConversationRecord[] {
 
 export function getConversation(id: string): ConversationRecord | null {
   return db.select().from(conversations).where(eq(conversations.id, id)).get() ?? null;
+}
+
+/** 读取会话摘要；会话不存在或未生成摘要时返回 null（调用方无需区分两种空态） */
+export function getConversationSummary(conversationId: string): string | null {
+  const row = db.select({ summary: conversations.summary }).from(conversations)
+    .where(eq(conversations.id, conversationId)).get();
+  return row?.summary ?? null;
+}
+
+/** 写入会话摘要（覆盖式；会话不存在时静默无操作） */
+export function setConversationSummary(conversationId: string, summary: string): void {
+  db.update(conversations).set({ summary, updatedAt: nowIso() })
+    .where(eq(conversations.id, conversationId)).run();
 }
 
 export function renameConversation(id: string, title: string): void {
