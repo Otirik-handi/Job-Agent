@@ -48,7 +48,7 @@
 
 ### P2 队列（调研报告路线图，第 1 项已落地）
 
-1. **评测基线** ✅ 已落地（2026-08-11）：双层评测（mock 层入 vitest 13 场景防编排回归 + `npm run eval` 真实模型层 pass^2 能力验证），设计见 docs/designs/2026-08-11-eval-baseline-design.md，实现见 docs/plans/2026-08-11-eval-baseline.md
+1. **评测基线** ✅ 已落地（2026-08-11）：双层评测（mock 层入 vitest 13 场景防编排回归 + `npm run eval` 真实模型层 pass^2 能力验证），设计见 docs/designs/2026-08-11-eval-baseline-design.md，实现见 docs/plans/2026-08-11-eval-baseline.md。真实层首跑（deepseek-v4-flash）：适配后 12/13 通过（jd-match 见已知限制）
 2. **语义检索**：embedding 存 SQLite（sqlite-vec 或自算余弦），FTS5 + 向量 + 时间衰减混合检索（待讨论）
 3. **Prompt caching 优化**：稳定段前置已就位，按 provider 能力启用缓存（待讨论）
 4. **子 Agent（最小 supervisor）**：仅在出现"单任务多路并行调研"或"工具表 >10-15 个"两信号时引入（待讨论）
@@ -63,6 +63,9 @@
 - 重试按钮点击后置灰至重跑结束（与确认卡一致）
 - SDK 生产路径非法参数先被 AI SDK 英文校验拒绝（中文 INVALID_INPUT 仅直接 execute 路径）
 - 测试基建：lessons 等 repository 测试直连 dev 库（前缀清理 + 串行化）
+- 评测真实层：jd-match 对 jobMatchResultSchemaV1（复杂嵌套 + id 一致性校验）的结构化输出不稳定，deepseek-v4-flash 多次 repair 仍不合格 → fit_result_json 不落库，场景失败（模型能力问题，评测正确捕获；后续可优化 schema 复杂度或换模型验证）
+- 评测真实层：全量 13 场景耗时约 15-16 分钟（单次 LLM 调用 20-100s），慢模型下多步场景可能触及 180s 超时（jd-match 已放宽 300s）
+- 评测真实层：mock 脚本预设的模型行为（自选 taskId/先追问）在真实层不成立，场景用 assertFinalStateReal 分层断言放宽（缺省复用 mock 断言）
 
 ## 文档索引
 
