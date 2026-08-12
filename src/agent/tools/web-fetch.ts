@@ -77,8 +77,20 @@ export const webFetchTool = createDomainTool({
         };
       }
     }
-    // 降级链抓取
-    const outcome = await routeFetch({ url });
+    // 降级链抓取（网络层异常已在路由内映射为结构化错误；此处兜底防未知异常冒泡为 TOOL_FAILED）
+    let outcome: Awaited<ReturnType<typeof routeFetch>>;
+    try {
+      outcome = await routeFetch({ url });
+    } catch (err) {
+      return {
+        ok: false,
+        error: {
+          code: 'FETCH_FAILED',
+          message: `抓取链路异常：${err instanceof Error ? err.message : String(err)}`,
+          hint: '降级链各层均未返回结果，请稍后重试或改用人工查看后粘贴导入。',
+        },
+      };
+    }
     if (!outcome.ok) {
       return { ok: false, error: { code: outcome.code, message: outcome.message, hint: outcome.hint } };
     }

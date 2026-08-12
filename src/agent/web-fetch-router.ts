@@ -15,6 +15,12 @@ const DIRECT_TIMEOUT_MS = 5_000;
 const JINA_TIMEOUT_MS = 15_000;
 const DEFAULT_MAX_CHARS = 12_000;
 
+/** 网络层失败（fetch reject：连接失败/超时等）映射为结构化错误，避免冒泡为 TOOL_FAILED 并让降级链继续 */
+function networkErrorOutcome(phase: string, err: unknown): Extract<FetchOutcome, { ok: false }> {
+  const detail = err instanceof Error ? (err.name === 'AbortError' ? '请求超时' : err.message) : String(err);
+  return { ok: false, code: 'FETCH_FAILED', message: `${phase}网络请求失败（${detail}）`, hint: '网络不可达或目标站点拒绝连接，触发降级层继续尝试。' };
+}
+
 /** 域名路由矩阵（设计 §4.1；liepin 列表 vs 详情区分，51job/zhipin 预留 opencli） */
 export function decideRoute(url: string): FetchSource {
   const host = new URL(url).hostname.toLowerCase();
@@ -33,7 +39,12 @@ async function fetchWithTimeout(fetchImpl: FetchImpl, url: string, timeoutMs: nu
 }
 
 async function directFetch(fetchImpl: FetchImpl, url: string, maxChars: number): Promise<FetchOutcome> {
-  const res = await fetchWithTimeout(fetchImpl, url, DIRECT_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetchWithTimeout(fetchImpl, url, DIRECT_TIMEOUT_MS);
+  } catch (err) {
+    return networkErrorOutcome('直接抓取', err);
+  }
   const raw = Buffer.from(await res.arrayBuffer());
   const html = decodeHtmlBytes(raw, res.headers.get('content-type'));
   const waf = detectWaf(res.status, res.headers.get('content-type'), html);
@@ -50,8 +61,12 @@ async function directFetch(fetchImpl: FetchImpl, url: string, maxChars: number):
 }
 
 async function jinaFetch(fetchImpl: FetchImpl, url: string, maxChars: number): Promise<FetchOutcome> {
-  const jinaUrl = `https://r.jina.ai/${url}`;
-  const res = await fetchWithTimeout(fetchImpl, jinaUrl, JINA_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetchWithTimeout(fetchImpl, `https://r.jina.ai/${url}`, JINA_TIMEOUT_MS);
+  } catch (err) {
+    return networkErrorOutcome('Jina 渲染', err);
+  }
   if (res.status < 200 || res.status >= 300) {
     return { ok: false, code: 'FETCH_BLOCKED', message: `Jina 渲染失败（HTTP ${res.status}）`, hint: '该站点可能需 OpenCLI 后端（D2）或人工查看。' };
   }
@@ -76,7 +91,6 @@ export async function routeFetch(args: {
   if (!(await isSafeFetchUrl(url))) {
     return { ok: false, code: 'FETCH_SSRF_BLOCKED', message: '目标地址为内网/环回地址，已阻断', hint: '仅允许公网 http/https URL。' };
   }
-  const route = decideRoute(url);
   const direct = await directFetch(fetchImpl, url, maxChars);
   if (direct.ok) return direct;
   const jina = await jinaFetch(fetchImpl, url, maxChars);
@@ -84,7 +98,12 @@ export async function routeFetch(args: {
   // opencli 插件层：经注册表调用（未注册 → 跳过；可用性由插件 fetch 内部判定——冷缓存首次 await doctor，避免首轮误判）
   const openCliPlugin = getPlugin('open-cli');
   if (openCliPlugin && openCliPlugin.canHandle(url)) {
-    const outcome = await openCliPlugin.fetch(url);
+    let outcome: Awaited<ReturnType<typeof openCliPlugin.fetch>>;
+    try {
+      outcome = await openCliPlugin.fetch(url);
+    } catch (err) {
+      return networkErrorOutcome('OpenCLI 采集', err);
+    }
     if (outcome.ok) {
       const truncated = outcome.content.length > maxChars;
       return {
@@ -98,10 +117,12 @@ export async function routeFetch(args: {
     }
     return { ok: false, code: 'FETCH_BLOCKED', message: outcome.message, hint: outcome.hint };
   }
+  // 全链路失败：网络层原因（direct/jina 均为 FETCH_FAILED）归为 FETCH_FAILED，站点拦截类归为 FETCH_BLOCKED
+  const allNetwork = direct.code === 'FETCH_FAILED' && jina.code === 'FETCH_FAILED';
   return {
     ok: false,
-    code: 'FETCH_BLOCKED',
-    message: `抓取失败：direct（${direct.ok ? '' : direct.message}）→ jina（${jina.ok ? '' : jina.message}）`,
+    code: allNetwork ? 'FETCH_FAILED' : 'FETCH_BLOCKED',
+    message: `抓取失败：direct（${direct.message}）→ jina（${jina.message}）`,
     hint: '可尝试浏览器手动查看后粘贴导入（importJobOpportunity），或确认 OpenCLI 插件可用后重试。',
   };
 }

@@ -52,6 +52,44 @@ describe('routeFetch（direct → jina → opencli 降级）', () => {
     const result = await routeFetch({ url: 'https://a.com/x', fetchImpl });
     expect(result.ok).toBe(false);
   });
+  it('direct 网络异常 → 降级 jina（网络失败不中断降级链）', async () => {
+    const fetchImpl = vi.fn()
+      .mockRejectedValueOnce(new TypeError('fetch failed'))
+      .mockResolvedValueOnce(new Response('# 渲染内容', { status: 200, headers: { 'content-type': 'text/plain' } }));
+    const result = await routeFetch({ url: 'https://a.com/x', fetchImpl });
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.source).toBe('jina');
+      expect(result.content).toContain('渲染内容');
+    }
+  });
+  it('全链路网络异常 → 结构化 FETCH_FAILED（不冒泡为未知异常）', async () => {
+    const fetchImpl = vi.fn().mockRejectedValue(new TypeError('fetch failed'));
+    const result = await routeFetch({ url: 'https://a.com/x', fetchImpl });
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.code).toBe('FETCH_FAILED');
+      expect(result.message).toContain('网络请求失败');
+      expect(result.message).toContain('fetch failed');
+    }
+  });
+  it('direct 网络异常 + jina 被拦截 → 归为 FETCH_BLOCKED（混合原因按站点拦截处理）', async () => {
+    const fetchImpl = vi.fn()
+      .mockRejectedValueOnce(new TypeError('fetch failed'))
+      .mockResolvedValueOnce(new Response('jina error', { status: 500 }));
+    const result = await routeFetch({ url: 'https://a.com/x', fetchImpl });
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.code).toBe('FETCH_BLOCKED');
+  });
+  it('超时（AbortError）→ 映射为「请求超时」', async () => {
+    const fetchImpl = vi.fn().mockRejectedValue(new DOMException('The operation was aborted', 'AbortError'));
+    const result = await routeFetch({ url: 'https://a.com/x', fetchImpl });
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.code).toBe('FETCH_FAILED');
+      expect(result.message).toContain('请求超时');
+    }
+  });
 });
 
 describe('routeFetch（opencli 插件层，Task 6）', () => {
