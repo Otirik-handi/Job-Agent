@@ -110,7 +110,7 @@
 
 - 实现：2026-08-11 落地（mock 层 13 场景入 vitest，`npm run eval` CLI 就绪；有效性验证通过——故意破坏审批放行被 apply-job 场景捕获）。真实层首跑（deepseek-v4-flash）：适配后 12/13 通过（结构性断言/分层断言 assertFinalStateReal/逐场景超时 realTimeoutMs/--scenario 过滤）；jd-match 因模型对 jobMatchResultSchemaV1 结构化输出不稳定失败（已知限制）
 
-### P2-2（2026-08-12）：语义检索（已定稿，待实现）
+### P2-2（2026-08-12）：语义检索 ✅ 已落地（2026-08-12）
 
 **结论：直接上 embedding，自算余弦，范围仅 messages**。
 - 模型：硅基流动免费 embedding（BAAI/bge-m3 等，OpenAI 兼容 `/embeddings` 端点）
@@ -152,7 +152,7 @@
 
 ## P2 讨论状态（2026-08-12）
 
-五项全部定稿：P2-1 已实现落地；P2-3 caching 验证完成（opencode.ai 自动前缀缓存生效，usage 统计随批次 A 落地）；P2-5 其他增强部分落地（批次 C：negotiation/follow-up skill + actions 审计表）；P2-2 语义检索待实现；P2-4 子 Agent 决议关闭（明确不做，2026-08-12 用户决议）。实现批次：A ✅ → C ✅ → B（语义检索）→ D（web 工具，计划就绪：见 `docs/plans/2026-08-12-web-tools.md` 与 `docs/designs/2026-08-12-web-tools-design.md`，web-browse 明确不做）。
+五项全部定稿：P2-1 已实现落地；P2-3 caching 验证完成（opencode.ai 自动前缀缓存生效，usage 统计随批次 A 落地）；P2-5 其他增强部分落地（批次 C：negotiation/follow-up skill + actions 审计表）；P2-2 语义检索已落地（searchMessages 工具 + 同步嵌入 + 回填脚本）；P2-4 子 Agent 决议关闭（明确不做，2026-08-12 用户决议）。实现批次：A ✅ → C ✅ → B（语义检索）→ D（web 工具，计划就绪：见 `docs/plans/2026-08-12-web-tools.md` 与 `docs/designs/2026-08-12-web-tools-design.md`，web-browse 明确不做）。
 
 - 第 2 项：结构化会话状态（session_state 表，P0-2）
 - 第 3 项：上下文策略（SYSTEM_PROMPT 分节 + 简历/JD 按需注入，P0-3）
