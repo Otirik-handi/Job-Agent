@@ -7,6 +7,7 @@ import { clearModelOverride, setModelOverride } from '../../src/agent/model';
 import { clearEmbeddingOverride } from '../../src/agent/embedding';
 import { runAgentTurn } from '../../src/agent/run-agent';
 import { toUserMessage, type Scenario, type ScenarioContext } from './scenarios/types';
+import { restoreWebNetwork } from './web-network-stub';
 import { readdirSync, rmSync } from 'node:fs';
 import path from 'node:path';
 
@@ -106,6 +107,8 @@ export async function runScenario(
     if (timeoutTimer) clearTimeout(timeoutTimer);
     clearModelOverride();
     clearEmbeddingOverride();
+    // 网络隔离恢复：mock 层 web 场景（company-research）在 setup 里 stub 了全局 fetch，必须还原
+    restoreWebNetwork();
     cleanupEvalPlans();
     // 恢复默认连接：评测临时库只在本场景内有效，供后续测试文件（串行）正常使用 dev 库
     initDb();
