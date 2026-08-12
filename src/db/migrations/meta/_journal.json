@@ -36,6 +36,13 @@
       "when": 1786420771757,
       "tag": "0004_low_korg",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1786512480121,
+      "tag": "0005_clever_polaris",
+      "breakpoints": true
     }
   ]
 }

@@ -92,3 +92,18 @@ export const tailoredResumes = sqliteTable('tailored_resumes', {
   index('tailored_resumes_resume_idx').on(t.resumeId),
   index('tailored_resumes_job_idx').on(t.jobOpportunityId),
 ]);
+
+// 关键动作（applyJob/recordStatus/tailoredResume 等）的结构化审计记录；详情溯源走 messages
+export const actions = sqliteTable('actions', {
+  id: text('id').primaryKey(),
+  conversationId: text('conversation_id').notNull()
+    .references(() => conversations.id, { onDelete: 'cascade' }),
+  action: text('action').notNull(),          // apply_job / record_status / tailored_resume / import_resume / import_job / plan_create / plan_update
+  entityType: text('entity_type').notNull(), // resume / job_opportunity / tailored_resume / plan
+  entityId: text('entity_id').notNull(),     // 对象 id（无对象记空串）
+  result: text('result').notNull(),          // ok | 结构化错误码（如 JOB_MATCH_REQUIRED）
+  createdAt: text('created_at').notNull(),
+}, (t) => [
+  index('actions_conversation_idx').on(t.conversationId, t.createdAt),
+  index('actions_action_idx').on(t.action, t.createdAt),
+]);
