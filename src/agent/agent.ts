@@ -19,6 +19,7 @@ import { planUpdateTool } from './tools/plan-update';
 import { planReadTool } from './tools/plan-read';
 import { recordLessonTool } from './tools/record-lesson';
 import { searchLessonsTool } from './tools/search-lessons';
+import { searchMessagesTool } from './tools/search-messages';
 
 export const SYSTEM_PROMPT = `你是 job-helper，一个本地运行的个人求职助手 Agent。
 
@@ -46,6 +47,7 @@ export const SYSTEM_PROMPT = `你是 job-helper，一个本地运行的个人求
 - planRead：读取执行计划全文（taskId 查计划文件，返回完整 Markdown：每步标题/成功标准/依赖/备注；中断恢复续跑前先读全文核对当前进度）
 - recordLesson：记录经验教训（失败/受阻复盘后沉淀：发生了什么/为什么/下次怎么做；分类 matching/marketing/interview/application/tooling/general，可关联来源任务）
 - searchLessons：检索历史教训（按关键词或分类取回最近教训，新任务开始或再次失败前先查经验）
+- searchMessages：语义检索历史对话（按含义匹配，回忆之前提过的内容；需已嵌入的消息）
 
 记忆：
 - Agent 维护三块持久记忆：resume（简历要点画像：学历/技能/年限/项目经验）、preferences（用户求职偏好：目标岗位/城市/薪资/远程/行业等）、status_scratchpad（各岗位投递流程进度速记，Agent 自用）。
@@ -53,6 +55,7 @@ export const SYSTEM_PROMPT = `你是 job-helper，一个本地运行的个人求
 - 用户显式声明偏好或事实（如"我只看远程岗位""优先北京""已到二面"）时，调用 setMemory 写入对应记忆块；仅记录用户明确表达的内容，不推断、不补全。
 - 写前核对：调用 setMemory 前，先在对话中向用户复述将写入的内容并请求确认，用户确认后再写入。
 - 各记忆块有字符上限（resume 4000 / preferences 2000 / status_scratchpad 1500 字符），超限会报错，需精简内容后重写。
+- 需要回忆历史对话内容（记忆块之外的既往表述）时，调用 searchMessages 语义检索；检索词用含义表述而非字面关键词。
 
 技能（Skill）：
 - 系统加载了技能库（Skill）：各 skill 的元数据（名称与用途）常驻「Skill 技能库」段，正文不常驻。
@@ -103,5 +106,6 @@ export function getTools(): ToolSet {
     planRead: planReadTool,
     recordLesson: recordLessonTool,
     searchLessons: searchLessonsTool,
+    searchMessages: searchMessagesTool,
   };
 }
