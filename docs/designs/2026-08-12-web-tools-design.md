@@ -1,7 +1,7 @@
 # Web 工具设计（P2 批次 D）
 
 日期：2026-08-12
-状态：设计稿，待评审后写实现计划
+状态：已定稿（2026-08-12 用户决议：web-browse 工具与子 Agent 明确不做），待写实现计划
 依据：
 - `docs/research/2026-08-12-web-tools-research.md`（通用 Agent Web 工具调研）
 - `docs/research/2026-08-12-job-sites-fetchability-assessment.md`（求职站点可抓取性实测）
@@ -18,13 +18,13 @@ P2 批次 D 定稿：开发 web 工具，解锁 company-research / salary-benchm
 2. **怎么抓**：求职站点实测——智联 SSR 可 curl 直抓、猎聘详情页可直抓（GBK 转码）、51job 被阿里云 WAF 拦截（需渲染）、Boss 未登录被 IP 风控 + 图形验证码拦截。
 3. **第三条路**：OpenCLI（真实 Chrome + 站点适配器）实测——51job 未登录三层采集全通（结构化 JSON）、Boss 登录态下列表+详情完整可采，是 curl/渲染之外的可行后端。
 
-**目标：落地 `webSearch` + `webFetch` 两个工具，fetch 走三级降级链（自建直抓 → Jina 渲染 → OpenCLI），web-browse 后置**（实测证明猎聘/51job 仅需"渲染取 DOM"不需交互，Boss 上浏览器也过不了图形验证码，第一批无 browse 需求）。
+**目标：落地 `webSearch` + `webFetch` 两个工具，fetch 走三级降级链（自建直抓 → Jina 渲染 → OpenCLI）**。web-browse 与子 Agent **明确不做**（用户决议 2026-08-12）：实测证明猎聘/51job 仅需"渲染取 DOM"不需交互、Boss 上浏览器也过不了图形验证码，browse 无第一批需求；工具规模维持在 15 个内，子 Agent 触发信号关闭。
 
 ## 2. 关键设计决策
 
 | 决策点 | 结论 | 理由 |
 |---|---|---|
-| 首批工具 | `webSearch` + `webFetch` 两个；web-browse 后置 | 调研 §7.1 + 实测支撑 |
+| 首批工具 | `webSearch` + `webFetch` 两个；**web-browse 明确不做**（用户决议 2026-08-12） | 调研 §7.1 + 实测支撑；无交互型需求 |
 | 搜索后端 | Brave Search API 首选（env `BRAVE_API_KEY`）；预留 Tavily 作为可配置备选 | $5/月免费额度够单用户；独立索引无 Google ToS 风险；官方 TS 实现可参考 |
 | fetch 后端 | **三级降级链**：direct（自建 HTTP+解析）→ jina（Jina Reader 渲染）→ opencli（站点适配器） | 三份实测报告逐站验证的覆盖矩阵 |
 | 缓存 | 新表 `fetch_cache`（url → markdown，TTL 24h），缓存优先、显式 refresh 绕过 | 对齐 Codex `cached` 默认 / Gemini 两步检索；职位页重复抓取收益明显 |
@@ -33,7 +33,7 @@ P2 批次 D 定稿：开发 web 工具，解锁 company-research / salary-benchm
 | 输出契约 | 三段式：调用记录（query/url/source/cached）+ 内容（截断）+ 引用列表 | 对齐主流实现（url_citation 语义）；引用供 UI 可点击核验 |
 | 配额护栏 | 会话级 maxUses：webSearch ≤5 次/任务、webFetch ≤8 次/任务；内容截断（默认 12000 字符） | 防模型失控循环烧 API/污染上下文 |
 | 敏感信息 | OpenCLI 输出管线剥离 `security_id`；日志只记 URL/状态码/长度，不落正文 | 对齐 AGENTS.md 红线（实测发现 Boss 输出含加密 token） |
-| 工具数量 | 13 → 15，**顺带完成 P2-4 子 Agent 决议"接近 15 时重新评估"** | 触发阈值已到，本批实现时一并决议 |
+| 工具数量 | 13 → 15，**子 Agent 决议关闭：明确不做**（用户决议 2026-08-12，触发信号不再评估） | 工具规模可控，无并行调研需求 |
 | 集成 | 两工具经 `createDomainTool` 注册；SYSTEM_PROMPT 能力清单补两行 | 对齐 agent-tooling-conventions 工具形态 |
 
 ## 3. 工具契约
@@ -168,7 +168,7 @@ fetch_cache(
 
 | 批次 | 内容 |
 |---|---|
-| **D1** | webSearch（Brave）+ webFetch（direct + jina 层）+ fetch_cache 迁移 + 安全护栏 + 纯函数单测；SYSTEM_PROMPT/审批注册；子 Agent 决议重评估 |
+| **D1** | webSearch（Brave）+ webFetch（direct + jina 层）+ fetch_cache 迁移 + 安全护栏 + 纯函数单测；SYSTEM_PROMPT/审批注册 |
 | **D2** | OpenCLI 后端接入（51job/Boss 路由 + security_id 过滤 + 字段修复 + doctor 前置检查） |
 | **D3** | company-research / salary-benchmark skill 扩展（流程层） |
 
@@ -178,4 +178,4 @@ fetch_cache(
 2. **Brave key 获取**：用户注册获取 `BRAVE_API_KEY`（免费 $5/月）；D1 前完成，否则 SEARCH_NOT_CONFIGURED 空转。
 3. **可信 URL 集合的会话生命周期**：会话内内存 Map 即可（本地单用户），还是需要跨会话持久化（如用户粘贴 URL 到新会话）——倾向内存 + 用户消息实时提取，跨会话不追溯。
 4. **OpenCLI 登录态持久性**：Boss cookie 有效期未知，D2 时记录实际表现，必要时给 webFetch 加"重新登录"引导。
-5. **web-browse 后置的再评估点**：出现"需要点击/登录后操作"的真实需求时（如抓取需翻页的 51job 列表），按调研报告 §5.3 的 a11y 快照范式重新评估。
+5. ~~web-browse 再评估~~ **已关闭**（用户决议 2026-08-12 明确不做）：无交互型需求，现有三级降级链覆盖全部已验证场景。
