@@ -108,7 +108,47 @@
 - 验收含评测有效性验证（故意破坏工具行为 → 对应场景必须失败）
 - 不做：评测可视化 UI、CI 集成、跨模型基准对比报告
 
-- 实现：2026-08-11 落地（mock 层 13 场景入 vitest，`npm run eval` CLI 就绪；有效性验证通过——故意破坏审批放行被 apply-job 场景捕获）
+- 实现：2026-08-11 落地（mock 层 13 场景入 vitest，`npm run eval` CLI 就绪；有效性验证通过——故意破坏审批放行被 apply-job 场景捕获）。真实层首跑（deepseek-v4-flash）：适配后 12/13 通过（结构性断言/分层断言 assertFinalStateReal/逐场景超时 realTimeoutMs/--scenario 过滤）；jd-match 因模型对 jobMatchResultSchemaV1 结构化输出不稳定失败（已知限制）
+
+### P2-2（2026-08-12）：语义检索（已定稿，待实现）
+
+**结论：直接上 embedding，自算余弦，范围仅 messages**。
+- 模型：硅基流动免费 embedding（BAAI/bge-m3 等，OpenAI 兼容 `/embeddings` 端点）
+- 存储：向量存 JSON 列，检索时内存算余弦相似度（个人应用几千条消息 × 1024 维 ≈ 几 MB，毫秒级；不引入 sqlite-vec——Windows 原生扩展依赖不值得）
+- 范围：仅 messages（lessons 保持 FTS，已有 searchLessons）
+- 嵌入时机：消息落库同步嵌入，失败降级不阻塞（嵌入失败的存量消息检索时只靠 FTS/上下文）
+- 新增 `searchMessages` 语义检索工具（只读免确认，同构 searchLessons）
+- 时间衰减不做：最近消息已被轮数截断/会话摘要覆盖，边际价值存疑
+- 注意：消息内容会发送到硅基流动（与 LLM 同模式，本地优先的边界以 provider 调用为限）
+
+### P2-3（2026-08-12）：Prompt caching（已定稿，验证后记录）
+
+**结论：先验证、后记录，不预设写代码**。
+- 背景：稳定段前置已就位（缓存命中前提）；OpenAI 兼容端点（opencode.ai）缓存多自动生效
+- 验证手段：评测 CLI 加 usage 收集（cacheRead/cacheWrite 统计，与 token 监控合流），真实层跑一次确认缓存命中
+- 生效则文档记录"provider 自动缓存，无需代码"；不生效再议显式标记
+- 前缀稳定性已最优（SYSTEM_PROMPT 常量最前，易变段在后，逐 token 前缀缓存仍命中开头）
+
+### P2-4（2026-08-12）：子 Agent（维持搁置）
+
+**结论：维持搁置，触发信号记录在案**。
+- 触发信号（调研报告）：①单任务内多次并行调研 ②工具表 >10-15 个——当前均未出现
+- 工具表现状 13 个：语义检索 searchMessages +1 = 14，web 工具落地后接近 15——届时重新评估
+- 前置条件：评测基线已就位（引入子 Agent 前的回归安全网）
+
+### P2-5（2026-08-12）：其他增强（已定稿）
+
+**skill 库扩展**：
+- ✅ 可做：negotiation（谈薪策略）、follow-up（跟进话术）——纯方法论，零外部依赖
+- ⏸ 挂起：company-research（公司调研）、salary-benchmark（薪资基准）——依赖 web 工具（占位符，用户调查后拍板形态：URL 抓取 vs 搜索 API）
+
+**审计日志**：新增轻量 actions 审计表（动作/对象/时间/结果），只记关键动作（applyJob/recordApplicationStatus/tailoredResume 导出等），提供快速检索；messages + status_history 是事实审计基础，actions 表补结构化检索
+
+**token 预算自监控**：仅评测层——评测 CLI 加 usage 收集（每场景 token + cacheRead 统计，与 P2-3 验证合流）；产品层不做预算预警（个人应用价值低）
+
+## P2 讨论状态（2026-08-12）
+
+五项全部定稿：P2-1 已实现落地；P2-2 语义检索 / P2-3 caching / P2-4 子 Agent 决议 / P2-5 其他增强已定稿待实现。实现批次：A（评测 CLI usage 统计 + 缓存验证）→ B（语义检索）→ C（skill 扩展 + 审计表）；批次 D（web 工具 → company-research/salary-benchmark）等用户调查后启动。
 
 - 第 2 项：结构化会话状态（session_state 表，P0-2）
 - 第 3 项：上下文策略（SYSTEM_PROMPT 分节 + 简历/JD 按需注入，P0-3）
