@@ -56,7 +56,7 @@
 4. **子 Agent（最小 supervisor）** ✅ 决议关闭：明确不做（2026-08-12 用户决议，触发信号不再评估）；工具表落地 web 工具后 15 个，规模可控
 5. **其他增强** 🟡 部分落地（2026-08-12）：token 监控已随批次 A 落地（评测 CLI usage 统计）；批次 C 完成——negotiation/follow-up skill + actions 审计表（runAgentTurn 横切记录）；company-research/salary-benchmark 挂起等批次 D web 工具
 
-实现批次：A ✅ → C ✅ → B ✅ → D1 ✅（web 工具 D1 十二任务 + 冒烟完成：Tavily 真实搜索/webFetch 直抓通过；D2 OpenCLI、D3 skill 待启动；web-browse 明确不做）。定稿详情见讨论纪要 P2-2~P2-5。
+实现批次：A ✅ → C ✅ → B ✅ → D1 ✅ + D3 ✅（web 工具 D1 十二任务 + 冒烟完成；company-research/salary-benchmark skill 已落地；D2 OpenCLI 待启动；web-browse 明确不做）。定稿详情见讨论纪要 P2-2~P2-5。
 
 ### 已知限制（各期验收记录，后续处理）
 
