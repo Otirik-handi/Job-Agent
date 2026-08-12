@@ -20,6 +20,7 @@ import { mapToolToAction } from './audit-log';
 import { listMemoryBlocks } from '../db/repositories/memory-blocks';
 import { getSessionState, setSessionState } from '../db/repositories/session-state';
 import { embedText } from './embedding';
+import { addTrustedUrls, resetWebQuota } from './tools/web-fetch';
 import { db } from '../db';
 import { messages } from '../db/schema';
 
@@ -188,6 +189,16 @@ export async function runAgentTurn(options: {
     const msgRecord = insertMessage(conversationId, msg.role, JSON.stringify(msg));
     void embedMessage(msgRecord.id, JSON.stringify(msg));
     if (msgId) existingIds.add(msgId);
+  }
+
+  // 每轮任务边界：重置 web 工具配额（一次用户消息的 agent 循环 = 一个任务）
+  resetWebQuota();
+  // 用户消息中的显式 URL 加入可信集合（webFetch 前置校验；设计 §5「用户消息实时提取」）
+  const urlRe = /https?:\/\/[^\s"'<>)\]]+/g;
+  for (const msg of incoming) {
+    const text = msg.parts.filter((p): p is { type: 'text'; text: string } => p.type === 'text').map((p) => p.text).join(' ');
+    const urls = text.match(urlRe);
+    if (urls) addTrustedUrls(urls.map((u) => u.replace(/[.,;:!?]+$/, '')));
   }
 
   // 分层 system prompt：基础提示 + 当前记忆块 + 会话级摘要（首次截断时生成，常驻注入）+ 会话结构化状态
