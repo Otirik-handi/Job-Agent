@@ -57,4 +57,5 @@
 - `.agents/specs/04-comments/comments-conventions.md`：代码注释规范（横切约定：语言/克制/JSDoc/为什么/敏感信息/TODO 禁令）
 - `docs/designs/`：设计文档（约定：不使用 docs/superpowers/specs/，ZCode 客户端显示 bug）
 - `docs/plans/`：计划文档
+- `docs/research/`：调研报告与讨论纪要（供设计引用，非权威依据）
 - `PROJECT_STATUS.md`：项目状态文件（当前状态/已完成 P0+P1/下一步 P2 队列/已知限制；随里程碑更新）
