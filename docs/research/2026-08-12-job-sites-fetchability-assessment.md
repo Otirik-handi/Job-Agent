@@ -2,6 +2,7 @@
 
 日期：2026-08-12
 状态：实测完成，供 web 工具设计引用（承接 `2026-08-12-web-tools-research.md` §7.4 问题 1）
+修正：2026-08-12 补充 OpenCLI 路线实测后，Boss直聘结论由"不可自动抓取"修正为"需登录态可采集"，详见 `2026-08-12-opencli-collection-assessment.md`
 关联文档：`2026-08-12-web-tools-research.md`（Web 工具调研报告）、`2026-08-10-agent-roadmap-discussion.md`（P2 批次 D 定稿）
 评估环境：本机（win32），直连 + 本地代理均可出网；浏览器评估使用 ZCode 内嵌浏览器（真实 Chromium 内核，1280×720）
 
@@ -27,7 +28,7 @@
 | robots.txt | 禁爬极严：`/job_detail/l*.html`（职位详情）、`/web/geek/*`、`/web/boss/*`、所有带 query 参数（`/*?*`）全部 Disallow |
 | 登录墙 | 内容页（搜索/详情）需登录 + 验证 |
 
-**结论**：本环境 IP 被 Boss 风控标记，纯 HTTP 与浏览器自动化均不可行；即使在真实用户网络下，职位内容仍需登录后可见，且存在图形验证。**web-fetch / web-browse 对 Boss直聘按"预期失败"处理**（可预批准域名但如实返回失败，提示用户浏览器手动查看）。
+**结论**：本环境 IP 被 Boss 风控标记，纯 HTTP 与浏览器自动化（含真实 Chrome 扩展）均不可行——OpenCLI 实测未登录时报"您的IP地址存在异常行为 (code=35)"。**修正：登录态下（opencli boss login，手机号+验证码）可完整采集列表与详情**，详见 `2026-08-12-opencli-collection-assessment.md`。未登录场景下 web-fetch / web-browse 对 Boss直聘仍按"预期失败"处理（如实返回失败，提示用户走登录态采集或手动查看）。
 
 ### 2.2 猎聘（liepin.com）—— 详情页可直抓；列表页需渲染 ⚠️
 
@@ -72,7 +73,7 @@
 
 | 站点 | curl 列表 | curl 详情 | 浏览器列表 | 浏览器详情 | 登录墙 | 反爬类型 | robots 详情页 |
 |---|---|---|---|---|---|---|---|
-| Boss直聘 | ❌ 验证页 | ❌ 验证页 | ❌ 图形点选验证码 | ❌ 需登录 | ✅ 强 | IP 风控 + 图形验证码 | 禁 |
+| Boss直聘 | ❌ 验证页 | ❌ 验证页 | ❌ 图形点选验证码（未登录） | ✅ 登录态可采集（OpenCLI） | 需登录 | IP 风控 + 图形验证码（未登录） | 禁 |
 | 猎聘 | ❌ JS 壳 | ✅ 可抓（GBK） | ✅ 可见 | ✅ 可见 | 仅投递需登录 | 无显式（JS 渲染屏障） | 未禁 |
 | 智联 | ✅ SSR 直出 | ✅ SSR 直出 | ✅（SSR） | ✅（SSR） | 无 | 无显式 | 未禁 |
 | 前程无忧 | ❌ JS 壳 | ❌ 阿里云 WAF | ✅ 可见 | ✅ 可见（WAF 放行） | 无 | 阿里云 WAF JS 挑战 | 不可用 |
@@ -85,7 +86,7 @@
 2. **Jina Reader 降级的必要性**：51job（WAF 需执行 JS）与猎聘列表页（XHR 渲染）必须走带浏览器引擎的抓取——这正是调研报告"自建为主 + Jina Reader 免费 API 降级"组合的实测依据；预计 Jina 对这两站可用（浏览器渲染 + 服务端 IP，待接入时验证）。
 3. **web-browse（Playwright）后置判断成立**：猎聘/51job 的浏览器渲染抓取仅需"打开+等待渲染+取 DOM"，不需要交互；Boss 即使上 Playwright 也过不了图形验证码。**首批无需 web-browse 的真实结论**（而非仅凭成本推断）。
 4. **预批准域名列表**：建议预批准 `zhaopin.com`、`liepin.com`、`51job.com`（含子域 `sou.zhaopin.com`、`we.51job.com`、`jobs.51job.com`）；`zhipin.com` 保留但预期失败。robots 合规：智联/猎聘详情页路径均未禁，可抓；带参数 URL 均被禁（遵守则列表页只能走渲染抓取，与实测一致）。
-5. **Boss直聘处理策略**：对用户明确预期管理——web 工具对 Boss 返回"需登录+验证，无法自动获取"，并提示用户手动查看后粘贴/导入（项目已有 import-job-opportunity 工具承接人工导入路径）。
+5. **Boss直聘处理策略**：未登录态 web 工具如实返回"需登录+验证"；登录态下可走 OpenCLI 采集（见 `2026-08-12-opencli-collection-assessment.md`）；人工查看后粘贴/导入路径（import-job-opportunity）继续作为兜底。
 6. **编码处理**：猎聘详情页 GBK，web-fetch 的 HTML→Markdown 管线必须包含字符集检测与转码（header 或 meta 声明优先，ICU/chardet 类库兜底）。
 
 ## 5. 限制与后续待测
