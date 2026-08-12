@@ -43,6 +43,13 @@
       "when": 1786512480121,
       "tag": "0005_clever_polaris",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1786513953957,
+      "tag": "0006_known_bulldozer",
+      "breakpoints": true
     }
   ]
 }

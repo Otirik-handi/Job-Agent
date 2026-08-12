@@ -1,0 +1,1 @@
+ALTER TABLE `messages` ADD `embedding_json` text;

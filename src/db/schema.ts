@@ -16,6 +16,8 @@ export const messages = sqliteTable('messages', {
   role: text('role').notNull(),
   messageJson: text('message_json').notNull(),
   createdAt: text('created_at').notNull(),
+  // 语义检索向量（JSON 数组，如 [0.1, -0.2, ...]）；null = 未嵌入（存量消息或嵌入失败）
+  embeddingJson: text('embedding_json'),
 }, (t) => [index('messages_conversation_id_idx').on(t.conversationId)]);
 
 export const resumes = sqliteTable('resumes', {
