@@ -12,8 +12,10 @@ import { getModel } from './model';
 import { getTools } from './agent';
 import { buildSystemPrompt } from './context';
 import { MAX_HISTORY_ROUNDS, maybeGenerateSummary } from './summary';
+import { insertAction } from '../db/repositories/actions';
 import { touchConversation } from '../db/repositories/conversations';
 import { insertMessage, listMessages } from '../db/repositories/messages';
+import { mapToolToAction } from './audit-log';
 import { listMemoryBlocks } from '../db/repositories/memory-blocks';
 import { getSessionState, setSessionState } from '../db/repositories/session-state';
 
@@ -195,6 +197,17 @@ export async function runAgentTurn(options: {
       if (success) {
         const patch = sessionStatePatchFromTool(toolName, toolOutput.output);
         if (patch) persistSessionState(conversationId, patch);
+      }
+      // 审计记录（横切）：白名单动作写入 actions 表；失败不阻塞主流程（降级模式对齐 persistSessionState）
+      try {
+        if (toolOutput.type === 'tool-result') {
+          const audit = mapToolToAction(toolName, toolOutput.output);
+          if (audit) {
+            insertAction({ conversationId, ...audit });
+          }
+        }
+      } catch (err) {
+        console.error(`[audit] 写入失败 conversationId=${conversationId} tool=${toolName}:`, err);
       }
     },
   });
