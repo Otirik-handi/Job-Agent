@@ -3,7 +3,7 @@
 日期：2026-08-12
 状态：调研完成，供后续设计引用（不含架构决策；P2 批次 D 计划待进一步调研后启动）
 调研方式：并行子 Agent 三线调研，全部基于官方文档与可靠资料，经本地代理（127.0.0.1:10808）访问核验，来源见第 9 节
-关联文档：`2026-08-10-agent-roadmap-discussion.md`（P2 讨论纪要，批次 D"web 工具 → company-research/salary-benchmark"挂起等本调研）
+关联文档：`docs/research/2026-08-10-agent-roadmap-discussion.md`（P2 讨论纪要，批次 D"web 工具 → company-research/salary-benchmark"挂起等本调研）
 
 ## 1. 调研背景与目标
 

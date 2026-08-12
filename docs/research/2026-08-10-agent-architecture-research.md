@@ -3,7 +3,7 @@
 日期：2026-08-10
 状态：调研完成，供设计讨论引用（不包含架构决策，架构决策见后续设计文档）
 调研方式：12 个并行调研子 Agent，覆盖 6 大开源/官方框架、14 篇经典论文、5 篇权威综述、开放标准（Agent Skills/MCP）与同类产品；原始分篇见 `tmp/research/01~12-*.md`
-关联文档：`docs/designs/2026-08-04-agent-architecture-design.md`（现有架构设计）、`docs/designs/2026-08-10-skill-system-research.md`（Skill 系统调研）
+关联文档：`docs/designs/2026-08-04-agent-architecture-design.md`（现有架构设计）、`docs/research/2026-08-10-skill-system-research.md`（Skill 系统调研）
 
 ---
 

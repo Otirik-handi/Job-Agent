@@ -3,8 +3,8 @@
 日期：2026-08-10
 状态：完成（2026-08-10 验收通过，分支 phase9-skill-system）
 目标：为 job-helper 建立遵循 agentskills.io 开放标准的 Skill 系统——技能目录 + 元数据常驻 + readSkill 工具按需加载（CLI 机制同构移植），首批 6 个求职 skill。
-关联规范：`.agents/specs/03-agent/agent-tooling-conventions.md`（需更新）、`docs/designs/2026-08-10-agent-roadmap-discussion.md`（P1-1 定稿）
-依据：`docs/designs/2026-08-10-agent-architecture-research.md` 专题 03（Agent Skills 标准）
+关联规范：`.agents/specs/03-agent/agent-tooling-conventions.md`（需更新）、`docs/research/2026-08-10-agent-roadmap-discussion.md`（P1-1 定稿）
+依据：`docs/research/2026-08-10-agent-architecture-research.md` 专题 03（Agent Skills 标准）
 
 ## 范围
 

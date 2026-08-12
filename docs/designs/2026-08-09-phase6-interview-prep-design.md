@@ -3,7 +3,7 @@
 日期：2026-08-09
 状态：完成
 关联规范：AGENTS.md（关键硬约束）、plan-document.md、`.agents/specs/02-backend/api-data-conventions.md`（JSON 列）、`.agents/specs/03-agent/agent-tooling-conventions.md`（LLM 生成类工具）
-设计依据：`docs/designs/2026-08-09-phase5-application-followup-design.md`（interview 状态已建模、过程态不建模）、`docs/designs/2026-08-06-phase3-channel-tailored-resume-design.md`（LLM 生成类工具模式、两段式审批）、`docs/designs/2026-08-04-find-work-experience-borrowing.md`（经验 #1 三段式匹配、#2 LLM 容错、#3 结构化输出示例进提示词）
+设计依据：`docs/designs/2026-08-09-phase5-application-followup-design.md`（interview 状态已建模、过程态不建模）、`docs/designs/2026-08-06-phase3-channel-tailored-resume-design.md`（LLM 生成类工具模式、两段式审批）、`docs/research/2026-08-04-find-work-experience-borrowing.md`（经验 #1 三段式匹配、#2 LLM 容错、#3 结构化输出示例进提示词）
 前置：第 5 期已交付（投递后状态机 interview/offer/hired/rejected + 前端可见性）
 
 ## 1. 范围与决策（2026-08-09 确认）

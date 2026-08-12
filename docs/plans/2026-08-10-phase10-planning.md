@@ -3,8 +3,8 @@
 日期：2026-08-10
 状态：完成（2026-08-10 验收通过，分支 phase10-planning）
 目标：为 job-helper 建立显式规划能力——计划文件持久化 + Agent 工具自主管理 + 创建时用户确认，支持长任务中断续跑与进度追踪。
-关联规范：`.agents/specs/03-agent/agent-tooling-conventions.md`（需更新）、`docs/designs/2026-08-10-agent-roadmap-discussion.md`（P1-2 定稿）
-依据：`docs/designs/2026-08-10-agent-architecture-research.md` 专题 06（规划能力）
+关联规范：`.agents/specs/03-agent/agent-tooling-conventions.md`（需更新）、`docs/research/2026-08-10-agent-roadmap-discussion.md`（P1-2 定稿）
+依据：`docs/research/2026-08-10-agent-architecture-research.md` 专题 06（规划能力）
 
 ## 范围
 

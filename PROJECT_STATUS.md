@@ -71,8 +71,8 @@
 
 ## 文档索引
 
-- 调研报告：`docs/designs/2026-08-10-agent-architecture-research.md`（12 专题，分篇在 `tmp/research/`）
-- 讨论纪要：`docs/designs/2026-08-10-agent-roadmap-discussion.md`（P0 五项 + P1 五项定稿）
+- 调研报告：`docs/research/2026-08-10-agent-architecture-research.md`（12 专题，分篇在 `tmp/research/`）
+- 讨论纪要：`docs/research/2026-08-10-agent-roadmap-discussion.md`（P0 五项 + P1 五项定稿）
 - 评测基线设计：`docs/designs/2026-08-11-eval-baseline-design.md`（双层评测）
 - 评测基线计划：`docs/plans/2026-08-11-eval-baseline.md`
 - 计划文档：`docs/plans/2026-08-10-phase7~13-*.md`（每期含验收记录与已知限制）

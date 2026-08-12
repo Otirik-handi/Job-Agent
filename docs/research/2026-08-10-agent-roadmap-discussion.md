@@ -2,7 +2,7 @@
 
 日期：2026-08-10 起
 状态：逐项讨论中（每次讨论 1 项）
-依据：`docs/designs/2026-08-10-agent-architecture-research.md`（通用 Agent 架构调研报告）
+依据：`docs/research/2026-08-10-agent-architecture-research.md`（通用 Agent 架构调研报告）
 关联：`docs/designs/2026-08-04-agent-architecture-design.md`（现有架构设计）
 
 ---

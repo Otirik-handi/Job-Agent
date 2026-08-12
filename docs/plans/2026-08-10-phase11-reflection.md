@@ -3,8 +3,8 @@
 日期：2026-08-10
 状态：完成（2026-08-10 验收通过，分支 phase11-reflection）
 目标：为 job-helper 建立经验沉淀能力——独立 lessons 表 + 失败后自动复盘（Reflexion 式），新任务/失败时检索复用教训。
-关联规范：`.agents/specs/02-backend/api-data-conventions.md`（需更新）、`.agents/specs/03-agent/agent-tooling-conventions.md`（需更新）、`docs/designs/2026-08-10-agent-roadmap-discussion.md`（P1-3 定稿）
-依据：`docs/designs/2026-08-10-agent-architecture-research.md` 专题 02/06
+关联规范：`.agents/specs/02-backend/api-data-conventions.md`（需更新）、`.agents/specs/03-agent/agent-tooling-conventions.md`（需更新）、`docs/research/2026-08-10-agent-roadmap-discussion.md`（P1-3 定稿）
+依据：`docs/research/2026-08-10-agent-architecture-research.md` 专题 02/06
 
 ## 范围
 

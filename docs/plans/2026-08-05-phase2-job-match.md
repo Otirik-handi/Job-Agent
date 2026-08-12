@@ -10,7 +10,7 @@
 
 **Tech Stack:** AI SDK v7（ToolLoopAgent/createAgentUIStream/createAgentUIStreamResponse/isStepCount）、zod、Drizzle（已有表）、React/shadcn（Soft UI 令牌）。
 
-**设计依据：** `docs/designs/2026-08-05-phase2-job-match-design.md`、`docs/designs/2026-08-04-find-work-experience-borrowing.md`（经验 #1/#3/3.1）
+**设计依据：** `docs/designs/2026-08-05-phase2-job-match-design.md`、`docs/research/2026-08-04-find-work-experience-borrowing.md`（经验 #1/#3/3.1）
 **验收标准：** 设计文档第 6 节 6 项。
 
 **已确认的 API 事实**（类型调研）：

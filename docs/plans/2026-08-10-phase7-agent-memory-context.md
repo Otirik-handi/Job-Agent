@@ -4,7 +4,7 @@
 状态：完成（2026-08-10 验收通过，分支 phase7-agent-memory-context）
 目标：为 job-helper 补齐通用 Agent 的最小记忆骨架——显式写入的记忆块、可校验的会话状态、分层注入的上下文组装；解决"20 轮截断丢上下文、跨会话失忆、简历/JD 全量塞窗口"三个问题。
 关联规范：`.agents/specs/00-governance/plan-document.md`、`.agents/specs/02-backend/api-data-conventions.md`（需更新）
-依据：`docs/designs/2026-08-10-agent-architecture-research.md`、`docs/designs/2026-08-10-agent-roadmap-discussion.md`（第 1-3 项定稿）
+依据：`docs/research/2026-08-10-agent-architecture-research.md`、`docs/research/2026-08-10-agent-roadmap-discussion.md`（第 1-3 项定稿）
 
 ## 范围
 

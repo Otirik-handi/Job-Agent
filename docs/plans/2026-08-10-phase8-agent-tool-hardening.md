@@ -4,7 +4,7 @@
 状态：完成（2026-08-10 验收通过，分支 phase8-agent-tool-hardening）
 目标：让工具层"选得准、错得明、认得分"——工具描述按规范重写（模型选对工具）、结构化错误回传（模型自愈）、输入严格校验（非法调用在工厂层拦截）、审批三档分级（确认强度匹配动作成本）。
 关联规范：`.agents/specs/03-agent/agent-tooling-conventions.md`（需更新）、`.agents/specs/00-governance/plan-document.md`
-依据：`docs/designs/2026-08-10-agent-architecture-research.md`、`docs/designs/2026-08-10-agent-roadmap-discussion.md`（第 4-5 项定稿）
+依据：`docs/research/2026-08-10-agent-architecture-research.md`、`docs/research/2026-08-10-agent-roadmap-discussion.md`（第 4-5 项定稿）
 
 ## 范围
 

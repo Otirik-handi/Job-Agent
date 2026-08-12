@@ -1670,7 +1670,7 @@ git commit -m "feat: 真实模型层评测 CLI（npm run eval，pass^k 一致性
 **Files:**
 - Modify: `src/agent/tools/apply-job.ts`（临时破坏，验证后还原）
 - Modify: `PROJECT_STATUS.md`
-- Modify: `docs/designs/2026-08-10-agent-roadmap-discussion.md`（补实现状态）
+- Modify: `docs/research/2026-08-10-agent-roadmap-discussion.md`（补实现状态）
 
 - [x] **Step 1: 故意破坏审批放行逻辑（验证评测能抓回归）**
 

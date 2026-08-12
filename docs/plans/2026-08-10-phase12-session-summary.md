@@ -3,8 +3,8 @@
 日期：2026-08-10
 状态：完成（2026-08-10 验收通过，分支 phase12-session-summary）
 目标：为 job-helper 增加会话级滚动摘要——首次达到轮数上限时对旧轮 LLM 压缩生成摘要，替代直接丢弃，保留偏好/进度/未决事项。
-关联规范：`.agents/specs/02-backend/api-data-conventions.md`（需更新）、`docs/designs/2026-08-10-agent-roadmap-discussion.md`（P1-4 定稿）
-依据：`docs/designs/2026-08-10-agent-architecture-research.md` 专题 02/11（compaction）
+关联规范：`.agents/specs/02-backend/api-data-conventions.md`（需更新）、`docs/research/2026-08-10-agent-roadmap-discussion.md`（P1-4 定稿）
+依据：`docs/research/2026-08-10-agent-architecture-research.md` 专题 02/11（compaction）
 
 ## 范围
 

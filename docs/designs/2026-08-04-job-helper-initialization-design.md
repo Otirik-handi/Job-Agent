@@ -44,13 +44,13 @@ job-helper 是一个从零重写的个人求职助手 Agent 应用，前身项�
 |---|---|
 | AGENTS.md 框架（定位/能做什么/不能做什么/权威顺序/目录索引） | 保留框架，内容按新项目全重写（薄） |
 | find-work 00-governance 的规范治理思想 | 轻量化重写为两个根基规范（见第 5 节） |
-| 领域经验（三段式匹配、修复重试、事实护栏、审批流、隐私边界等） | 借鉴不搬代码，存档于独立文档 `2026-08-04-find-work-experience-borrowing.md`，供后续各设计阶段使用 |
+| 领域经验（三段式匹配、修复重试、事实护栏、审批流、隐私边界等） | 借鉴不搬代码，存档于独立文档 `docs/research/2026-08-04-find-work-experience-borrowing.md`，供后续各设计阶段使用 |
 
 ## 4. 借鉴经验清单
 
 前身项目的领域经验已整理为独立文档，作为后续设计阶段的输入：
 
-`docs/designs/2026-08-04-find-work-experience-borrowing.md`
+`docs/research/2026-08-04-find-work-experience-borrowing.md`
 
 ## 5. 规范体系设计（本阶段产物之一）
 

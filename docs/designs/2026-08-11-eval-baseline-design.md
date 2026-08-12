@@ -2,8 +2,8 @@
 
 日期：2026-08-11
 状态：已定稿，待写实现计划
-依据：`docs/designs/2026-08-10-agent-architecture-research.md`（路线图第 11 项）
-关联：`docs/designs/2026-08-10-agent-roadmap-discussion.md`（P2 讨论纪要）
+依据：`docs/research/2026-08-10-agent-architecture-research.md`（路线图第 11 项）
+关联：`docs/research/2026-08-10-agent-roadmap-discussion.md`（P2 讨论纪要）
 
 ---
 
@@ -170,4 +170,4 @@ npm run eval [-- --k 2 --model <modelId>]
 ## 12. 文档链
 
 - 本设计 → 实现计划（`docs/plans/2026-08-11-eval-baseline-*.md`）→ PROJECT_STATUS.md 更新
-- 讨论结论同步追加至 `docs/designs/2026-08-10-agent-roadmap-discussion.md`（P2-1 定稿记录）
+- 讨论结论同步追加至 `docs/research/2026-08-10-agent-roadmap-discussion.md`（P2-1 定稿记录）

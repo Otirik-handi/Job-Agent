@@ -3,8 +3,8 @@
 日期：2026-08-10
 状态：完成（2026-08-10 验收通过，分支 phase13-tool-step-cards）
 目标：工具执行过程在对话流中留下正式步骤卡片（运行/完成/失败三态，完成折叠一行、失败附重试），并与规划进度（phase10）联动显示"第 N 步"。
-关联规范：`.agents/specs/01-frontend/frontend-conventions.md`（需更新）、`docs/designs/2026-08-10-agent-roadmap-discussion.md`（P1-5 定稿）
-依据：`docs/designs/2026-08-10-agent-architecture-research.md` 专题 12（对话 UX）
+关联规范：`.agents/specs/01-frontend/frontend-conventions.md`（需更新）、`docs/research/2026-08-10-agent-roadmap-discussion.md`（P1-5 定稿）
+依据：`docs/research/2026-08-10-agent-architecture-research.md` 专题 12（对话 UX）
 
 ## 范围
 
