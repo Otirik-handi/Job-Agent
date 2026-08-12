@@ -4,7 +4,7 @@
 
 ## 当前状态
 
-- **基线稳定**：238 个测试全绿（`npm test`，含 13 个评测场景 + mock-model + usage-collector 等），`lint` / `tsc --noEmit` / `build` 全部通过
+- **基线稳定**：277 个测试全绿（`npm test`，含 13 个评测场景 + mock-model + usage-collector 等），`lint` / `tsc --noEmit` / `build` 全部通过
 - **里程碑**：P0（Agent 基础骨架）+ P1（Agent 进阶能力）全部落地并合并至 main，已推送 GitHub
 - 分支：`main`（与 origin/main 同步）；历史 feature 分支均已合并清理
 
@@ -40,7 +40,7 @@
 
 ## 工程基线
 
-- **测试**：238 个（含 13 个评测场景 + mock-model + usage-collector 等；纯函数单测为主：apply-state / channel-guard / llm-call / resume-* / tool-factory / skills / plans / lessons / summary / tool-step-card / audit-log（mapToolToAction 审计钩子）等）
+- **测试**：277 个（含 13 个评测场景 + mock-model + usage-collector 等；纯函数单测为主：apply-state / channel-guard / llm-call / resume-* / tool-factory / skills / plans / lessons / summary / tool-step-card / audit-log（mapToolToAction 审计钩子）等）
 - **批次 B 新增（2026-08-12）**：语义检索链路——embedding 模块（硅基流动调用 + override 注入 + 降级）、vector-search（自算余弦）、searchMessages 工具（只读免确认）+ 评测场景（embedding override 注入）
 - **批次 C 新增（2026-08-12）**：negotiation / follow-up 两个方法论 skill（共 8 个求职 skill）+ actions 审计表（schema + repository + 过滤查询）；runAgentTurn 经 `onToolExecutionEnd` 横切记录关键动作（applyJob / recordApplicationStatus / tailoredResume 导出等），写入失败降级不阻塞（对齐 persistSessionState 模式）
 - **规范体系**：`.agents/specs/`（00 治理 / 01 前端 / 02 后端 / 03 Agent / 04 注释）随实现补充了记忆、Skill、规划、反思、摘要、步骤卡片等约定
