@@ -29,9 +29,12 @@ export function ChatPanel({
 }) {
   const [progress, setProgress] = useState<ToolProgress | null>(null);
   const settledRef = useRef(false);
-  // 服务端创建新会话后通过 conversation-id 事件回传真实 id，后续消息复用它
-  const [internalConvId, setInternalConvId] = useState<string | null>(conversationId);
-  useEffect(() => { setInternalConvId(conversationId); }, [conversationId]);
+  // useChat 的 id 只在首次渲染时确定（新会话为 undefined、既有会话为传入 id）：
+  // AI SDK 检测到 id 变化会重建 Chat 对象并清空 messages（见 useChat 内 shouldRecreateChat），
+  // 因此服务端回传真实 conversationId 后只写入 ref 供请求 body 复用，不再回写 useChat id。
+  const [chatId] = useState(conversationId);
+  const convIdRef = useRef<string | null>(conversationId);
+  useEffect(() => { convIdRef.current = conversationId; }, [conversationId]);
   // 消息流结束计数：每次对话流结束 +1，驱动活跃计划进度刷新（挂载时也会拉一次）
   const [settleCount, setSettleCount] = useState(0);
   const { plans } = useActivePlans(settleCount);
@@ -40,7 +43,7 @@ export function ChatPanel({
   );
 
   const { messages, sendMessage, stop, status } = useChat({
-    id: internalConvId ?? undefined,
+    id: chatId ?? undefined,
     messages: initialMessages,
     transport: new DefaultChatTransport({ api: '/api/chat' }),
     onData: (part) => {
@@ -51,7 +54,7 @@ export function ChatPanel({
       } else if (part.type === 'data-conversation-id') {
         const id = (part.data as { conversationId: string }).conversationId;
         if (id) {
-          setInternalConvId(id);
+          convIdRef.current = id;
           onConversationCreated(id);
         }
       }
@@ -68,7 +71,7 @@ export function ChatPanel({
   const busy = status === 'streaming' || status === 'submitted';
   /** 发送用户消息（复用会话 id）；recordApplicationStatus 确认按钮亦经此发送确认消息 */
   const sendText = (text: string) =>
-    sendMessage({ text }, internalConvId ? { body: { conversationId: internalConvId } } : undefined);
+    sendMessage({ text }, convIdRef.current ? { body: { conversationId: convIdRef.current } } : undefined);
 
   // —— 滚动跟随底部：新消息/流式输出时若用户处于底部附近则自动滚到最下方 ——
   const scrollRef = useRef<HTMLDivElement>(null);

@@ -1,5 +1,5 @@
 'use client';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { ChatPanel } from '@/src/components/chat/chat-panel';
 import { Sidebar } from '@/src/components/sidebar/sidebar';
 import { ResumeDrawer } from '@/src/components/artifacts/resume-drawer';
@@ -8,6 +8,9 @@ import { TailoredResumeDrawer } from '@/src/components/artifacts/tailored-resume
 import { useConversations } from '@/src/lib/use-conversations';
 import { apiGet, apiSend } from '@/src/lib/api';
 import type { UIMessage } from 'ai';
+
+/** 最近会话持久化 key：刷新后恢复上次会话视图（仅客户端，挂载后读写） */
+const LAST_CONVERSATION_KEY = 'job-helper.last-conversation-id';
 
 export default function Home() {
   const { conversations, refresh, remove } = useConversations();
@@ -34,17 +37,33 @@ export default function Home() {
     setInitialMessages(msgs);
     setActiveId(id);
     setChatKey((k) => k + 1);
+    window.localStorage.setItem(LAST_CONVERSATION_KEY, id);
   }, []);
 
   const newConversation = useCallback(() => {
     setActiveId(null);
     setInitialMessages([]);
     setChatKey((k) => k + 1);
+    window.localStorage.removeItem(LAST_CONVERSATION_KEY);
   }, []);
 
   const handleConversationCreated = useCallback((id: string) => {
     setActiveId(id);
+    window.localStorage.setItem(LAST_CONVERSATION_KEY, id);
   }, []);
+
+  // 刷新后恢复最近会话：等会话列表加载完成（首轮渲染可能为空）后，若存在则自动打开
+  const restoredRef = useRef(false);
+  useEffect(() => {
+    if (restoredRef.current || conversations.length === 0) return;
+    restoredRef.current = true;
+    const saved = window.localStorage.getItem(LAST_CONVERSATION_KEY);
+    if (saved && conversations.some((c) => c.id === saved)) {
+      void selectConversation(saved);
+    } else {
+      window.localStorage.removeItem(LAST_CONVERSATION_KEY);
+    }
+  }, [conversations, selectConversation]);
 
   const handleRenameConversation = useCallback(async (id: string, title: string) => {
     await apiSend(`/api/conversations/${id}`, 'PATCH', { title });
