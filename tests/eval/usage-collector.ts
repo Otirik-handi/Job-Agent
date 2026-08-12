@@ -1,5 +1,7 @@
+import { wrapLanguageModel } from 'ai';
 import type { LanguageModel } from 'ai';
 import type {
+  LanguageModelV4,
   LanguageModelV4GenerateResult,
   LanguageModelV4StreamPart,
   LanguageModelV4Usage,
@@ -40,36 +42,37 @@ export function createUsageCollector() {
     totals = { ...EMPTY };
   }
 
-  /** 包装模型：getModel() 的真实模型实例（V4 形状），CLI 用包装后的模型跑评测。
-   * 泛型保留调用方类型（V4 模型包装后仍可直接访问 doGenerate/doStream）。 */
+  /** 包装模型：getModel() 的真实模型实例，CLI 用包装后的模型跑评测。
+   * 用 ai SDK 官方 wrapLanguageModel 中间件（不是对象展开——provider 模型是类实例，
+   * 原型方法如 transformRequestBody/convertUsage 展开即丢，SDK 内部调用会崩）。 */
   function wrap<T extends LanguageModel>(model: T): T {
-    // 联合类型（V2/V3/V4）在运行时都是同一批方法，包装只读 usage 不关心版本细节
-    const v4 = model as unknown as {
-      doGenerate: (params: never) => Promise<LanguageModelV4GenerateResult>;
-      doStream: (params: never) => Promise<{ stream: ReadableStream<LanguageModelV4StreamPart> }>;
-    };
-    return {
-      ...(model as object),
-      doGenerate: async (params: never) => {
-        const result = await v4.doGenerate(params);
-        add(result.usage);
-        return result;
-      },
-      doStream: async (params: never) => {
-        const result = await v4.doStream(params);
-        const [collect, use] = result.stream.tee();
-        void (async () => {
-          try {
-            for await (const part of collect as unknown as AsyncIterable<LanguageModelV4StreamPart>) {
-              if (part.type === 'finish') add(part.usage);
+    // wrapLanguageModel 的 model 参数要求具体 V2/V3/V4（不含字符串字面量），运行时是 V4 类实例
+    const wrapped = wrapLanguageModel({
+      model: model as LanguageModelV4,
+      middleware: {
+        specificationVersion: 'v4',
+        wrapGenerate: async ({ doGenerate }) => {
+          const result = await doGenerate();
+          add(result.usage);
+          return result;
+        },
+        wrapStream: async ({ doStream }) => {
+          const result = await doStream();
+          const [collect, use] = result.stream.tee();
+          void (async () => {
+            try {
+              for await (const part of collect as unknown as AsyncIterable<LanguageModelV4StreamPart>) {
+                if (part.type === 'finish') add(part.usage);
+              }
+            } catch {
+              // 收集分支异常只影响统计，不阻塞调用方消费返回分支
             }
-          } catch {
-            // 收集分支异常只影响统计，不阻塞调用方消费返回分支
-          }
-        })();
-        return { ...result, stream: use };
+          })();
+          return { ...result, stream: use };
+        },
       },
-    } as unknown as T;
+    });
+    return wrapped as unknown as T;
   }
 
   return { get totals() { return totals; }, add, reset, wrap };

@@ -38,6 +38,8 @@ async function main() {
   let passed = 0;
   let failed = 0;
   const startedAt = Date.now();
+  // 全量汇总：usage.reset() 每场景清空，需单独累计总用量
+  const grandTotal = { calls: 0, inputTokens: 0, outputTokens: 0, cacheReadTokens: 0, cacheWriteTokens: 0 };
   for (const scenario of targets) {
     let scenarioPassed = true;
     let lastError = '';
@@ -56,6 +58,11 @@ async function main() {
       }
     }
     const t = usage.totals;
+    grandTotal.calls += t.calls;
+    grandTotal.inputTokens += t.inputTokens;
+    grandTotal.outputTokens += t.outputTokens;
+    grandTotal.cacheReadTokens += t.cacheReadTokens;
+    grandTotal.cacheWriteTokens += t.cacheWriteTokens;
     // token 用量：input（含缓存命中）/ output / cacheRead；命中率 = cacheRead 占输入比例（P2-3 缓存验证指标）
     const tokenReport = `tokens in=${fmtTokens(t.inputTokens)} out=${fmtTokens(t.outputTokens)} cache=${fmtTokens(t.cacheReadTokens)}(${cacheHitRate(t.cacheReadTokens, t.inputTokens - t.cacheReadTokens - t.cacheWriteTokens)})`;
     if (scenarioPassed) {
@@ -67,9 +74,8 @@ async function main() {
     }
   }
   const elapsed = ((Date.now() - startedAt) / 1000).toFixed(1);
-  const total = usage.totals;
-  const totalHit = cacheHitRate(total.cacheReadTokens, total.inputTokens - total.cacheReadTokens - total.cacheWriteTokens);
-  console.log(`\n结果：${passed}/${targets.length} 通过（pass^${k}），耗时 ${elapsed}s，总 token in=${fmtTokens(total.inputTokens)} out=${fmtTokens(total.outputTokens)} cacheRead=${fmtTokens(total.cacheReadTokens)}（命中率 ${totalHit}）`);
+  const totalHit = cacheHitRate(grandTotal.cacheReadTokens, grandTotal.inputTokens - grandTotal.cacheReadTokens - grandTotal.cacheWriteTokens);
+  console.log(`\n结果：${passed}/${targets.length} 通过（pass^${k}），耗时 ${elapsed}s，总 token in=${fmtTokens(grandTotal.inputTokens)} out=${fmtTokens(grandTotal.outputTokens)} cacheRead=${fmtTokens(grandTotal.cacheReadTokens)}（命中率 ${totalHit}）`);
   if (failed > 0) process.exit(1);
 }
 
