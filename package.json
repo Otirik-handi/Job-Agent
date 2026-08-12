@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
-    "eval": "node --env-file=.env.local --import tsx tests/eval/run-eval.cli.ts"
+    "eval": "node --env-file=.env.local --import tsx tests/eval/run-eval.cli.ts",
+    "embed-backfill": "node --env-file=.env.local --import tsx scripts/embed-backfill.cli.ts"
   },
   "dependencies": {
     "@ai-sdk/openai-compatible": "^3.0.22",
