@@ -4,6 +4,7 @@ import type Database from 'better-sqlite3';
 import { getDb, initDb } from '../../src/db';
 import { createConversation } from '../../src/db/repositories/conversations';
 import { clearModelOverride, setModelOverride } from '../../src/agent/model';
+import { clearEmbeddingOverride } from '../../src/agent/embedding';
 import { runAgentTurn } from '../../src/agent/run-agent';
 import { toUserMessage, type Scenario, type ScenarioContext } from './scenarios/types';
 import { readdirSync, rmSync } from 'node:fs';
@@ -104,6 +105,7 @@ export async function runScenario(
   } finally {
     if (timeoutTimer) clearTimeout(timeoutTimer);
     clearModelOverride();
+    clearEmbeddingOverride();
     cleanupEvalPlans();
     // 恢复默认连接：评测临时库只在本场景内有效，供后续测试文件（串行）正常使用 dev 库
     initDb();

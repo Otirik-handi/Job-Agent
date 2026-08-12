@@ -12,9 +12,11 @@ import { midCourseCorrectionScenario } from './mid-course-correction';
 import { toolFailureRetryScenario } from './tool-failure-retry';
 import { memoryLimitRecoveryScenario } from './memory-limit-recovery';
 import { memoryRecallScenario } from './memory-recall';
+import { searchMessagesScenario } from './search-messages';
 
 export const scenarios: Scenario[] = [
   resumeAnalysisScenario, jdMatchScenario, interviewPrepScenario, offerCompareScenario, coverLetterScenario,
   tailoredResumeScenario, applyJobScenario, planTaskScenario, recordStatusScenario,
   midCourseCorrectionScenario, toolFailureRetryScenario, memoryLimitRecoveryScenario, memoryRecallScenario,
+  searchMessagesScenario,
 ];
