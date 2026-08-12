@@ -1,10 +1,12 @@
 import { describe, expect, it, beforeAll, afterAll } from 'vitest';
+import { sql } from 'drizzle-orm';
 import { createScriptedModel } from '../../tests/eval/mock-model';
 import { db, initDb } from '../db';
 import { migrate } from 'drizzle-orm/better-sqlite3/migrator';
 import { createConversation } from '../db/repositories/conversations';
 import { listMessages } from '../db/repositories/messages';
 import { getSessionState, setSessionState } from '../db/repositories/session-state';
+import { clearEmbeddingOverride, setEmbeddingOverride } from './embedding';
 import { runAgentTurn, type ToolProgressEvent } from './run-agent';
 
 function userMsg(text: string) {
@@ -108,5 +110,28 @@ describe('runAgentTurn（完整 Agent 循环）', () => {
       { toolName: 'importResume', status: 'running', message: '正在读取简历…' },
       { toolName: 'importResume', status: 'completed', message: '完成' },
     ]);
+  });
+
+  it('消息落库后同步嵌入（override 注入），embedding_json 写入', async () => {
+    const conv = createConversation('embed 钩子');
+    setEmbeddingOverride(async () => [0.1, 0.2]);
+    const model = createScriptedModel([
+      { type: 'text', text: '我只看远程岗位。' },
+    ]);
+    await runAgentTurn({ conversationId: conv.id, messages: [userMsg('我只看远程岗位')], model });
+    const row = db.get<{ embedding_json: string | null }>(sql`SELECT embedding_json FROM messages WHERE role = ${'assistant'} ORDER BY created_at DESC LIMIT 1`);
+    expect(row?.embedding_json).not.toBeNull();
+    expect(JSON.parse(row!.embedding_json!)).toEqual([0.1, 0.2]);
+    clearEmbeddingOverride();
+  });
+
+  it('嵌入失败（override 返回 null）不阻塞，embedding_json 保持 null', async () => {
+    const conv = createConversation('embed 降级');
+    setEmbeddingOverride(async () => null);
+    const model = createScriptedModel([{ type: 'text', text: '回复' }]);
+    await runAgentTurn({ conversationId: conv.id, messages: [userMsg('你好')], model });
+    const row = db.get<{ embedding_json: string | null }>(sql`SELECT embedding_json FROM messages WHERE role = ${'assistant'} ORDER BY created_at DESC LIMIT 1`);
+    expect(row?.embedding_json).toBeNull();
+    clearEmbeddingOverride();
   });
 });

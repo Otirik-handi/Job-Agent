@@ -8,6 +8,7 @@ import {
 } from 'ai';
 import type { LanguageModel } from 'ai';
 import { randomUUID } from 'node:crypto';
+import { sql } from 'drizzle-orm';
 import { getModel } from './model';
 import { getTools } from './agent';
 import { buildSystemPrompt } from './context';
@@ -18,6 +19,9 @@ import { insertMessage, listMessages } from '../db/repositories/messages';
 import { mapToolToAction } from './audit-log';
 import { listMemoryBlocks } from '../db/repositories/memory-blocks';
 import { getSessionState, setSessionState } from '../db/repositories/session-state';
+import { embedText } from './embedding';
+import { db } from '../db';
+import { messages } from '../db/schema';
 
 export type SessionStatePatch = { currentResumeId?: string; currentJobId?: string };
 
@@ -111,6 +115,34 @@ function dedupeCollected(collected: UIMessage[]): UIMessage[] {
   return [...byId.values()].map((m) => (m.id ? m : { ...m, id: randomUUID() }));
 }
 
+/** 消息 JSON → 嵌入文本：text parts 拼接；无文本返回 null（不嵌入） */
+export function extractEmbeddingText(messageJson: string): string | null {
+  try {
+    const msg = JSON.parse(messageJson) as { parts?: Array<{ type?: string; text?: string }> };
+    const texts = (msg.parts ?? [])
+      .filter((p): p is { type: 'text'; text: string } => p.type === 'text' && typeof p.text === 'string')
+      .map((p) => p.text);
+    const joined = texts.join('\n').trim();
+    return joined.length > 0 ? joined : null;
+  } catch {
+    return null;
+  }
+}
+
+/** 落库后同步嵌入（失败降级：不阻塞主流程；override/未配置时跳过） */
+async function embedMessage(recordId: string, messageJson: string): Promise<void> {
+  try {
+    const text = extractEmbeddingText(messageJson);
+    if (!text) return;
+    const vector = await embedText(text);
+    if (vector) {
+      db.update(messages).set({ embeddingJson: JSON.stringify(vector) }).where(sql`id = ${recordId}`).run();
+    }
+  } catch {
+    // 嵌入失败仅跳过（消息本身可用），不刷日志（避免敏感信息/噪声）
+  }
+}
+
 /**
  * Agent 回合核心：查历史 → 合并截断 + 入库去重 → 组装分层 prompt → ToolLoopAgent 循环
  * → 收集输出 → 持久化 → 返回新增 assistant 消息。route 与评测 runner 共用。
@@ -153,7 +185,8 @@ export async function runAgentTurn(options: {
   for (const msg of incoming) {
     const msgId = msg.id;
     if (msgId && existingIds.has(msgId)) continue;
-    insertMessage(conversationId, msg.role, JSON.stringify(msg));
+    const msgRecord = insertMessage(conversationId, msg.role, JSON.stringify(msg));
+    void embedMessage(msgRecord.id, JSON.stringify(msg));
     if (msgId) existingIds.add(msgId);
   }
 
@@ -228,7 +261,9 @@ export async function runAgentTurn(options: {
     const deduped = dedupeCollected(collected);
     for (const m of deduped) {
       if (m.role === 'assistant') {
-        insertMessage(conversationId, 'assistant', JSON.stringify(m));
+        const withIdRecord = insertMessage(conversationId, 'assistant', JSON.stringify(m));
+        // 同步等嵌入落库：保证 runAgentTurn 返回时 embedding 已写入（fail 时内部降级，不抛错）
+        await embedMessage(withIdRecord.id, JSON.stringify(m));
       }
     }
     touchConversation(conversationId);
