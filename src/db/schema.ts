@@ -109,3 +109,12 @@ export const actions = sqliteTable('actions', {
   index('actions_conversation_idx').on(t.conversationId, t.createdAt),
   index('actions_action_idx').on(t.action, t.createdAt),
 ]);
+
+// webFetch 结果缓存：url 为规范化后的 URL；source: direct | jina | opencli；超 ttl_sec 视为过期需重新抓取
+export const fetchCache = sqliteTable('fetch_cache', {
+  url: text('url').primaryKey(),
+  markdown: text('markdown').notNull(),
+  source: text('source').notNull(),
+  fetchedAt: text('fetched_at').notNull(),
+  ttlSec: integer('ttl_sec').notNull().default(86400), // 24h
+});
