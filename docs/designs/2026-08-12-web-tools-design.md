@@ -25,8 +25,8 @@ P2 批次 D 定稿：开发 web 工具，解锁 company-research / salary-benchm
 | 决策点 | 结论 | 理由 |
 |---|---|---|
 | 首批工具 | `webSearch` + `webFetch` 两个；**web-browse 明确不做**（用户决议 2026-08-12） | 调研 §7.1 + 实测支撑；无交互型需求 |
-| 搜索后端 | Brave Search API 首选（env `BRAVE_API_KEY`）；预留 Tavily 作为可配置备选 | $5/月免费额度够单用户；独立索引无 Google ToS 风险；官方 TS 实现可参考 |
-| fetch 后端 | **三级降级链**：direct（自建 HTTP+解析）→ jina（Jina Reader 渲染）→ opencli（站点适配器） | 三份实测报告逐站验证的覆盖矩阵 |
+| 搜索后端 | **多供应商可配置**（用户决议 2026-08-12）：`TAVILY_API_KEY`（首选，免费层 1000 次/月，邮箱注册免外卡）> `ZHIPU_API_KEY`（智谱，国内手机号+支付宝）> `BRAVE_API_KEY`（需外卡，按 key 存在性自动选择） | Brave 注册需国外银行卡（用户无）；实测 Tavily/智谱端点可达；供应商抽象保留未来扩展 |
+| fetch 后端 | **三级降级链**：direct（自建 HTTP+解析）→ jina（Jina Reader 渲染）→ opencli（站点适配器）。⚠️ 实测 `r.jina.ai` 当前网络不可达（2026-08-12 探测 000）——jina 层代码保留，D1 冒烟时按实测调整路由（不可用则 direct 失败直接跳 opencli 或标注网络依赖） | 三份实测报告逐站验证的覆盖矩阵 |
 | 缓存 | 新表 `fetch_cache`（url → markdown，TTL 24h），缓存优先、显式 refresh 绕过 | 对齐 Codex `cached` 默认 / Gemini 两步检索；职位页重复抓取收益明显 |
 | URL 来源约束 | 会话内维护"可信 URL 集合"（webSearch 结果 + 用户消息显式 URL），webFetch 校验 url ∈ 集合，否则 `FETCH_SOURCE_RESTRICTED` | 对齐 Anthropic"禁止动态构造 URL"；防 SSRF 与数据外泄 |
 | 审批 | 两工具均**免确认**（只读、无副作用），结果附来源 URL 供用户核验 | 对齐审批分档第一档；URL 来源受限后风险可控，避免确认疲劳 |
@@ -57,7 +57,8 @@ inputSchema（z.strictObject）：
 ```
 
 - description（3-4 句，对齐规范）：首句"实时网络搜索，返回职位/公司/行业信息的结果列表（标题+URL+摘要）"；次句参数（query 搜索词、maxResults 条数、freshness 时效）；第三句边界（只返回元数据不取正文，需要正文调用 webFetch；结果 URL 可信、可用于 webFetch 参数）；末句返回内容与引用。
-- 错误码：`SEARCH_NOT_CONFIGURED`（缺 BRAVE_API_KEY，hint：提示配置环境变量）、`SEARCH_RATE_LIMITED`、`SEARCH_FAILED`。
+- 错误码：`SEARCH_NOT_CONFIGURED`（未配置任何供应商 key——`TAVILY_API_KEY` / `ZHIPU_API_KEY` / `BRAVE_API_KEY` 三选一，hint 按优先级提示）、`SEARCH_RATE_LIMITED`、`SEARCH_FAILED`。
+- 供应商选择：按环境变量 key 存在性自动选择（优先级 Tavily > 智谱 > Brave）；输出统一 `{ title, url, snippet, source }`（source=域名）。
 
 ### 3.2 webFetch
 
@@ -174,8 +175,8 @@ fetch_cache(
 
 ## 10. 开放问题（实现计划前确认）
 
-1. **Jina Reader 实测**：评估报告标注"待接入时验证"（服务端 IP 风控状态与本地不同）——D1 实现时以真实 URL 冒烟确认，若 Jina 对 51job/猎聘不可用则 D1 调整路由（51job 直接跳 D2 的 OpenCLI）。
-2. **Brave key 获取**：用户注册获取 `BRAVE_API_KEY`（免费 $5/月）；D1 前完成，否则 SEARCH_NOT_CONFIGURED 空转。
+1. **Jina Reader 实测**：⚠️ 2026-08-12 网络探测 `r.jina.ai` 不可达（000）——D1 实现时再冒烟确认一次；若仍不可用则降级链调整为 direct → opencli（jina 层代码保留但路由跳过，标注网络依赖）。
+2. **搜索供应商 key**（多供应商可配置，任选其一）：Tavily 免费层（邮箱注册免外卡，推荐首选）→ 智谱（国内手机号+支付宝）→ Brave（需外卡）；D1 前配好至少一个，否则 SEARCH_NOT_CONFIGURED 空转。
 3. **可信 URL 集合的会话生命周期**：会话内内存 Map 即可（本地单用户），还是需要跨会话持久化（如用户粘贴 URL 到新会话）——倾向内存 + 用户消息实时提取，跨会话不追溯。
 4. **OpenCLI 登录态持久性**：Boss cookie 有效期未知，D2 时记录实际表现，必要时给 webFetch 加"重新登录"引导。
 5. ~~web-browse 再评估~~ **已关闭**（用户决议 2026-08-12 明确不做）：无交互型需求，现有三级降级链覆盖全部已验证场景。
