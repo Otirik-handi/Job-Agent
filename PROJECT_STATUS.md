@@ -1,10 +1,10 @@
 # PROJECT STATUS — job-helper 项目状态
 
-> 本文档记录项目当前状态、已完成工作与下一步计划。随里程碑更新（最后一次更新：2026-08-12，P1 全部落地 + P2 批次 A/C 落地）。
+> 本文档记录项目当前状态、已完成工作与下一步计划。随里程碑更新（最后一次更新：2026-08-12，P1 全部落地 + P2 批次 A/B/C 落地）。
 
 ## 当前状态
 
-- **基线稳定**：224 个测试全绿（`npm test`，含 13 个评测场景 + mock-model + usage-collector 等），`lint` / `tsc --noEmit` / `build` 全部通过
+- **基线稳定**：238 个测试全绿（`npm test`，含 13 个评测场景 + mock-model + usage-collector 等），`lint` / `tsc --noEmit` / `build` 全部通过
 - **里程碑**：P0（Agent 基础骨架）+ P1（Agent 进阶能力）全部落地并合并至 main，已推送 GitHub
 - 分支：`main`（与 origin/main 同步）；历史 feature 分支均已合并清理
 
@@ -40,7 +40,8 @@
 
 ## 工程基线
 
-- **测试**：224 个（含 13 个评测场景 + mock-model + usage-collector 等；纯函数单测为主：apply-state / channel-guard / llm-call / resume-* / tool-factory / skills / plans / lessons / summary / tool-step-card / audit-log（mapToolToAction 审计钩子）等）
+- **测试**：238 个（含 13 个评测场景 + mock-model + usage-collector 等；纯函数单测为主：apply-state / channel-guard / llm-call / resume-* / tool-factory / skills / plans / lessons / summary / tool-step-card / audit-log（mapToolToAction 审计钩子）等）
+- **批次 B 新增（2026-08-12）**：语义检索链路——embedding 模块（硅基流动调用 + override 注入 + 降级）、vector-search（自算余弦）、searchMessages 工具（只读免确认）+ 评测场景（embedding override 注入）
 - **批次 C 新增（2026-08-12）**：negotiation / follow-up 两个方法论 skill（共 8 个求职 skill）+ actions 审计表（schema + repository + 过滤查询）；runAgentTurn 经 `onToolExecutionEnd` 横切记录关键动作（applyJob / recordApplicationStatus / tailoredResume 导出等），写入失败降级不阻塞（对齐 persistSessionState 模式）
 - **规范体系**：`.agents/specs/`（00 治理 / 01 前端 / 02 后端 / 03 Agent / 04 注释）随实现补充了记忆、Skill、规划、反思、摘要、步骤卡片等约定
 - **文档链**：调研报告 → 讨论纪要 → 计划文档（phase7-13）→ 本状态文件
@@ -50,12 +51,12 @@
 ### P2 队列（调研报告路线图，2026-08-12 全部定稿；实现分批推进中）
 
 1. **评测基线** ✅ 已落地（2026-08-11）：双层评测（mock 层入 vitest 13 场景防编排回归 + `npm run eval` 真实模型层 pass^2 能力验证），设计见 docs/designs/2026-08-11-eval-baseline-design.md，实现见 docs/plans/2026-08-11-eval-baseline.md。真实层首跑（deepseek-v4-flash）：适配后 12/13 通过（jd-match 见已知限制）
-2. **语义检索** 📋 已定稿待实现（2026-08-12）：硅基流动 bge-m3 免费 embedding + 自算余弦（向量存 JSON 列）+ 仅 messages + 同步嵌入降级 + `searchMessages` 工具；时间衰减不做
+2. **语义检索** ✅ 已落地（2026-08-12）：硅基流动 bge-m3 embedding + 自算余弦（向量存 JSON 列）+ searchMessages 工具 + 落库同步嵌入（失败降级）+ 存量回填脚本（npm run embed-backfill）
 3. **Prompt caching 优化** ✅ 已落地（2026-08-12）：**验证结论——opencode.ai 自动前缀缓存已生效**（评测 CLI usage 统计实测：全量 13 场景 cacheRead 命中率 89-100%，输入 token 约 95% 命中缓存，无需显式标记代码）
 4. **子 Agent（最小 supervisor）** ✅ 决议关闭：明确不做（2026-08-12 用户决议，触发信号不再评估）；工具表落地 web 工具后 15 个，规模可控
 5. **其他增强** 🟡 部分落地（2026-08-12）：token 监控已随批次 A 落地（评测 CLI usage 统计）；批次 C 完成——negotiation/follow-up skill + actions 审计表（runAgentTurn 横切记录）；company-research/salary-benchmark 挂起等批次 D web 工具
 
-实现批次：A ✅ → C ✅ → B（语义检索）→ D（web 工具，计划就绪：webSearch + webFetch 三级降级链，web-browse 明确不做；见 docs/designs/2026-08-12-web-tools-design.md 与 docs/plans/2026-08-12-web-tools.md，依据三份调研/评估报告）。定稿详情见讨论纪要 P2-2~P2-5。
+实现批次：A ✅ → C ✅ → B ✅ → D（web 工具，计划就绪：webSearch + webFetch 三级降级链，web-browse 明确不做；见 docs/designs/2026-08-12-web-tools-design.md 与 docs/plans/2026-08-12-web-tools.md，依据三份调研/评估报告）。定稿详情见讨论纪要 P2-2~P2-5。
 
 ### 已知限制（各期验收记录，后续处理）
 
@@ -69,6 +70,7 @@
 - 评测真实层：jd-match 对 jobMatchResultSchemaV1（复杂嵌套 + id 一致性校验）的结构化输出不稳定，deepseek-v4-flash 多次 repair 仍不合格 → fit_result_json 不落库，场景失败（模型能力问题，评测正确捕获；后续可优化 schema 复杂度或换模型验证）
 - 评测真实层：全量 13 场景耗时约 15-16 分钟（单次 LLM 调用 20-100s），慢模型下多步场景可能触及 180s 超时（jd-match 已放宽 300s）
 - 评测真实层：mock 脚本预设的模型行为（自选 taskId/先追问）在真实层不成立，场景用 assertFinalStateReal 分层断言放宽（缺省复用 mock 断言）
+- 语义检索依赖 EMBEDDING_* 环境变量（硅基流动 key）——未配置时消息不嵌入、searchMessages 返回 EMBEDDING_FAILED
 
 ## 文档索引
 
@@ -76,6 +78,8 @@
 - 讨论纪要：`docs/research/2026-08-10-agent-roadmap-discussion.md`（P0 五项 + P1 五项定稿）
 - 评测基线设计：`docs/designs/2026-08-11-eval-baseline-design.md`（双层评测）
 - 评测基线计划：`docs/plans/2026-08-11-eval-baseline.md`
+- 批次 B 设计：`docs/designs/2026-08-12-semantic-search-design.md`（语义检索）
+- 批次 B 计划：`docs/plans/2026-08-12-semantic-search.md`
 - 批次 C 设计：`docs/designs/2026-08-12-skill-extension-audit-design.md`（skill 扩展 + 审计表）
 - 批次 C 计划：`docs/plans/2026-08-12-skill-extension-audit.md`
 - 批次 D 设计：`docs/designs/2026-08-12-web-tools-design.md`（webSearch + webFetch 三级降级链）
