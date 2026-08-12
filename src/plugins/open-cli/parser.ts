@@ -6,8 +6,11 @@
 const SECURITY_FIELDS = new Set(['security_id', 'securityId', 'securityKey', 'encryptToken', 'token']);
 
 export function parseSiteJson(raw: string): Record<string, unknown> | null {
-  const start = raw.indexOf('{');
-  const end = raw.lastIndexOf('}');
+  // 真实 CLI 输出：51job 为数组（detail 单元素 / search 多元素），boss 为对象——取首个 [ 或 { 到末尾配对符
+  const arrStart = raw.indexOf('[');
+  const objStart = raw.indexOf('{');
+  const start = arrStart !== -1 && (objStart === -1 || arrStart < objStart) ? arrStart : objStart;
+  const end = raw.lastIndexOf(start === arrStart ? ']' : '}');
   if (start < 0 || end <= start) return null;
   try {
     const parsed = JSON.parse(raw.slice(start, end + 1)) as unknown;

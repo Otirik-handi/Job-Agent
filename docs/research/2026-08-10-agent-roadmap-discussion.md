@@ -148,11 +148,11 @@
 
 **token 预算自监控**：仅评测层——评测 CLI 加 usage 收集（每场景 token + cacheRead 统计，与 P2-3 验证合流）；产品层不做预算预警（个人应用价值低）
 
-- 实现：2026-08-12 批次 C 落地（negotiation/follow-up skill + actions 审计表 + runAgentTurn 横切记录钩子）
+- 实现：2026-08-12 批次 C 落地（negotiation/follow-up skill + actions 审计表 + runAgentTurn 横切记录钩子）；批次 D1+D3 落地（webSearch/webFetch 三级降级链 + company-research/salary-benchmark skill）；**批次 D2 落地（2026-08-12）：OpenCLI 插件接入 51job/Boss 采集（`src/plugins/` 顶层插件基座 + `src/plugins/open-cli/`：site-mapper/parser/runner/doctor/index）**——webFetch 降级链 opencli 层改查插件注册表，安全剥离 security_id、51job 字段修复、Boss 未登录映射 FETCH_NEEDS_LOGIN；Task 7 真实冒烟通过（51job search/detail + Boss detail，登录态实测有效），冒烟驱动的字段清单校准与 Windows .cmd spawn 修正见 `docs/plans/2026-08-12-opencli-plugin.md` 末尾冒烟记录。
 
 ## P2 讨论状态（2026-08-12）
 
-五项全部定稿：P2-1 已实现落地；P2-3 caching 验证完成（opencode.ai 自动前缀缓存生效，usage 统计随批次 A 落地）；P2-5 其他增强部分落地（批次 C：negotiation/follow-up skill + actions 审计表）；P2-2 语义检索已落地（searchMessages 工具 + 同步嵌入 + 回填脚本）；P2-4 子 Agent 决议关闭（明确不做，2026-08-12 用户决议）。实现批次：A ✅ → C ✅ → B（语义检索）→ D（web 工具，计划就绪：见 `docs/plans/2026-08-12-web-tools.md` 与 `docs/designs/2026-08-12-web-tools-design.md`，web-browse 明确不做）。
+五项全部定稿：P2-1 已实现落地；P2-3 caching 验证完成（opencode.ai 自动前缀缓存生效，usage 统计随批次 A 落地）；P2-5 其他增强部分落地（批次 C：negotiation/follow-up skill + actions 审计表）；P2-2 语义检索已落地（searchMessages 工具 + 同步嵌入 + 回填脚本）；P2-4 子 Agent 决议关闭（明确不做，2026-08-12 用户决议）。实现批次：A ✅ → C ✅ → B ✅（语义检索）→ D1 ✅ + D2 ✅ + D3 ✅（web 工具：计划见 `docs/plans/2026-08-12-web-tools.md` 与 `docs/designs/2026-08-12-web-tools-design.md`，OpenCLI 插件见 `docs/plans/2026-08-12-opencli-plugin.md` 与 `docs/designs/2026-08-12-opencli-plugin-design.md`，web-browse 明确不做）。
 
 - 第 2 项：结构化会话状态（session_state 表，P0-2）
 - 第 3 项：上下文策略（SYSTEM_PROMPT 分节 + 简历/JD 按需注入，P0-3）

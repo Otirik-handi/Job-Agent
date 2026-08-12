@@ -1,4 +1,4 @@
-/** 三级降级链：direct → jina → opencli（插件注册表；未注册/不可用自动跳过） */
+/** 三级降级链：direct → jina → opencli（插件注册表；未注册自动跳过，不可用/失败映射 FETCH_BLOCKED） */
 import { decodeHtmlBytes } from './web-charset';
 import { htmlToMarkdown } from './web-html';
 import { detectWaf } from './web-waf-detect';
@@ -81,9 +81,9 @@ export async function routeFetch(args: {
   if (direct.ok) return direct;
   const jina = await jinaFetch(fetchImpl, url, maxChars);
   if (jina.ok) return jina;
-  // opencli 插件层：经注册表调用（未注册/不可用 → 跳过，保持 D1 行为）
+  // opencli 插件层：经注册表调用（未注册 → 跳过；可用性由插件 fetch 内部判定——冷缓存首次 await doctor，避免首轮误判）
   const openCliPlugin = getPlugin('open-cli');
-  if (openCliPlugin && openCliPlugin.canHandle(url) && openCliPlugin.isAvailable()) {
+  if (openCliPlugin && openCliPlugin.canHandle(url)) {
     const outcome = await openCliPlugin.fetch(url);
     if (outcome.ok) {
       const truncated = outcome.content.length > maxChars;

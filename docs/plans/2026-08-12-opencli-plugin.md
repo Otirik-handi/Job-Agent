@@ -775,3 +775,12 @@ git commit -m "docs: 批次 D2 验收（OpenCLI 插件接入 51job/Boss 采集�
 - **类型一致性**：`FetchBackendPlugin`/`PluginFetchOutcome`/`registerPlugin`/`getPlugin`/`mapUrlToCommand`/`parseSiteJson`/`stripSecurityFields`/`fix51jobFields`/`runOpenCli`/`checkDoctor`/`createOpenCliPlugin` 签名在定义与引用任务间一致。
 - **占位符扫描**：无 TODO/待定；51job/boss 输出字段名标注"以冒烟实测为准"（Task 7 调整点，非占位）。
 - **自审修正**：registry 测试间污染 → Task 6 注明加 `clearPlugins()`（测试专用）或在测试内覆盖注册；doctor 同步语义张力 → Task 4 注明实现选择（保守 false + 异步刷新，或 fetch 时先 await doctor——最终由实现者按测试/冒烟确定并在 isAvailable 保持一致）。
+
+---
+
+## 冒烟实测记录（2026-08-12，Task 7）
+
+- **51job search 实测**：成功，返回 20 条 JSON **数组**（非对象）。字段：`rank, jobId, title, salary, salaryMin, salaryMax, city, district, workYear, degree, tags, company, companyFull, companyType, companySize, industry, hr, issueDate, url, companyUrl, encCoId`（公司名字段为 `company`，无 `companyName`；无 `jd`）。
+- **51job detail 实测**：成功，返回**单元素数组**（与 search 同形态）。字段：`jobId, title, salary, location, workYear, degree, category, address, ageRequirement, description, welfare, company, companyType, companySize, companyIndustry, companyUrl, url`。`title` 实测为按钮文案 **"APP下载"**（Task 3 的 fix51jobFields 真实触发，用 `category` 交叉校验修复为 "前端开发"——真实数据验证修复有效）；JD 在 `description`。
+- **Boss detail 实测**：**成功（非 AUTH_REQUIRED）**——本机 Boss 登录态有效。**登录态有效期观测**：2026-08-12 实测 Chrome 扩展 v1.0.22 会话仍有效，detail 正常返回（cookie 长期有效，无需重新登录；失效后 detail 返回 AUTH_REQUIRED，插件转 NEEDS_LOGIN，hint 引导 `opencli boss login` 一次人工登录）。字段：`name, salary, experience, degree, city, district, description, skills, welfare, boss_name, boss_title, active_time, company, industry, scale, stage, address, url`（标题字段为 `name` 而非 `title`；detail 输出不含 security_id，search 输出含 `security_id`——剥离已验证）。非登录态 AUTH_REQUIRED 路径由单测覆盖（不执行 boss login 等写操作）。
+- **字段拼接清单调整：有**（Task 5 清单 `title/jobName/companyName/salary/city/jd/jobDesc/requirements` 与真实字段不符，已校准为 `title/name/company/salary/city/category/workYear/degree/description`；标题回退 `title`→`name`；51job detail/search 均为数组，取首元素做摘要、多元素追加完整列表）。**另有冒烟驱动的实现修正**（提交附注说明）：① Windows 下 opencli 是 npm `.cmd` shim，`spawn` 直启 ENOENT/EINVAL——runner 改经 `cmd.exe /d /s /c` 解析（参数 `quoteWinArg` 引用，纯函数单测）；② `opencli doctor` 不支持 `-f json`（实测报 unknown option）——doctor 调用 `json:false` 跳过格式后缀；③ 冷缓存首轮 `isAvailable` 保守 false 会误判 BLOCKED——新增 `ensureDoctor`（fetch 路径 await 真实检查），router 的 opencli 层不再用同步 isAvailable 门控；④ `parseSiteJson` 增加数组形态支持（原实现只取 `{...}`，真实数组输出会解析失败）。全量验证：308 个测试全绿（原 302 + 新增 6）+ lint 0 error + tsc 通过；真实 e2e（插件代码 + 真实 CLI + 真实站点）三条路径全部成功且输出无 security_id 残留。

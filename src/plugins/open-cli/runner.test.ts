@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { runOpenCli } from './runner';
+import { buildWinCommand, quoteWinArg, runOpenCli } from './runner';
 import { checkDoctor, refreshDoctor } from './doctor';
 
 /** 假 exec：直接返回预设输出（不 spawn 真实进程） */
@@ -18,6 +18,24 @@ describe('runOpenCli（spawn 封装，execImpl 可注入）', () => {
     const execImpl = fakeExec('', 1);
     const result = await runOpenCli(['x'], { execImpl });
     expect(result.code).toBe(1);
+  });
+});
+
+describe('quoteWinArg / buildWinCommand（Windows cmd 引用，纯函数——冒烟发现 opencli 为 .cmd shim）', () => {
+  it('无元字符不引用', () => {
+    expect(quoteWinArg('abc123')).toBe('abc123');
+    expect(quoteWinArg('51job')).toBe('51job');
+  });
+  it('空白与 cmd 元字符加双引号，内部引号翻倍', () => {
+    expect(quoteWinArg('a b')).toBe('"a b"');
+    expect(quoteWinArg('前端 工程师')).toBe('"前端 工程师"');
+    expect(quoteWinArg('c&d')).toBe('"c&d"');
+    expect(quoteWinArg('a|b')).toBe('"a|b"');
+    expect(quoteWinArg('a"b')).toBe('"a""b"');
+  });
+  it('buildWinCommand 拼接命令与参数', () => {
+    expect(buildWinCommand('opencli', ['51job', 'search', '前端 工程师', '-f', 'json']))
+      .toBe('opencli 51job search "前端 工程师" -f json');
   });
 });
 

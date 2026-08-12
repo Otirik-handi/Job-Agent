@@ -8,6 +8,10 @@ describe('parseSiteJson（容错 JSON 解析）', () => {
   it('容错：截取首个 { 到末尾 }（CLI 输出可能带前后杂讯）', () => {
     expect(parseSiteJson('prefix {"a":1} suffix')).toEqual({ a: 1 });
   });
+  it('数组输出（51job 真实形态：detail/search 均为 JSON 数组）', () => {
+    expect(parseSiteJson('[\n  {"jobId":"1","title":"a"},\n  {"jobId":"2","title":"b"}\n]'))
+      .toEqual([{ jobId: '1', title: 'a' }, { jobId: '2', title: 'b' }]);
+  });
   it('无 JSON 返回 null', () => {
     expect(parseSiteJson('nothing')).toBeNull();
   });

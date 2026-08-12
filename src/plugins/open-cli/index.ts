@@ -3,7 +3,7 @@ import type { FetchBackendPlugin, PluginFetchOutcome } from '../types';
 import { mapUrlToCommand } from './site-mapper';
 import { fix51jobFields, parseSiteJson, stripSecurityFields } from './parser';
 import { runOpenCli, type ExecImpl } from './runner';
-import { checkDoctor } from './doctor';
+import { checkDoctor, ensureDoctor } from './doctor';
 
 /** 插件选项（测试注入 execImpl/doctorOk；生产默认真实 spawn + doctor 缓存） */
 export type OpenCliPluginOptions = { execImpl?: ExecImpl; doctorOk?: boolean };
@@ -23,7 +23,9 @@ export function createOpenCliPlugin(opts: OpenCliPluginOptions = {}): FetchBacke
     isAvailable,
     canHandle: (url: string) => mapUrlToCommand(url) !== null,
     fetch: async (url: string): Promise<PluginFetchOutcome> => {
-      if (!isAvailable()) {
+      // 可用性：冷缓存首次 await 真实 doctor（冒烟决策：避免首轮保守 false 误判 BLOCKED）；doctorOk 为测试注入
+      const available = doctorOk !== undefined ? doctorOk : await ensureDoctor({ execImpl });
+      if (!available) {
         return { ok: false, code: 'BLOCKED', message: 'OpenCLI 不可用', hint: '请确认 opencli daemon 与 Chrome 扩展已启动（opencli doctor）。' };
       }
       const cmd = mapUrlToCommand(url);
@@ -49,17 +51,31 @@ export function createOpenCliPlugin(opts: OpenCliPluginOptions = {}): FetchBacke
       if (err) {
         return { ok: false, code: 'BLOCKED', message: `站点返回错误：${err.code ?? 'UNKNOWN'}`, hint: '该页面采集失败，可尝试人工查看后导入。' };
       }
-      // 脱敏 + 字段修复（51job）
-      const safe = stripSecurityFields(parsed) as Record<string, unknown>;
-      const data = cmd.site === '51job' ? fix51jobFields(safe as Record<string, unknown>) : safe;
-      // 结构化字段 → Markdown 摘要（title/companyName/jd/salary 等字段按存在拼接）
+      // 脱敏（递归剥离 security_id 等）+ 51job 字段修复
+      const safe = stripSecurityFields(parsed) as unknown;
+      // 真实 CLI 输出：51job 为数组（detail 单元素 / search 多元素），boss 为对象——摘要取首条
+      const list = (Array.isArray(safe) ? safe : [safe]) as unknown[];
+      const first = list[0] && typeof list[0] === 'object'
+        ? (cmd.site === '51job' ? fix51jobFields(list[0] as Record<string, unknown>) : list[0] as Record<string, unknown>)
+        : null;
+      // 结构化字段 → Markdown 摘要（字段名经 Task 7 真实冒烟校准：companyName→company、jd→description、boss 用 name）
       const lines: string[] = [];
-      for (const key of ['title', 'jobName', 'companyName', 'salary', 'city', 'jd', 'jobDesc', 'requirements']) {
-        const v = (data as Record<string, unknown>)[key];
-        if (typeof v === 'string' && v.trim()) lines.push(`${key}: ${v.trim()}`);
+      if (first) {
+        for (const key of ['title', 'name', 'company', 'salary', 'city', 'category', 'workYear', 'degree', 'description']) {
+          const v = first[key];
+          if (typeof v === 'string' && v.trim()) lines.push(`${key}: ${v.trim()}`);
+        }
       }
-      const content = lines.join('\n') || JSON.stringify(data, null, 2);
-      return { ok: true, title: typeof data.title === 'string' ? data.title.slice(0, 120) : '', content, citations: [url] };
+      // 搜索列表（多元素）：摘要 + 完整列表（超长由 web-fetch-router 截断兜底）；单条/对象走摘要
+      const content = lines.length
+        ? (list.length > 1 ? `${lines.join('\n')}\n\n--- 完整列表（共 ${list.length} 条）---\n${JSON.stringify(safe, null, 2)}` : lines.join('\n'))
+        : JSON.stringify(safe, null, 2);
+      const title = first && typeof first.title === 'string' && first.title.trim()
+        ? first.title.slice(0, 120)
+        : first && typeof first.name === 'string'
+          ? first.name.slice(0, 120)
+          : '';
+      return { ok: true, title, content, citations: [url] };
     },
   };
 }

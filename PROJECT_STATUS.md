@@ -1,10 +1,10 @@
 # PROJECT STATUS — job-helper 项目状态
 
-> 本文档记录项目当前状态、已完成工作与下一步计划。随里程碑更新（最后一次更新：2026-08-12，P1 全部落地 + P2 批次 A/B/C 落地）。
+> 本文档记录项目当前状态、已完成工作与下一步计划。随里程碑更新（最后一次更新：2026-08-12，P1 全部落地 + P2 批次 A/B/C/D 落地）。
 
 ## 当前状态
 
-- **基线稳定**：277 个测试全绿（`npm test`，含 13 个评测场景 + mock-model + usage-collector 等），`lint` / `tsc --noEmit` / `build` 全部通过
+- **基线稳定**：308 个测试全绿（`npm test`，含 13 个评测场景 + mock-model + usage-collector 等），`lint` / `tsc --noEmit` / `build` 全部通过
 - **里程碑**：P0（Agent 基础骨架）+ P1（Agent 进阶能力）全部落地并合并至 main，已推送 GitHub
 - 分支：`main`（与 origin/main 同步）；历史 feature 分支均已合并清理
 
@@ -40,7 +40,7 @@
 
 ## 工程基线
 
-- **测试**：277 个（含 13 个评测场景 + mock-model + usage-collector 等；纯函数单测为主：apply-state / channel-guard / llm-call / resume-* / tool-factory / skills / plans / lessons / summary / tool-step-card / audit-log（mapToolToAction 审计钩子）等）
+- **测试**：308 个（含 13 个评测场景 + mock-model + usage-collector 等；纯函数单测为主：apply-state / channel-guard / llm-call / resume-* / tool-factory / skills / plans / lessons / summary / tool-step-card / audit-log（mapToolToAction 审计钩子）等）
 - **批次 B 新增（2026-08-12）**：语义检索链路——embedding 模块（硅基流动调用 + override 注入 + 降级）、vector-search（自算余弦）、searchMessages 工具（只读免确认）+ 评测场景（embedding override 注入）
 - **批次 C 新增（2026-08-12）**：negotiation / follow-up 两个方法论 skill（共 8 个求职 skill）+ actions 审计表（schema + repository + 过滤查询）；runAgentTurn 经 `onToolExecutionEnd` 横切记录关键动作（applyJob / recordApplicationStatus / tailoredResume 导出等），写入失败降级不阻塞（对齐 persistSessionState 模式）
 - **规范体系**：`.agents/specs/`（00 治理 / 01 前端 / 02 后端 / 03 Agent / 04 注释）随实现补充了记忆、Skill、规划、反思、摘要、步骤卡片等约定
@@ -56,7 +56,7 @@
 4. **子 Agent（最小 supervisor）** ✅ 决议关闭：明确不做（2026-08-12 用户决议，触发信号不再评估）；工具表落地 web 工具后 15 个，规模可控
 5. **其他增强** 🟡 部分落地（2026-08-12）：token 监控已随批次 A 落地（评测 CLI usage 统计）；批次 C 完成——negotiation/follow-up skill + actions 审计表（runAgentTurn 横切记录）；company-research/salary-benchmark 挂起等批次 D web 工具
 
-实现批次：A ✅ → C ✅ → B ✅ → D1 ✅ + D3 ✅（web 工具 D1 十二任务 + 冒烟完成；company-research/salary-benchmark skill 已落地；D2 OpenCLI 待启动；web-browse 明确不做）。定稿详情见讨论纪要 P2-2~P2-5。
+实现批次：A ✅ → C ✅ → B ✅ → D1 ✅ + D2 ✅ + D3 ✅（web 工具全链路完成：D1 十二任务 + 冒烟；D2 OpenCLI 插件接入 51job/Boss 采集；D3 company-research/salary-benchmark skill；web-browse 明确不做）。定稿详情见讨论纪要 P2-2~P2-5。
 
 ### 已知限制（各期验收记录，后续处理）
 
@@ -71,6 +71,8 @@
 - 评测真实层：全量 13 场景耗时约 15-16 分钟（单次 LLM 调用 20-100s），慢模型下多步场景可能触及 180s 超时（jd-match 已放宽 300s）
 - 评测真实层：mock 脚本预设的模型行为（自选 taskId/先追问）在真实层不成立，场景用 assertFinalStateReal 分层断言放宽（缺省复用 mock 断言）
 - 语义检索依赖 EMBEDDING_* 环境变量（硅基流动 key）——未配置时消息不嵌入、searchMessages 返回 EMBEDDING_FAILED
+- OpenCLI：Boss 登录态 2026-08-12 实测仍有效（Chrome 扩展 v1.0.22 会话，cookie 长期有效）；失效后 boss detail 返回 AUTH_REQUIRED，webFetch 降级链映射 FETCH_NEEDS_LOGIN（hint 引导 `opencli boss login` 一次人工登录）
+- OpenCLI（Windows）：opencli 为 npm .cmd shim，命令经 cmd.exe 引用拼接执行；参数含 `%`/`!` 时引号内仍会展开（已知边角，本地单用户可接受）
 
 ## 文档索引
 
@@ -84,5 +86,7 @@
 - 批次 C 计划：`docs/plans/2026-08-12-skill-extension-audit.md`
 - 批次 D 设计：`docs/designs/2026-08-12-web-tools-design.md`（webSearch + webFetch 三级降级链）
 - 批次 D 计划：`docs/plans/2026-08-12-web-tools.md`
+- 批次 D2 设计：`docs/designs/2026-08-12-opencli-plugin-design.md`（OpenCLI 插件：site-mapper/parser/runner/doctor）
+- 批次 D2 计划：`docs/plans/2026-08-12-opencli-plugin.md`（含 Task 7 冒烟实测记录）
 - 计划文档：`docs/plans/2026-08-10-phase7~13-*.md`（每期含验收记录与已知限制）
 - 本文件：`PROJECT_STATUS.md`
