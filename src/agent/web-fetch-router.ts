@@ -1,14 +1,15 @@
-/** 三级降级链（D1：direct + jina；opencli 层 D2 接入，域名路由已预留） */
+/** 三级降级链：direct → jina → opencli（插件注册表；未注册/不可用自动跳过） */
 import { decodeHtmlBytes } from './web-charset';
 import { htmlToMarkdown } from './web-html';
 import { detectWaf } from './web-waf-detect';
 import { isSafeFetchUrl, normalizeUrl } from './web-url-guard';
+import { getPlugin } from '../plugins/registry';
 
 export type FetchSource = 'direct' | 'jina' | 'opencli';
 
 export type FetchOutcome =
   | { ok: true; url: string; title: string; content: string; source: FetchSource; truncated: boolean; maxChars: number }
-  | { ok: false; code: 'FETCH_BLOCKED' | 'FETCH_SSRF_BLOCKED' | 'FETCH_FAILED'; message: string; hint: string };
+  | { ok: false; code: 'FETCH_BLOCKED' | 'FETCH_SSRF_BLOCKED' | 'FETCH_FAILED' | 'FETCH_NEEDS_LOGIN'; message: string; hint: string };
 
 const DIRECT_TIMEOUT_MS = 5_000;
 const JINA_TIMEOUT_MS = 15_000;
@@ -63,7 +64,7 @@ async function jinaFetch(fetchImpl: FetchImpl, url: string, maxChars: number): P
   return { ok: true, url, title, content: content.slice(0, maxChars), source: 'jina', truncated, maxChars };
 }
 
-/** 降级链入口：direct → jina（D1）；失败返回 FETCH_BLOCKED（D2 接 opencli 后补第三层） */
+/** 降级链入口：direct → jina → opencli 插件层；全败返回 FETCH_BLOCKED */
 export async function routeFetch(args: {
   url: string;
   fetchImpl?: FetchImpl;
@@ -80,10 +81,27 @@ export async function routeFetch(args: {
   if (direct.ok) return direct;
   const jina = await jinaFetch(fetchImpl, url, maxChars);
   if (jina.ok) return jina;
+  // opencli 插件层：经注册表调用（未注册/不可用 → 跳过，保持 D1 行为）
+  const openCliPlugin = getPlugin('open-cli');
+  if (openCliPlugin && openCliPlugin.canHandle(url) && openCliPlugin.isAvailable()) {
+    const outcome = await openCliPlugin.fetch(url);
+    if (outcome.ok) {
+      const truncated = outcome.content.length > maxChars;
+      return {
+        ok: true, url, title: outcome.title,
+        content: outcome.content.slice(0, maxChars),
+        source: 'opencli', truncated, maxChars,
+      };
+    }
+    if (outcome.code === 'NEEDS_LOGIN') {
+      return { ok: false, code: 'FETCH_NEEDS_LOGIN', message: outcome.message, hint: outcome.hint };
+    }
+    return { ok: false, code: 'FETCH_BLOCKED', message: outcome.message, hint: outcome.hint };
+  }
   return {
     ok: false,
     code: 'FETCH_BLOCKED',
     message: `抓取失败：direct（${direct.ok ? '' : direct.message}）→ jina（${jina.ok ? '' : jina.message}）`,
-    hint: '可尝试浏览器手动查看后粘贴导入（importJobOpportunity），或等待 OpenCLI 后端（D2）。',
+    hint: '可尝试浏览器手动查看后粘贴导入（importJobOpportunity），或确认 OpenCLI 插件可用后重试。',
   };
 }

@@ -14,3 +14,8 @@ export function getPlugin(id: string): FetchBackendPlugin | undefined {
 export function listPlugins(): FetchBackendPlugin[] {
   return [...plugins.values()];
 }
+
+/** 清空注册表（测试专用：防模块级 Map 跨用例污染） */
+export function clearPlugins(): void {
+  plugins.clear();
+}
