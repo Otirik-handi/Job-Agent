@@ -50,7 +50,7 @@
 
 1. **评测基线** ✅ 已落地（2026-08-11）：双层评测（mock 层入 vitest 13 场景防编排回归 + `npm run eval` 真实模型层 pass^2 能力验证），设计见 docs/designs/2026-08-11-eval-baseline-design.md，实现见 docs/plans/2026-08-11-eval-baseline.md。真实层首跑（deepseek-v4-flash）：适配后 12/13 通过（jd-match 见已知限制）
 2. **语义检索** 📋 已定稿待实现（2026-08-12）：硅基流动 bge-m3 免费 embedding + 自算余弦（向量存 JSON 列）+ 仅 messages + 同步嵌入降级 + `searchMessages` 工具；时间衰减不做
-3. **Prompt caching 优化** 📋 已定稿待实现（2026-08-12）：先验证后记录——评测 CLI 加 usage/cacheRead 统计，真实层确认自动缓存；生效则文档记录，不生效再议显式标记
+3. **Prompt caching 优化** ✅ 已落地（2026-08-12）：**验证结论——opencode.ai 自动前缀缓存已生效**（评测 CLI usage 统计实测：全量 13 场景 cacheRead 命中率 89-100%，输入 token 约 95% 命中缓存，无需显式标记代码）
 4. **子 Agent（最小 supervisor）** ✅ 决议关闭：明确不做（2026-08-12 用户决议，触发信号不再评估）；工具表落地 web 工具后 15 个，规模可控
 5. **其他增强** 📋 已定稿待实现（2026-08-12）：skill 扩展（negotiation/follow-up 可做；company-research/salary-benchmark 挂起等 web 工具落地）+ 轻量 actions 审计表 + token 监控仅评测层
 
