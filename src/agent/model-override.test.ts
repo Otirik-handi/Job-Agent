@@ -13,6 +13,23 @@ const fake: LanguageModel = {
   doStream: (async () => ({})) as any,
 };
 
+/** LLM_* 环境变量保存/恢复（vitest 加载 .env.local，用例不依赖进程环境） */
+const LLM_KEYS = ['LLM_BASE_URL', 'LLM_API_KEY', 'LLM_MODEL', 'LLM_PROVIDER'] as const;
+const saved: Record<string, string | undefined> = {};
+
+function saveEnv() {
+  for (const k of LLM_KEYS) saved[k] = process.env[k];
+}
+function clearEnv() {
+  for (const k of LLM_KEYS) delete process.env[k];
+}
+function restoreEnv() {
+  for (const k of LLM_KEYS) {
+    if (saved[k] === undefined) delete process.env[k];
+    else process.env[k] = saved[k];
+  }
+}
+
 afterEach(() => {
   clearModelOverride();
 });
@@ -24,13 +41,14 @@ describe('setModelOverride（评测注入点）', () => {
   });
 
   it('清除后恢复原逻辑（未配置环境变量时抛 LlmConfigError）', () => {
-    // 依赖当前进程环境：无 LLM_* 时抛 LlmConfigError；有则返回真实模型实例（两种都可接受，不抛错即通过）
     setModelOverride(fake);
     clearModelOverride();
-    if (!process.env.LLM_BASE_URL || !process.env.LLM_API_KEY || !process.env.LLM_MODEL) {
+    saveEnv();
+    try {
+      clearEnv();
       expect(() => getModel()).toThrow(LlmConfigError);
-    } else {
-      expect(() => getModel()).not.toThrow();
+    } finally {
+      restoreEnv();
     }
   });
 });
