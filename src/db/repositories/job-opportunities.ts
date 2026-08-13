@@ -65,7 +65,7 @@ export function setInterviewPrep(id: string, interviewPrepJson: string): void {
     .where(eq(jobOpportunities.id, id)).run();
 }
 
-/** 重命名岗位（只改 title，company 不动）：未命中返回 null（供路由 404 判断），成功返回更新后的完整记录 */
+/** 重命名岗位（只改 title，company 不动）：未命中返回 null，成功返回更新后的完整记录 */
 export function updateJobTitle(id: string, title: string): JobOpportunityRecord | null {
   const result = db.update(jobOpportunities)
     .set({ title, updatedAt: nowIso() })

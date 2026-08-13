@@ -34,7 +34,7 @@ export function deleteResume(id: string): void {
   db.delete(resumes).where(eq(resumes.id, id)).run();
 }
 
-/** 重命名简历：未命中返回 null（供路由 404 判断），成功返回更新后的完整记录 */
+/** 重命名简历：未命中返回 null（调用方可自行决定语义），成功返回更新后的完整记录 */
 export function updateResumeName(id: string, name: string): ResumeRecord | null {
   const result = db.update(resumes).set({ name, updatedAt: nowIso() }).where(eq(resumes.id, id)).run();
   return result.changes > 0 ? getResume(id) : null;
