@@ -27,7 +27,7 @@ export function Sidebar({
   onDeletedJob: (id: string) => void;
   onDeletedTailored: (id: string) => void;
 }) {
-  const [tab, setTab] = useState<'conversations' | 'resources'>('conversations');
+  const [tab, setTab] = useState<'conversations' | 'resources' | 'skills'>('conversations');
   // 滑动指示器：跟随选中 Tab（白色胶囊，选中色保持原样）
   const tabBarRef = useRef<HTMLDivElement>(null);
   const [indicator, setIndicator] = useState({ x: 0, w: 0 });
@@ -45,7 +45,7 @@ export function Sidebar({
         </div>
         <span className="truncate text-sm font-semibold text-slate-700">Job Helper</span>
       </div>
-      <Tabs value={tab} onValueChange={(v) => setTab(v as 'conversations' | 'resources')} className="flex-1 min-h-0">
+      <Tabs value={tab} onValueChange={(v) => setTab(v as 'conversations' | 'resources' | 'skills')} className="flex-1 min-h-0">
         <div ref={tabBarRef} className="relative m-2">
           {/* 滑动指示器：与选中块原样式完全同形（白底 rounded-md 同高 shadow-soft），z-10 保证阴影不被 TabsList 背景遮挡 */}
           <span
@@ -53,12 +53,15 @@ export function Sidebar({
             className="pointer-events-none absolute inset-y-1 left-0 z-10 rounded-md bg-white shadow-soft transition-all duration-300 ease-out"
             style={{ width: indicator.w || undefined, transform: `translateX(${indicator.x}px)` }}
           />
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="conversations" data-sidebar-tab="conversations" className="z-20 data-active:bg-transparent data-active:shadow-none">
               会话
             </TabsTrigger>
             <TabsTrigger value="resources" data-sidebar-tab="resources" className="z-20 data-active:bg-transparent data-active:shadow-none">
               资源
+            </TabsTrigger>
+            <TabsTrigger value="skills" data-sidebar-tab="skills" className="z-20 data-active:bg-transparent data-active:shadow-none">
+              技能
             </TabsTrigger>
           </TabsList>
         </div>
