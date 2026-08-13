@@ -206,6 +206,15 @@ export function ResourceTabs({
               className="rounded-2xl bg-slate-100/60 px-3 py-6"
             />
           )}
+          {jobs.length > 0 && jobs.filter((job) => jobFilter === 'all' || job.status === jobFilter).length === 0 && (
+            <EmptyState
+              compact
+              icon={Briefcase}
+              title="当前筛选无岗位"
+              description="切换其他状态筛选，或在对话中导入新岗位"
+              className="rounded-2xl bg-slate-100/60 px-3 py-6"
+            />
+          )}
           {jobs.filter((job) => jobFilter === 'all' || job.status === jobFilter).map((job) => (
             <div key={job.id} className="group relative rounded-xl transition-all hover:bg-slate-100">
               <div
