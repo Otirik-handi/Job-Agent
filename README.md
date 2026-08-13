@@ -66,6 +66,7 @@ cp .env.example .env.local
 LLM_BASE_URL=https://api.deepseek.com/v1   # 任意 OpenAI 兼容端点
 LLM_API_KEY=your-api-key
 LLM_MODEL=deepseek-chat
+LLM_PROVIDER=deepseek   # 展示用供应商名（输入框指示灯显示 <供应商>/<模型>）
 LLM_TEMPERATURE=0.3
 ```
 
