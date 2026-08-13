@@ -20,5 +20,10 @@ export function useResumes(refreshSignal?: number) {
     await refresh();
   }, [refresh]);
 
-  return { resumes, refresh, remove };
+  const rename = useCallback(async (id: string, name: string) => {
+    await apiSend(`/api/resumes/${id}`, 'PATCH', { name });
+    await refresh();
+  }, [refresh]);
+
+  return { resumes, refresh, remove, rename };
 }

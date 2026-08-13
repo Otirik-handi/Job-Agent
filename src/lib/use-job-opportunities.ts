@@ -20,5 +20,10 @@ export function useJobOpportunities(refreshSignal?: number) {
     await refresh();
   }, [refresh]);
 
-  return { jobs, refresh, remove };
+  const rename = useCallback(async (id: string, title: string) => {
+    await apiSend(`/api/job-opportunities/${id}`, 'PATCH', { title });
+    await refresh();
+  }, [refresh]);
+
+  return { jobs, refresh, remove, rename };
 }

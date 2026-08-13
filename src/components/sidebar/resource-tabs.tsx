@@ -1,6 +1,6 @@
 'use client';
-import { useLayoutEffect, useRef, useState } from 'react';
-import { Briefcase, FilePen, FileText, Trash2, Upload } from 'lucide-react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { Briefcase, FilePen, FileText, Pencil, Trash2, Upload } from 'lucide-react';
 import { useResumes } from '@/src/lib/use-resumes';
 import { useJobOpportunities } from '@/src/lib/use-job-opportunities';
 import { useTailoredResumes } from '@/src/lib/use-tailored-resumes';
@@ -12,6 +12,36 @@ import { apiUpload } from '@/src/lib/api';
 import { formatRelativeTime } from '@/src/lib/format-time';
 
 const MAX_UPLOAD_SIZE = 20 * 1024 * 1024;
+
+/** 内联重命名输入框：回车/失焦提交、Esc 取消；空值或未变更不提交（对齐会话列表交互） */
+function InlineRename({ initial, onCommit, onCancel }: {
+  initial: string;
+  onCommit: (value: string) => void;
+  onCancel: () => void;
+}) {
+  const [draft, setDraft] = useState(initial);
+  const inputRef = useRef<HTMLInputElement>(null);
+  useEffect(() => { inputRef.current?.select(); }, []);
+  const commit = () => {
+    const value = draft.trim();
+    if (value && value !== initial.trim()) onCommit(value);
+    else onCancel();
+  };
+  return (
+    <input
+      ref={inputRef}
+      maxLength={100}
+      value={draft}
+      onChange={(e) => setDraft(e.target.value)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') { e.preventDefault(); commit(); }
+        if (e.key === 'Escape') onCancel();
+      }}
+      onBlur={commit}
+      className="w-full rounded-xl border border-indigo-300 bg-white px-3 py-2 text-sm outline-none"
+    />
+  );
+}
 
 export function ResourceTabs({
   refreshSignal, onOpenResume, onOpenJob, onOpenTailored,
@@ -35,13 +65,29 @@ export function ResourceTabs({
     const active = bar?.querySelector<HTMLElement>(`[data-resource-tab="${tab}"]`);
     if (bar && active) setIndicator({ x: active.offsetLeft, w: active.offsetWidth });
   }, [tab]);
-  const { resumes, refresh, remove: removeResume } = useResumes(refreshSignal);
-  const { jobs, remove: removeJob } = useJobOpportunities(refreshSignal);
+  const { resumes, refresh, remove: removeResume, rename: renameResume } = useResumes(refreshSignal);
+  const { jobs, remove: removeJob, rename: renameJob } = useJobOpportunities(refreshSignal);
   const { items: tailored, refresh: refreshTailored, remove: removeTailored } = useTailoredResumes(undefined, refreshSignal);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [notice, setNotice] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<{ kind: 'resume' | 'job' | 'tailored'; id: string; name: string } | null>(null);
+  // 重命名目标：resume 改 name、job 改 title（专属简历不参与，显示名随关联资源联动）
+  const [renaming, setRenaming] = useState<{ kind: 'resume' | 'job'; id: string } | null>(null);
+
+  const commitRename = async (value: string) => {
+    if (!renaming) return;
+    const { kind, id } = renaming;
+    setRenaming(null);
+    try {
+      if (kind === 'resume') await renameResume(id, value);
+      else await renameJob(id, value);
+      setNotice(null);
+      void refreshTailored(); // 专属简历拼接名实时 JOIN，重命名后联动刷新
+    } catch (err) {
+      setNotice({ kind: 'err', text: err instanceof Error ? err.message : '重命名失败' });
+    }
+  };
 
   const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -117,6 +163,11 @@ export function ResourceTabs({
           专属简历
         </span>
       </div>
+      {notice && (
+        <div role="status" className={`rounded-2xl px-3 py-2 text-xs ${notice.kind === 'ok' ? 'bg-emerald-500/10 text-emerald-700' : 'bg-red-500/10 text-red-700'}`}>
+          {notice.text}
+        </div>
+      )}
       {tab === 'resume' && (
         <>
           <div className="flex items-center gap-2">
@@ -136,11 +187,6 @@ export function ResourceTabs({
               onChange={handleFile}
             />
           </div>
-          {notice && (
-            <div role="status" className={`rounded-2xl px-3 py-2 text-xs ${notice.kind === 'ok' ? 'bg-emerald-500/10 text-emerald-700' : 'bg-red-500/10 text-red-700'}`}>
-              {notice.text}
-            </div>
-          )}
           {resumes.length === 0 && (
             <EmptyState
               compact
@@ -152,6 +198,13 @@ export function ResourceTabs({
           )}
           {resumes.map((r) => (
             <div key={r.id} className="group relative rounded-xl transition-all hover:bg-slate-100">
+              {renaming?.kind === 'resume' && renaming.id === r.id ? (
+                <InlineRename
+                  initial={r.name}
+                  onCommit={commitRename}
+                  onCancel={() => setRenaming(null)}
+                />
+              ) : (
               <div
                 onClick={() => onOpenResume(r.id)}
                 className="cursor-pointer px-3 py-2 text-left text-sm"
@@ -164,6 +217,13 @@ export function ResourceTabs({
                     <span className="truncate">{r.name}</span>
                   </span>
                   <span className="flex shrink-0 items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setRenaming({ kind: 'resume', id: r.id }); }}
+                      className="rounded-md p-1 text-muted-foreground hover:bg-slate-200/70 hover:text-foreground"
+                      aria-label={`重命名简历 ${r.name}`}
+                    >
+                      <Pencil className="size-3.5" />
+                    </button>
                     <button
                       onClick={(e) => { e.stopPropagation(); setDeleteTarget({ kind: 'resume', id: r.id, name: r.name }); }}
                       className="rounded-md p-1 text-muted-foreground hover:bg-red-100 hover:text-red-600"
@@ -180,6 +240,7 @@ export function ResourceTabs({
                   <span className="shrink-0 text-xs text-muted-foreground">{formatRelativeTime(r.updatedAt)}</span>
                 </div>
               </div>
+              )}
             </div>
           ))}
         </>
@@ -217,6 +278,13 @@ export function ResourceTabs({
           )}
           {jobs.filter((job) => jobFilter === 'all' || job.status === jobFilter).map((job) => (
             <div key={job.id} className="group relative rounded-xl transition-all hover:bg-slate-100">
+              {renaming?.kind === 'job' && renaming.id === job.id ? (
+                <InlineRename
+                  initial={job.title}
+                  onCommit={commitRename}
+                  onCancel={() => setRenaming(null)}
+                />
+              ) : (
               <div
                 onClick={() => onOpenJob(job.id)}
                 className="cursor-pointer px-3 py-2 text-left text-sm"
@@ -226,9 +294,16 @@ export function ResourceTabs({
                     <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-emerald-500/10">
                       <Briefcase className="size-3.5 text-emerald-600" />
                     </span>
-                    <span className="truncate">{job.company ? `${job.company} · ${job.title}` : '未命名岗位'}</span>
+                    <span className="truncate">{job.company ? `${job.company} · ${job.title}` : (job.title || '未命名岗位')}</span>
                   </span>
                   <span className="flex shrink-0 items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setRenaming({ kind: 'job', id: job.id }); }}
+                      className="rounded-md p-1 text-muted-foreground hover:bg-slate-200/70 hover:text-foreground"
+                      aria-label={`重命名岗位 ${job.title || '未命名岗位'}`}
+                    >
+                      <Pencil className="size-3.5" />
+                    </button>
                     <button
                       onClick={(e) => { e.stopPropagation(); setDeleteTarget({ kind: 'job', id: job.id, name: job.company ? `${job.company} · ${job.title}` : '未命名岗位' }); }}
                       className="rounded-md p-1 text-muted-foreground hover:bg-red-100 hover:text-red-600"
@@ -245,6 +320,7 @@ export function ResourceTabs({
                   <span className="shrink-0 text-xs text-muted-foreground">{formatRelativeTime(job.updatedAt)}</span>
                 </div>
               </div>
+              )}
             </div>
           ))}
         </>
