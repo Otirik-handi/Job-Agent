@@ -4,11 +4,12 @@ import { Sparkles } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/src/components/ui/tabs';
 import { ConversationList } from './conversation-list';
 import { ResourceTabs } from './resource-tabs';
+import { SkillTab } from './skill-tab';
 import type { ConversationSummary } from '@/src/lib/use-conversations';
 
 export function Sidebar({
   conversations, activeConversationId, refreshSignal, onSelectConversation, onNewConversation,
-  onRenameConversation, onDeleteConversation, onOpenResume, onOpenJob, onOpenTailored,
+  onRenameConversation, onDeleteConversation, onOpenResume, onOpenJob, onOpenTailored, onOpenSkill,
   onDeletedResume, onDeletedJob, onDeletedTailored,
 }: {
   conversations: ConversationSummary[];
@@ -21,6 +22,7 @@ export function Sidebar({
   onOpenResume: (id: string) => void;
   onOpenJob: (id: string) => void;
   onOpenTailored: (id: string) => void;
+  onOpenSkill: (name: string) => void;
   onDeletedResume: (id: string) => void;
   onDeletedJob: (id: string) => void;
   onDeletedTailored: (id: string) => void;
@@ -80,6 +82,9 @@ export function Sidebar({
             onDeletedJob={onDeletedJob}
             onDeletedTailored={onDeletedTailored}
           />
+        </TabsContent>
+        <TabsContent value="skills" className="h-[calc(100%-3rem)]">
+          <SkillTab refreshSignal={refreshSignal} onOpenSkill={onOpenSkill} />
         </TabsContent>
       </Tabs>
       {/* 底部分色圆点装饰 */}

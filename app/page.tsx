@@ -5,6 +5,7 @@ import { Sidebar } from '@/src/components/sidebar/sidebar';
 import { ResumeDrawer } from '@/src/components/artifacts/resume-drawer';
 import { JobDrawer } from '@/src/components/artifacts/job-drawer';
 import { TailoredResumeDrawer } from '@/src/components/artifacts/tailored-resume-drawer';
+import { SkillDrawer } from '@/src/components/artifacts/skill-drawer';
 import { useConversations } from '@/src/lib/use-conversations';
 import { apiGet, apiSend } from '@/src/lib/api';
 import type { UIMessage } from 'ai';
@@ -24,6 +25,7 @@ export default function Home() {
   const [drawerResumeId, setDrawerResumeId] = useState<string | null>(null);
   const [drawerJobId, setDrawerJobId] = useState<string | null>(null);
   const [drawerTailoredId, setDrawerTailoredId] = useState<string | null>(null);
+  const [drawerSkillName, setDrawerSkillName] = useState<string | null>(null);
 
   const handleChatSettled = useCallback(() => {
     void refresh(); // 会话列表（标题/顺序）
@@ -100,6 +102,7 @@ export default function Home() {
         onOpenResume={setDrawerResumeId}
         onOpenJob={setDrawerJobId}
         onOpenTailored={setDrawerTailoredId}
+        onOpenSkill={setDrawerSkillName}
         onDeletedResume={(id) => setDrawerResumeId((prev) => (prev === id ? null : prev))}
         onDeletedJob={(id) => setDrawerJobId((prev) => (prev === id ? null : prev))}
         onDeletedTailored={(id) => setDrawerTailoredId((prev) => (prev === id ? null : prev))}
@@ -133,6 +136,11 @@ export default function Home() {
         refreshSignal={resourceSignal}
         onOpenChange={(open) => { if (!open) setDrawerTailoredId(null); }}
         onDeleted={(id) => setDrawerTailoredId((prev) => (prev === id ? null : prev))}
+      />
+      <SkillDrawer
+        skillName={drawerSkillName}
+        open={drawerSkillName !== null}
+        onOpenChange={(open) => { if (!open) setDrawerSkillName(null); }}
       />
     </main>
   );
