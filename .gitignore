@@ -35,6 +35,9 @@ yarn-error.log*
 !.env.example
 /data/
 
+# docs 仅本地维护，不随 git 推送（测试报告/调研讨论等过程产物）
+/docs/
+
 # vercel
 .vercel
 

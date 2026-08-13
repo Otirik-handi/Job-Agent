@@ -47,6 +47,8 @@
 4. `docs/plans/`（计划文档）
 5. 其他 `docs/` 当前文档
 
+> 注：`docs/` 仅本地维护，不随 git 推送（.gitignore 已排除），克隆仓库后需另行同步本地文档。
+
 ## 目录索引
 
 - `.agents/specs/00-governance/spec-autonomy.md`：规范文档自治规范（规范"规范本身"）
@@ -55,7 +57,8 @@
 - `.agents/specs/02-backend/api-data-conventions.md`：后端工程规范（路由组织/列表投影/错误契约/仓储模式/JSON 列/status 枚举/外键）
 - `.agents/specs/03-agent/agent-tooling-conventions.md`：Agent 工具层工程规范（工具工厂/两段式审批/确定性护栏/纯函数+单测/资源发现）
 - `.agents/specs/04-comments/comments-conventions.md`：代码注释规范（横切约定：语言/克制/JSDoc/为什么/敏感信息/TODO 禁令）
-- `docs/designs/`：设计文档（约定：不使用 docs/superpowers/specs/，ZCode 客户端显示 bug）
-- `docs/plans/`：计划文档
-- `docs/research/`：调研报告与讨论纪要（供设计引用，非权威依据）
+- `docs/designs/`：设计文档（约定：不使用 docs/superpowers/specs/，ZCode 客户端显示 bug；仅本地，不入库）
+- `docs/plans/`：计划文档（仅本地，不入库）
+- `docs/research/`：调研报告与讨论纪要（供设计引用，非权威依据；仅本地，不入库）
+- `docs/test/`：测试报告（GUI 测试记录/功能覆盖报告；仅本地，不入库）
 - `PROJECT_STATUS.md`：项目状态文件（当前状态/已完成 P0+P1/下一步 P2 队列/已知限制；随里程碑更新）
