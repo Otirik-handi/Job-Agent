@@ -38,6 +38,9 @@ yarn-error.log*
 # docs 仅本地维护，不随 git 推送（测试报告/调研讨论等过程产物）
 /docs/
 
+# 外部 skill 参考仓库（保持嵌套 git 独立更新，不入库）
+/external-skills/
+
 # vercel
 .vercel
 
