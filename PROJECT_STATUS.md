@@ -4,7 +4,7 @@
 
 ## 当前状态
 
-- **基线稳定**：379 个测试全绿（`npm test`，含 17 个评测场景 + mock-model + usage-collector 等），`lint` / `tsc --noEmit` 全部通过；`next build` 受本机 Google Fonts 网络不可达限制（见已知限制）
+- **基线稳定**：379 个测试全绿（`npm test`，含 16 个评测场景 + mock-model + usage-collector 等），`lint` / `tsc --noEmit` 全部通过；`next build` 受本机 Google Fonts 网络不可达限制（见已知限制）
 - **里程碑**：P0（Agent 基础骨架）+ P1（Agent 进阶能力）全部落地并合并至 main，已推送 GitHub；外部 Skill 炼化 12/12 + 吸收落地 12/12 完成
 - 分支：`main`（与 origin/main 同步）；历史 feature 分支均已合并清理
 
@@ -40,7 +40,7 @@
 
 ## 工程基线
 
-- **测试**：308 个（含 13 个评测场景 + mock-model + usage-collector 等；纯函数单测为主：apply-state / channel-guard / llm-call / resume-* / tool-factory / skills / plans / lessons / summary / tool-step-card / audit-log（mapToolToAction 审计钩子）等）
+- **测试**：379 个（2026-08-14 吸收落地后；含 16 个评测场景 + mock-model + usage-collector 等；纯函数单测为主：apply-state / channel-guard / llm-call / resume-* / tool-factory / skills / plans / lessons / summary / tool-step-card / audit-log（mapToolToAction 审计钩子）/ jd-red-flags / ats-checks / keyword-match / bullet-quality / offer-red-flags 等）
 - **批次 B 新增（2026-08-12）**：语义检索链路——embedding 模块（硅基流动调用 + override 注入 + 降级）、vector-search（自算余弦）、searchMessages 工具（只读免确认）+ 评测场景（embedding override 注入）
 - **批次 C 新增（2026-08-12）**：negotiation / follow-up 两个方法论 skill（共 8 个求职 skill）+ actions 审计表（schema + repository + 过滤查询）；runAgentTurn 经 `onToolExecutionEnd` 横切记录关键动作（applyJob / recordApplicationStatus / tailoredResume 导出等），写入失败降级不阻塞（对齐 persistSessionState 模式）
 - **规范体系**：`.agents/specs/`（00 治理 / 01 前端 / 02 后端 / 03 Agent / 04 注释）随实现补充了记忆、Skill、规划、反思、摘要、步骤卡片等约定
@@ -113,8 +113,7 @@
 
 - 第一梯队 #1-#6 ✅（2026-08-13）；第二梯队 #7 ✅（2026-08-13）；第三梯队 #8-#12 ✅（2026-08-13）——**12/12 全部完成**
 - 第四梯队：只读不搬（场景参考，不产结论文档）：tailored-resume-generator / interview-prep / career-changer-translator 等 12 项，按清单 §2 定位为对比参考，需要时再读
-- **炼化完成，进入落地规划阶段**：落地工作待用户确认后，按各结论文档的"吸收方案（推荐方案一）"逐项走标准流程（brainstorming → 设计 → 计划 → 实现）
-- 第四梯队：只读不搬（场景参考）
+- **落地规划已完成**（2026-08-14，用户确认"逐文档吸收经验"后 12 篇全部落地，见下方「已完成：外部 Skill 吸收落地」章节）；各结论文档「演进线索」项（结构级重排 / master 素材库 / 故事库数据化 / 六要素确认卡 UI 等）按触发条件进入后续排期
 
 ## 已完成：外部 Skill 吸收落地（2026-08-14，12/12 全部完成）
 
@@ -175,8 +174,8 @@
 - 重试按钮点击后置灰至重跑结束（与确认卡一致）
 - SDK 生产路径非法参数先被 AI SDK 英文校验拒绝（中文 INVALID_INPUT 仅直接 execute 路径）
 - 测试基建：lessons 等 repository 测试直连 dev 库（前缀清理 + 串行化）
-- 评测真实层：jd-match 对 jobMatchResultSchemaV1（复杂嵌套 + id 一致性校验）的结构化输出不稳定，deepseek-v4-flash 多次 repair 仍不合格 → fit_result_json 不落库，场景失败（模型能力问题，评测正确捕获；后续可优化 schema 复杂度或换模型验证）
-- 评测真实层：全量 13 场景耗时约 15-16 分钟（单次 LLM 调用 20-100s），慢模型下多步场景可能触及 180s 超时（jd-match 已放宽 300s）
+- 评测真实层：**jd-match 结构化输出不稳定问题已解决（2026-08-14 schema v2 落地后回归通过）**——旧记录：v1 复杂嵌套 + id 一致性校验在 deepseek-v4-flash 多次 repair 仍不合格；v2 拆分 LLM 输出与确定性字段后真实层稳定
+- 评测真实层：全量 16 场景耗时约 22 分钟（单次 LLM 调用 20-100s），慢模型下多步场景可能触及 180s 超时（jd-match 已放宽 300s）
 - 评测真实层：mock 脚本预设的模型行为（自选 taskId/先追问）在真实层不成立，场景用 assertFinalStateReal 分层断言放宽（缺省复用 mock 断言）
 - 语义检索依赖 EMBEDDING_* 环境变量（硅基流动 key）——未配置时消息不嵌入、searchMessages 返回 EMBEDDING_FAILED
 - OpenCLI：Boss 登录态 2026-08-12 实测仍有效（Chrome 扩展 v1.0.22 会话，cookie 长期有效）；失效后 boss detail 返回 AUTH_REQUIRED，webFetch 降级链映射 FETCH_NEEDS_LOGIN（hint 引导 `opencli boss login` 一次人工登录）
