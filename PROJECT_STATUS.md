@@ -1,11 +1,11 @@
 # PROJECT STATUS — job-helper 项目状态
 
-> 本文档记录项目当前状态、已完成工作与下一步计划。随里程碑更新（最后一次更新：2026-08-13，外部 Skill 炼化 12/12 全部完成：第一、二梯队 + 第三梯队收官）。
+> 本文档记录项目当前状态、已完成工作与下一步计划。随里程碑更新（最后一次更新：2026-08-14，外部 Skill 炼化 12/12 完成并全部吸收落地）。
 
 ## 当前状态
 
-- **基线稳定**：308 个测试全绿（`npm test`，含 13 个评测场景 + mock-model + usage-collector 等），`lint` / `tsc --noEmit` / `build` 全部通过
-- **里程碑**：P0（Agent 基础骨架）+ P1（Agent 进阶能力）全部落地并合并至 main，已推送 GitHub
+- **基线稳定**：379 个测试全绿（`npm test`，含 17 个评测场景 + mock-model + usage-collector 等），`lint` / `tsc --noEmit` 全部通过；`next build` 受本机 Google Fonts 网络不可达限制（见已知限制）
+- **里程碑**：P0（Agent 基础骨架）+ P1（Agent 进阶能力）全部落地并合并至 main，已推送 GitHub；外部 Skill 炼化 12/12 + 吸收落地 12/12 完成
 - 分支：`main`（与 origin/main 同步）；历史 feature 分支均已合并清理
 
 ## 已完成：P0（Agent 基础骨架）
@@ -116,6 +116,40 @@
 - **炼化完成，进入落地规划阶段**：落地工作待用户确认后，按各结论文档的"吸收方案（推荐方案一）"逐项走标准流程（brainstorming → 设计 → 计划 → 实现）
 - 第四梯队：只读不搬（场景参考）
 
+## 已完成：外部 Skill 吸收落地（2026-08-14，12/12 全部完成）
+
+> 用户确认"逐文档吸收经验"后，按各结论文档推荐方案（方案一为主）逐篇落地：prompt 注入、schema v2、确定性护栏纯函数、skill 新增/增强、投递-版本关联、评测 mock 同步。每篇完成一轮验证（测试/lint/tsc）并单独 git 提交；真实层评测回归见下方记录。
+
+### 落地一览（docs/research/2026-08-13-refine-0X-*.md → 实现）
+
+| # | 落地内容 | 关键决策 |
+|---|---|---|
+| 1 | matchJob schema v2：requirements.classification + fitBand + redFlags（12 条中英危险信号短语确定性检测，纯函数+单测）| 方案二（推荐）：LLM 输出语义部分，fitBand/redFlags 系统计算不漂移；prompt 注入加权模型/差距三档/dealbreaker/边界情况/战略申请观；UI 徽标+分类标签（v1 存量容错）|
+| 2 | tailoredResume prompt 注入：图书馆哲学/分节手法/四错位场景/关键词 DO-DON'T/5+5 红线 factRisk 操作化 | 方案一：纯 prompt 零 schema 变更；结构级重排（editType）按 §6 演进线索 YAGNI 暂缓 |
+| 3 | 双落点：analyze-resume atsChecks（7 项确定性检查，纯函数+单测）+ matchJob keywordMatchScore（JD 三类关键词命中率+频次+区块+缺失清单，纯函数+单测）| 方案一（用户决策 C）；关键词匹配分与语义匹配分并存对照；真实层断言分层放宽 |
+| 4+5 | validateBulletQuality 纯函数（缺数字/弱动词/超长/数字>3/百分比无基线）+ tailoredResume/analyze-resume prompt 注入（X-Y-Z/6 类量化指标/5 种无数据策略/数字红线/7 岗位指标库）| 方案一（用户决策 A+C）：#4/#5 合并落地；qualityWarnings 提示级不剔除；无岗位独立打磨场景记录为后续候选 |
+| 6 | 投递-版本关联：actions 表新增 details_json（迁移 0008），apply_job 审计携带 tailoredResumeId/version；listJobOpportunities + 岗位详情 API/UI 可答"我投 X 用的哪个版本" | 方案 α（审计扩展，零业务表迁移）；记录投递时版本不随新版本漂移；存量显示"未记录" |
+| 7 | SYSTEM_PROMPT 意图澄清协议：一次一问+猜测+置信度、求职四要素、want vs should want 探测、显式 yes 门禁、3-4 轮护栏；新增 intent-clarify 评测场景 | 方案一（prompt 层）；澄清不替代审批（确认意图≠授权执行）；六要素确认卡 UI 升级留待 UI 排期 |
+| 8 | negotiation skill 场景库：期望薪资 deflection/当前薪资应对/首轮偏低/竞对 offer/9 替代项清单/澄清问题清单 | 方案一：高优先级缺口（期望薪资 deflection/当前薪资应对）补齐；美国市场数据/法律断言不吸收 |
+| 9 | prepare-interview schema v2：questions.probability（高/中/低）+ redFlags；interview-prep skill 增强（5 类能力清单/STAR 三版本/敏感题公式/分组提问）；UI 概率徽标+红线段+导出 | 方案一；薪资 deflection 与 #8 同源合并（面试归 interview-prep、谈薪归 negotiation）；故事库数据化随简历模型升级暂缓 |
+| 10 | 新增 application-form-filler skill（7 类题型×格式+长度校准表+5 错误自检+缺料澄清+代码块输出）| 方案一：纯 prompt 型新增（零代码变更）；期望薪资字段归 #8、行为题复用 #9 短版 STAR |
+| 11 | 新增 outreach-messaging skill（主动触达六段结构+好/坏 hook 标准+国内三形态分档+调研四件套+5 错误自检+跟进场景）| 方案一：国内化形态（BOSS 打招呼/私信/邮件）；与 cover-letter 触发边界写明；Gap 直面不道歉与 #10 同源 |
+| 12 | offer-evaluation 增量：红旗清单三组（硬性 7/软性 11，国内化）+ Year1/Ongoing 双口径 + perks 货币化 + 成长子项评分 + 心理测试 4 组 + 按 offer 分组核对表；新增 offer-red-flags 纯函数（硬性项 8 条+单测）| 方案一；默认权重保留项目 35/25/15/10/15（避免行为突变）；#8 预留的 base vs 总包权衡由本篇承接 |
+
+### 跨 skill 缺口处理状态（炼化清单汇聚项）
+
+- **意图层澄清机制空白**（#7）✅ prompt 层协议落地 + intent-clarify 评测场景
+- **期望薪资 deflection 三处同源**（#8/#9/#10）✅ 面试话术归 interview-prep、谈薪话术归 negotiation、表单期望薪资字段按区间填写不替用户决定
+- **主动触达能力空白**（#11）✅ outreach-messaging skill
+- **表单填写能力空白**（#10）✅ application-form-filler skill
+- **故事银行系统化**（#9）✅ skill 方法层落地（5 类能力清单+三版本）；故事库数据化（随简历模型升级）暂缓
+- **投递-版本关联**（#6）✅ actions 审计扩展 + 三处查询路径
+- **offer 评估细节级增量**（#12）✅ 红旗 18 条/双口径/心理测试/子项评分
+- **无岗位独立打磨场景**（#4/#5）🟡 记录为候选（analyze-resume 只给建议、tailoredResume 须有岗位；触发条件：用户高频"帮我改简历"且无岗位上下文）
+- **结构级重排能力**（#2 §6）🟡 演进线索（editType move/reorder），YAGNI 暂缓（触发条件见 refine-02 §6.5）
+- **简历数据模型升级联动**（master 素材库/结构级重排/投递-版本/故事库）🟡 投递-版本已落地，其余任一项立项时一起评估
+- **中文词表本地化**（#1/#3/#5/#8-#12）✅ 本轮落地全部使用中文短语/词表（red flag、ATS 检查、强动词/弱词、岗位指标、话术、红旗规则）
+
 ## 接下来要做什么
 
 ### P2 队列（调研报告路线图，2026-08-12 全部定稿；实现分批推进中）
@@ -147,6 +181,8 @@
 - 语义检索依赖 EMBEDDING_* 环境变量（硅基流动 key）——未配置时消息不嵌入、searchMessages 返回 EMBEDDING_FAILED
 - OpenCLI：Boss 登录态 2026-08-12 实测仍有效（Chrome 扩展 v1.0.22 会话，cookie 长期有效）；失效后 boss detail 返回 AUTH_REQUIRED，webFetch 降级链映射 FETCH_NEEDS_LOGIN（hint 引导 `opencli boss login` 一次人工登录）
 - OpenCLI（Windows）：opencli 为 npm .cmd shim，命令经 cmd.exe 引用拼接执行；参数含 `%`/`!` 时引号内仍会展开（已知边角，本地单用户可接受）
+- 生产构建 `next build`：`next/font/google`（Geist Mono）需在线获取字体，本机网络不可达 Google Fonts 时构建失败（仅影响构建，dev 运行不受影响；网络可用环境下可正常构建）
+- 真实层评测（2026-08-14 吸收落地后回归，16 场景）：**15/16 通过（pass^2），耗时 1328s，cacheRead 命中率 88%**——schema v2 相关场景（jd-match/resume-analysis/prepare-interview）与新增 intent-clarify 全部通过；唯一失败 search-messages（"The database connection is not open"，重试 2 次同因）——该场景与吸收落地无交集（未触碰 embedding/语义检索链路），属既有场景真实层环境性失败，后续单独排查（可能与评测 CLI 临时库连接恢复时序或 embedding 配置有关）
 
 ## 文档索引
 
@@ -165,4 +201,5 @@
 - 计划文档：`docs/plans/2026-08-10-phase7~13-*.md`（每期含验收记录与已知限制）
 - 外部 Skill 炼化清单：`docs/research/2026-08-13-external-skills-refinery-list.md`（四梯队清单 + 执行要求 §4）
 - 炼化结论文档：`docs/research/2026-08-13-refine-01-job-description-analyzer.md`（v2.2）~ `refine-06-resume-version-manager.md`（第一梯队）；`refine-07-interview-me.md`（第二梯队，意图澄清协议）；`refine-08-salary-negotiation-prep.md` ~ `refine-12-offer-comparison-analyzer.md`（第三梯队：谈判场景库/故事银行/表单题型/主动触达/offer 增量）——每篇含精读拆解/项目对照/可吸收点/吸收方案/不吸收部分/演进线索/迭代记录
+- **吸收落地提交（2026-08-14，12 篇各一提交）**：`6fb497e`（#1 matchJob v2 + 危险信号）→ `15dc1ea`（#2 tailoredResume prompt）→ `d8154e8`（#3 ATS + 关键词匹配分）→ `44fbcf6`（#4+#5 bullet 质量+量化）→ `c2e711a`（#6 投递-版本关联）→ `4ed6e9e`（#7 意图澄清协议）→ `737a28b`（#8 negotiation 场景库）→ `d0cef36`（#9 prepare-interview v2 + interview-prep 增强）→ `77a3c16`（#10 表单 skill）→ `cc76712`（#11 主动触达 skill）→ `ab1e053`（#12 offer-evaluation 增量）
 - 本文件：`PROJECT_STATUS.md`
