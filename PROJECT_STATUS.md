@@ -1,6 +1,6 @@
 # PROJECT STATUS — job-helper 项目状态
 
-> 本文档记录项目当前状态、已完成工作与下一步计划。随里程碑更新（最后一次更新：2026-08-13，外部 Skill 炼化第三梯队 #10 application-form-filler 结论文档落地）。
+> 本文档记录项目当前状态、已完成工作与下一步计划。随里程碑更新（最后一次更新：2026-08-13，外部 Skill 炼化第三梯队 #11 cold-email-writer 结论文档落地）。
 
 ## 当前状态
 
@@ -46,7 +46,7 @@
 - **规范体系**：`.agents/specs/`（00 治理 / 01 前端 / 02 后端 / 03 Agent / 04 注释）随实现补充了记忆、Skill、规划、反思、摘要、步骤卡片等约定
 - **文档链**：调研报告 → 讨论纪要 → 计划文档（phase7-13）→ 本状态文件
 
-## 已完成：外部 Skill 炼化（2026-08-13 启动，已完成 10/12，第三梯队进行中）
+## 已完成：外部 Skill 炼化（2026-08-13 启动，已完成 11/12，第三梯队收尾）
 
 > 背景：通过 find-skills 检索求职领域 agent skill 生态，筛选后安装至 `external-skills/`（4 仓库，嵌套 git 独立更新，`.gitignore` 排除不入库，提交 `5dfdf16`），逐个精读并产出「炼化结论文档」供后续落地参考。
 
@@ -88,6 +88,7 @@
 | 8 | salary-negotiation-prep | 谈判五场景题库（首轮低/期望薪资 deflection/底薪不动 9 替代项/竞对 offer 三原则/当前薪资重定向）+ 四分位区间 + 总包计算与权益术语 + 6 步时间线 + Counter-Offer 五步框架 | 项目 negotiation 覆盖率已高；**期望薪资 deflection 与当前薪资应对为关键缺口**；方案一场景库补齐（prompt 增补）为推荐；不吸收美国市场数据/来源/法律断言（含触发条件）；base vs 总包权衡视角与 #12 联动评估 |
 | 9 | interview-prep-generator | 故事银行系统化（5 类 24 项能力清单 + bullet→STAR 展开 + 三版本 2min/60s/15s）+ 难题公式（weakness：真实+认知+改进；失败：真实+学习+应用）+ 角色细分题库 + 反向提问分对象 + 预测题概率分级 + Red Flag 红线段 | **故事银行与难题公式为核心缺口**；方案一 interview-prep 增强 + prepare-interview 契约小改（probability/redFlags 字段）为推荐；薪资 deflection 与 #8 同源合并立项；故事库数据化随简历模型升级（与 #6 联动） |
 | 10 | application-form-filler | 7 类题型分类处理（经验/动机/作品集/技能/自我介绍/行为/观点 × 格式+规则）+ 长度校准表（字段→词数）+ 5 错误对照（重复 JD/特质声明/过度限定/列举无上下文/注水）+ 写前必读三样（JD/CV/问题） | **表单填写为项目能力空白**；方案一新增内置 skill（纯 prompt 型）为推荐；与 #7 澄清（缺料先要）、#8 期望薪资字段、#9 压缩 STAR、#6 投递关联四项联动 |
+| 11 | cold-email-writer | 主动触达六段模板（Subject/Hook/Body/Connection/Closing + Location/Gap 披露位）+ 好/坏 hook 标准（具体数字/产品决策/技术洞察 vs 泛泛吹捧）+ 写前调研四件套 + 长度 200-300 词 + 5 错误对照（太自信/太谦卑/太长/太泛/无调研） | **主动触达为能力空白**（channel-discovery 只发现渠道不生成触达内容）；方案一新增"主动触达"skill（国内三形态：BOSS 打招呼/私信/邮件）为推荐；Gap 直面不道歉与 #10 同源跨 skill 统一 |
 
 ### 关键缺口清单（跨 skill 汇聚，供后续排期）
 
@@ -101,7 +102,7 @@
 ### 后续炼化队列
 
 - 第二梯队：#7 interview-me（需求澄清方法论，对话层意图澄清模式）✅ 已炼化（2026-08-13）
-- 第三梯队：#8 salary-negotiation-prep ✅、#9 interview-prep-generator ✅、#10 application-form-filler ✅（均 2026-08-13）；#11-#12（cold-email-writer / offer-comparison-analyzer）进行中
+- 第三梯队：#8 salary-negotiation-prep ✅、#9 interview-prep-generator ✅、#10 application-form-filler ✅、#11 cold-email-writer ✅（均 2026-08-13）；#12 offer-comparison-analyzer 收尾中
 - 第四梯队：只读不搬（场景参考）
 
 ## 接下来要做什么
@@ -152,5 +153,5 @@
 - 批次 D2 计划：`docs/plans/2026-08-12-opencli-plugin.md`（含 Task 7 冒烟实测记录）
 - 计划文档：`docs/plans/2026-08-10-phase7~13-*.md`（每期含验收记录与已知限制）
 - 外部 Skill 炼化清单：`docs/research/2026-08-13-external-skills-refinery-list.md`（四梯队清单 + 执行要求 §4）
-- 炼化结论文档：`docs/research/2026-08-13-refine-01-job-description-analyzer.md`（v2.2）~ `refine-06-resume-version-manager.md`（每篇含精读拆解/项目对照/可吸收点/吸收方案/不吸收部分/演进线索/迭代记录）；第二梯队 `refine-07-interview-me.md`（意图澄清协议）；第三梯队 `refine-08-salary-negotiation-prep.md`（谈判场景库）、`refine-09-interview-prep-generator.md`（故事银行/难题公式）、`refine-10-application-form-filler.md`（7 类题型/长度校准），进行中
+- 炼化结论文档：`docs/research/2026-08-13-refine-01-job-description-analyzer.md`（v2.2）~ `refine-06-resume-version-manager.md`（每篇含精读拆解/项目对照/可吸收点/吸收方案/不吸收部分/演进线索/迭代记录）；第二梯队 `refine-07-interview-me.md`（意图澄清协议）；第三梯队 `refine-08-salary-negotiation-prep.md`（谈判场景库）、`refine-09-interview-prep-generator.md`（故事银行/难题公式）、`refine-10-application-form-filler.md`（7 类题型/长度校准）、`refine-11-cold-email-writer.md`（主动触达模板），收尾中
 - 本文件：`PROJECT_STATUS.md`
