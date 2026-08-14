@@ -111,13 +111,16 @@ describe('searchLessons（FTS 检索 + 降级）', () => {
     expect(rows.some((r) => r.content.includes('import a resume'))).toBe(true);
   });
 
-  it('查询过短（<3 字符）降级为最近列表：返回按时间倒序的全部教训而非空', () => {
+  it('查询过短（<3 字符）降级为最近列表：返回按时间倒序的最近教训而非空', () => {
     insertLesson({ content: '不包含检索词的教训内容', category: 'general', sourceTaskId: `${TEST_PREFIX}short` });
     insertLesson({ content: '另一条不匹配内容', category: 'general', sourceTaskId: `${TEST_PREFIX}short` });
     const query = '简历';
     expect(query.length).toBeLessThan(LESSON_FTS_MIN_QUERY_LENGTH);
     const rows = searchLessons(query, { limit: 10 });
-    expect(rows).toHaveLength(2);
+    // 直连 dev 库（已知限制）：库中可能还有更旧的真实教训，只断言新插入的两条排在最前
+    expect(rows.length).toBeGreaterThanOrEqual(2);
+    expect(rows[0].content).toBe('另一条不匹配内容');
+    expect(rows[1].content).toBe('不包含检索词的教训内容');
   });
 
   it('无匹配结果返回空列表（非错误）', () => {
@@ -134,8 +137,8 @@ describe('searchLessons（FTS 检索 + 降级）', () => {
       expect(() => {
         rows = searchLessons(evil, { limit: 10 });
       }, `查询词「${evil}」不应抛异常`).not.toThrow();
-      // 降级路径返回按时间倒序的最近列表（含刚插入的 2 条）
-      expect(rows!.map((r) => r.content), `查询词「${evil}」应降级为最近列表`).toEqual(['node 项目部署教训', '前端岗位投递技巧']);
+      // 降级路径返回按时间倒序的最近列表（新插入的 2 条排最前；dev 库更旧的真实数据不参与断言）
+      expect(rows!.slice(0, 2).map((r) => r.content), `查询词「${evil}」应降级为最近列表`).toEqual(['node 项目部署教训', '前端岗位投递技巧']);
     }
   });
 
