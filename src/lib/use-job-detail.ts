@@ -7,8 +7,10 @@ export type JobDetail = {
   status: string;
   fitResult: {
     schemaVersion: number; overallScore: number;
-    understanding: { company: string; title: string; requirements: Array<{ id: string; text: string; type: string }>; city: string | null; level: string | null; tags: string[] };
+    understanding: { company: string; title: string; requirements: Array<{ id: string; text: string; type: string; classification?: string }>; city: string | null; level: string | null; tags: string[] };
     fitResults: Array<{ requirementId: string; level: 'highly-matched' | 'matched' | 'partial' | 'mismatch'; evidence: string; note: string }>;
+    fitBand?: 'overqualified' | 'excellent' | 'good' | 'stretch' | 'underqualified';
+    redFlags?: Array<{ category: 'workload' | 'culture' | 'compensation'; phrase: string; label: string }>;
     risks: Array<{ point: string; evidence?: string }>;
     advice: { mustFix: string[]; resumeAdjustments: string[]; talkingPoints: string[]; truthBoundary: string };
   } | null;

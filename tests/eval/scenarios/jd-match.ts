@@ -32,18 +32,19 @@ export const jdMatchScenario: Scenario = {
   mockScript: [
     { type: 'tool-call', toolName: 'importJobOpportunity', input: { text: JD_TEXT } },
     { type: 'tool-call', toolName: 'matchJob', input: { jobOpportunityId: '$importJobOpportunity.jobOpportunityId' } },
-    // matchJob 内部 callStructured：符合 jobMatchResultSchemaV1，fitResults 必须引用存在的 requirementId
+    // matchJob 内部 callStructured：符合 jobMatchLLMOutputSchemaV2（含 classification；
+    // fitBand/redFlags 由系统确定性计算，不在 LLM 产物中），fitResults 必须引用存在的 requirementId
     {
       type: 'text',
       text: JSON.stringify({
-        schemaVersion: 1,
+        schemaVersion: 2,
         understanding: {
           company: 'XX 科技',
           title: '高级前端工程师',
           requirements: [
-            { id: 'r1', text: '本科及以上学历', type: 'education' },
-            { id: 'r2', text: '5 年以上前端经验，熟悉 React', type: 'experience' },
-            { id: 'r3', text: '大型电商项目经验', type: 'experience' },
+            { id: 'r1', text: '本科及以上学历', type: 'education', classification: 'required' },
+            { id: 'r2', text: '5 年以上前端经验，熟悉 React', type: 'experience', classification: 'required' },
+            { id: 'r3', text: '大型电商项目经验', type: 'experience', classification: 'preferred' },
           ],
           city: '北京',
           level: '高级',
@@ -70,10 +71,15 @@ export const jdMatchScenario: Scenario = {
     const job = ctx.query<{ fit_result_json: string | null }>('SELECT fit_result_json FROM job_opportunities LIMIT 1');
     expect(job?.fit_result_json).not.toBeNull();
     // 结构性断言：只验 schema 与分值边界，不锁具体分数（真实模型给真实分）
-    const parsed = JSON.parse(job!.fit_result_json!) as { schemaVersion?: number; overallScore?: number };
-    expect(parsed.schemaVersion).toBe(1);
+    const parsed = JSON.parse(job!.fit_result_json!) as {
+      schemaVersion?: number; overallScore?: number; fitBand?: string; redFlags?: unknown[];
+    };
+    expect(parsed.schemaVersion).toBe(2);
     expect(parsed.overallScore).toBeGreaterThanOrEqual(0);
     expect(parsed.overallScore).toBeLessThanOrEqual(100);
+    // v2 确定性字段：fitBand 由系统映射，redFlags 由系统检测（本 JD 无命中短语 → 空数组）
+    expect(['overqualified', 'excellent', 'good', 'stretch', 'underqualified']).toContain(parsed.fitBand);
+    expect(Array.isArray(parsed.redFlags)).toBe(true);
     expect(ctx.allAssistantText()).not.toBe('');
   },
 };

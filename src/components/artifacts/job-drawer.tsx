@@ -21,6 +21,30 @@ const LEVEL_STYLES: Record<string, string> = {
   mismatch: 'bg-red-500/10 text-red-700',
 };
 
+/** 匹配分档位（schema v2 确定性字段；v1 存量数据无此字段，前端容错） */
+const FIT_BAND_LABELS: Record<string, string> = {
+  overqualified: '过度匹配', excellent: '优秀匹配', good: '良好匹配', stretch: '挑战性', underqualified: '不够格',
+};
+const FIT_BAND_STYLES: Record<string, string> = {
+  overqualified: 'bg-violet-500/10 text-violet-700',
+  excellent: 'bg-emerald-500/10 text-emerald-700',
+  good: 'bg-indigo-500/10 text-indigo-700',
+  stretch: 'bg-amber-500/10 text-amber-700',
+  underqualified: 'bg-red-500/10 text-red-700',
+};
+
+const CLASSIFICATION_LABELS: Record<string, string> = {
+  required: '必须项', preferred: '加分项',
+};
+const CLASSIFICATION_STYLES: Record<string, string> = {
+  required: 'bg-slate-200/70 text-slate-600',
+  preferred: 'bg-slate-100 text-slate-400',
+};
+
+const RED_FLAG_CATEGORY_LABELS: Record<string, string> = {
+  workload: '工作负荷', culture: '文化', compensation: '薪酬',
+};
+
 const CHANNEL_TYPE_LABELS: Record<string, string> = {
   official: '官方', job_board: '招聘平台', email: '邮箱', unknown: '未知',
 };
@@ -80,9 +104,14 @@ export function JobDrawer({ jobId, open, refreshSignal, onOpenChange, onOpenTail
         {detail && fit && (
           <div className="mt-4 space-y-5 text-sm">
             {/* 匹配评分 */}
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <span className="text-2xl font-semibold">{fit.overallScore}</span>
               <span className="text-muted-foreground">/ 100 匹配评分</span>
+              {fit.fitBand && (
+                <span className={cn('rounded-full px-2 py-0.5 text-xs font-medium', FIT_BAND_STYLES[fit.fitBand])}>
+                  {FIT_BAND_LABELS[fit.fitBand]}
+                </span>
+              )}
             </div>
             {/* 岗位理解 */}
             <div>
@@ -93,11 +122,36 @@ export function JobDrawer({ jobId, open, refreshSignal, onOpenChange, onOpenTail
                 {fit.understanding.requirements.map((r) => (
                   <li key={r.id} className="flex items-start gap-2">
                     <span className="mt-0.5 shrink-0 rounded bg-slate-100 px-1.5 py-0.5 text-xs font-medium text-slate-500">{r.id}</span>
-                    <span>{r.text}</span>
+                    <span className="min-w-0 flex-1">{r.text}</span>
+                    {r.classification && (
+                      <span className={cn('mt-0.5 shrink-0 rounded-full px-2 py-0.5 text-xs font-medium', CLASSIFICATION_STYLES[r.classification])}>
+                        {CLASSIFICATION_LABELS[r.classification]}
+                      </span>
+                    )}
                   </li>
                 ))}
               </ul>
             </div>
+            {/* 危险信号（schema v2 确定性检测；v1 存量无此段） */}
+            {fit.redFlags && fit.redFlags.length > 0 && (
+              <>
+                <div>
+                  <p className="mb-1.5 font-medium text-amber-700">JD 危险信号</p>
+                  <ul className="space-y-1.5">
+                    {fit.redFlags.map((f, i) => (
+                      <li key={i} className="rounded-2xl bg-amber-500/5 p-3 text-sm">
+                        <span className="mr-2 rounded-full bg-amber-500/10 px-2 py-0.5 text-xs font-medium text-amber-700">
+                          {RED_FLAG_CATEGORY_LABELS[f.category]}
+                        </span>
+                        <span className="text-slate-700">{f.label}</span>
+                        <span className="mt-1 block text-xs italic text-slate-500">命中短语：「{f.phrase}」</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <Separator />
+              </>
+            )}
             <Separator />
 
             {/* 逐条匹配 */}

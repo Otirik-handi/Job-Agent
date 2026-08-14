@@ -3,8 +3,9 @@ import { createDomainTool } from '../tool-factory';
 import { getModel } from '../model';
 import { getJobOpportunity, updateJobMatch } from '../../db/repositories/job-opportunities';
 import { listResumes, getResume } from '../../db/repositories/resumes';
-import { jobMatchResultSchemaV1 } from '../schemas/job-match';
+import { jobMatchLLMOutputSchemaV2, jobMatchResultSchemaV2 } from '../schemas/job-match';
 import { buildJobMatchSystemPrompt, buildJobMatchUserPrompt } from '../prompts/job-match';
+import { detectJdRedFlags, fitBandFromScore } from '../jd-red-flags';
 
 const inputSchema = z.strictObject({
   jobOpportunityId: z.string().min(1).describe('岗位 ID（由 importJobOpportunity 返回）'),
@@ -12,7 +13,7 @@ const inputSchema = z.strictObject({
 
 export const matchJobTool = createDomainTool({
   name: 'matchJob',
-  description: '岗位匹配：将岗位 JD 与已分析的简历做三段式匹配（岗位理解 → 逐条匹配矩阵 → 投递建议），产出匹配评分、风险点与必备修改。参数 jobOpportunityId 为岗位 ID（importJobOpportunity 返回）。前置条件：岗位须已导入，且系统中须已有导入并分析过的简历，否则失败——未导入先 importJobOpportunity，未分析先导入并分析简历；未提供岗位 ID 时先 listJobOpportunities。返回 ok、overallScore 与 summary 统计（要求数/风险数/必备修改数），完整匹配结果已保存，可在岗位详情查看。',
+  description: '岗位匹配：将岗位 JD 与已分析的简历做三段式匹配（岗位理解 → 逐条匹配矩阵 → 投递建议），产出匹配评分与档位、JD 危险信号（red flag）检测、风险点与必备修改。参数 jobOpportunityId 为岗位 ID（importJobOpportunity 返回）。前置条件：岗位须已导入，且系统中须已有导入并分析过的简历，否则失败——未导入先 importJobOpportunity，未分析先导入并分析简历；未提供岗位 ID 时先 listJobOpportunities。返回 ok、overallScore、fitBand、redFlagsCount 与 summary 统计（要求数/风险数/必备修改数），完整匹配结果已保存，可在岗位详情查看。',
   inputSchema,
   progress: { start: '正在匹配岗位…', done: '岗位匹配完成' },
   execute: async (args, ctx) => {
@@ -52,7 +53,7 @@ export const matchJobTool = createDomainTool({
       model: getModel(),
       systemPrompt: buildJobMatchSystemPrompt(),
       userPrompt: buildJobMatchUserPrompt(job.jdText, resume.name, resume.sourceText, profileJson),
-      schema: jobMatchResultSchemaV1,
+      schema: jobMatchLLMOutputSchemaV2,
       task: 'job-match',
     });
 
@@ -80,16 +81,37 @@ export const matchJobTool = createDomainTool({
       }
     }
 
+    // 确定性字段由系统计算后合并（LLM 不可漂移）：匹配分档位 + JD 危险信号
+    const full = {
+      ...data,
+      fitBand: fitBandFromScore(data.overallScore),
+      redFlags: detectJdRedFlags(job.jdText),
+    };
+    const parsed = jobMatchResultSchemaV2.safeParse(full);
+    if (!parsed.success) {
+      return {
+        ok: false,
+        error: {
+          code: 'JOB_MATCH_CONSISTENCY_FAILED',
+          message: '匹配结果合并校验失败',
+          hint: '确定性字段合并后不满足契约，请重试一次。',
+        },
+        jobOpportunityId: job.id,
+      };
+    }
+
     updateJobMatch(job.id, {
       company: data.understanding.company,
       title: data.understanding.title,
-      fitResultJson: JSON.stringify(data),
+      fitResultJson: JSON.stringify(parsed.data),
     });
 
     return {
       ok: true,
       jobOpportunityId: job.id,
       overallScore: data.overallScore,
+      fitBand: parsed.data.fitBand,
+      redFlagsCount: parsed.data.redFlags.length,
       summary: {
         requirementsCount: data.understanding.requirements.length,
         risksCount: data.risks.length,
