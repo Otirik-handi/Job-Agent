@@ -1,6 +1,6 @@
 # PROJECT STATUS — job-helper 项目状态
 
-> 本文档记录项目当前状态、已完成工作与下一步计划。随里程碑更新（最后一次更新：2026-08-13，外部 Skill 炼化第二梯队 #7 interview-me 结论文档落地）。
+> 本文档记录项目当前状态、已完成工作与下一步计划。随里程碑更新（最后一次更新：2026-08-13，外部 Skill 炼化第三梯队 #8 salary-negotiation-prep 结论文档落地）。
 
 ## 当前状态
 
@@ -46,7 +46,7 @@
 - **规范体系**：`.agents/specs/`（00 治理 / 01 前端 / 02 后端 / 03 Agent / 04 注释）随实现补充了记忆、Skill、规划、反思、摘要、步骤卡片等约定
 - **文档链**：调研报告 → 讨论纪要 → 计划文档（phase7-13）→ 本状态文件
 
-## 已完成：外部 Skill 炼化（2026-08-13 启动，第一、二梯队 7/12 完成）
+## 已完成：外部 Skill 炼化（2026-08-13 启动，已完成 8/12，第三梯队进行中）
 
 > 背景：通过 find-skills 检索求职领域 agent skill 生态，筛选后安装至 `external-skills/`（4 仓库，嵌套 git 独立更新，`.gitignore` 排除不入库，提交 `5dfdf16`），逐个精读并产出「炼化结论文档」供后续落地参考。
 
@@ -81,6 +81,12 @@
 |---|---|---|---|
 | 7 | interview-me | 意图澄清协议：一次一问+猜测+置信度（<70% 附缺失原因）、restate 六要素（Out of scope 不可谈判）、显式 yes 门禁（"你看着办"非确认）、95% 停止条件+轮数地板 | **意图层澄清机制空白**为关键缺口；方案一 prompt 层协议落地为推荐；六要素可升级两段式审批确认卡（随 UI 排期）；不吸收 docs/intent 持久化（memory preferences 等价物）、非交互约束（项目无此形态） |
 
+### 第三梯队结论一览（docs/research/2026-08-13-refine-08-*.md）
+
+| # | Skill | 核心结论 | 关键决策 |
+|---|---|---|---|
+| 8 | salary-negotiation-prep | 谈判五场景题库（首轮低/期望薪资 deflection/底薪不动 9 替代项/竞对 offer 三原则/当前薪资重定向）+ 四分位区间 + 总包计算与权益术语 + 6 步时间线 + Counter-Offer 五步框架 | 项目 negotiation 覆盖率已高；**期望薪资 deflection 与当前薪资应对为关键缺口**；方案一场景库补齐（prompt 增补）为推荐；不吸收美国市场数据/来源/法律断言（含触发条件）；base vs 总包权衡视角与 #12 联动评估 |
+
 ### 关键缺口清单（跨 skill 汇聚，供后续排期）
 
 - **意图层澄清机制空白**（#7）：用户模糊指令（缺岗位/简历/目标）时无"先澄清再行动"机制，靠 LLM 自由发挥；落地见 refine-07 §6 演进线索（prompt 层协议 + 澄清轮数护栏 + 六要素进 planCreate）
@@ -93,7 +99,7 @@
 ### 后续炼化队列
 
 - 第二梯队：#7 interview-me（需求澄清方法论，对话层意图澄清模式）✅ 已炼化（2026-08-13）
-- 第三梯队：#8-#12（salary-negotiation-prep / interview-prep-generator / application-form-filler / cold-email-writer / offer-comparison-analyzer）待炼化
+- 第三梯队：#8 salary-negotiation-prep ✅ 已炼化（2026-08-13）；#9-#12（interview-prep-generator / application-form-filler / cold-email-writer / offer-comparison-analyzer）进行中
 - 第四梯队：只读不搬（场景参考）
 
 ## 接下来要做什么
@@ -144,5 +150,5 @@
 - 批次 D2 计划：`docs/plans/2026-08-12-opencli-plugin.md`（含 Task 7 冒烟实测记录）
 - 计划文档：`docs/plans/2026-08-10-phase7~13-*.md`（每期含验收记录与已知限制）
 - 外部 Skill 炼化清单：`docs/research/2026-08-13-external-skills-refinery-list.md`（四梯队清单 + 执行要求 §4）
-- 炼化结论文档：`docs/research/2026-08-13-refine-01-job-description-analyzer.md`（v2.2）~ `refine-06-resume-version-manager.md`（每篇含精读拆解/项目对照/可吸收点/吸收方案/不吸收部分/演进线索/迭代记录）；第二梯队 `refine-07-interview-me.md`（意图澄清协议）
+- 炼化结论文档：`docs/research/2026-08-13-refine-01-job-description-analyzer.md`（v2.2）~ `refine-06-resume-version-manager.md`（每篇含精读拆解/项目对照/可吸收点/吸收方案/不吸收部分/演进线索/迭代记录）；第二梯队 `refine-07-interview-me.md`（意图澄清协议）；第三梯队 `refine-08-salary-negotiation-prep.md`（谈判场景库，进行中）
 - 本文件：`PROJECT_STATUS.md`
