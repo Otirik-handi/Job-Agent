@@ -14,12 +14,14 @@ import { memoryLimitRecoveryScenario } from './memory-limit-recovery';
 import { memoryRecallScenario } from './memory-recall';
 import { searchMessagesScenario } from './search-messages';
 import { companyResearchScenario } from './company-research';
+import { intentClarifyScenario } from './intent-clarify';
 
 export const scenarios: Scenario[] = [
   resumeAnalysisScenario, jdMatchScenario, interviewPrepScenario, offerCompareScenario, coverLetterScenario,
   tailoredResumeScenario, applyJobScenario, planTaskScenario, recordStatusScenario,
   midCourseCorrectionScenario, toolFailureRetryScenario, memoryLimitRecoveryScenario, memoryRecallScenario,
   searchMessagesScenario,
+  intentClarifyScenario,
   // 高频族末尾：web 工具链端到端（依赖 fetch 网络隔离，mock 层由 web-network-stub 接管全局 fetch）
   companyResearchScenario,
 ];
