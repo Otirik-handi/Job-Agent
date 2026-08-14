@@ -6,10 +6,11 @@ import { createTailoredResume } from '../../db/repositories/tailored-resumes';
 import { resumeEditSuggestionsSchemaV1, tailoredResumeInputSchema } from '../schemas/tailored-resume';
 import { buildTailoredResumeSystemPrompt, buildTailoredResumeSuggestionsUserPrompt } from '../prompts/tailored-resume';
 import { applyEdits, validateEdits } from '../resume-edits';
+import { validateBulletQuality } from '../bullet-quality';
 
 export const tailoredResumeTool = createDomainTool({
   name: 'tailoredResume',
-  description: '专属简历：针对岗位匹配结果为简历生成定点替换建议，经用户逐条确认后产出专属简历版本，两段式调用。参数：jobOpportunityId（须已匹配，未匹配返回 JOB_MATCH_REQUIRED——先调用 matchJob）、resumeId（可选，缺省自动取最近导入的简历）、confirmedEdits（用户确认后的替换清单：沿用建议编号 id、原文片段 sourceText 须逐字一致、替换文本 suggestedText）。第一段不带 confirmedEdits：仅生成替换建议清单（含 factRisk 标注：confirmed 事实重述 / inferred 推断补充），不落库，须在对话中逐条向用户呈现并请求确认。用户确认后第二段携带 confirmedEdits 再次调用：应用替换生成专属简历版本并落库，返回 ok、tailoredResumeId 与 version。',
+  description: '专属简历：针对岗位匹配结果为简历生成定点替换建议，经用户逐条确认后产出专属简历版本，两段式调用。参数：jobOpportunityId（须已匹配，未匹配返回 JOB_MATCH_REQUIRED——先调用 matchJob）、resumeId（可选，缺省自动取最近导入的简历）、confirmedEdits（用户确认后的替换清单：沿用建议编号 id、原文片段 sourceText 须逐字一致、替换文本 suggestedText）。第一段不带 confirmedEdits：仅生成替换建议清单（含 factRisk 标注：confirmed 事实重述 / inferred 推断补充，以及 qualityWarnings 改写质量校验：缺数字/弱动词/过长/数字过多/百分比无基线），不落库，须在对话中逐条向用户呈现并请求确认。用户确认后第二段携带 confirmedEdits 再次调用：应用替换生成专属简历版本并落库，返回 ok、tailoredResumeId 与 version。',
   inputSchema: tailoredResumeInputSchema,
   progress: { start: '正在生成专属简历…', done: '专属简历生成完成' },
   execute: async (args, ctx) => {
@@ -98,7 +99,9 @@ export const tailoredResumeTool = createDomainTool({
           reason: result.data.edits.find((o) => o.id === e.id)?.reason ?? '',
           factRisk: result.data.edits.find((o) => o.id === e.id)?.factRisk ?? 'confirmed',
         })),
-        hint: '请将建议清单逐条向用户呈现（标注 factRisk：confirmed 为事实重述、inferred 为推断补充），请求用户逐条确认或修改；用户确认后，携带 confirmedEdits 再次调用本工具生成专属简历。',
+        // 改写质量确定性校验（提示级，不剔除建议）：缺数字/弱动词/过长/数字过多/百分比无基线
+        qualityWarnings: validateBulletQuality(valid),
+        hint: '请将建议清单逐条向用户呈现（标注 factRisk：confirmed 为事实重述、inferred 为推断补充），请求用户逐条确认或修改；质量警告（qualityWarnings）应一并提示用户注意，建议模型按警告重写对应条目；用户确认后，携带 confirmedEdits 再次调用本工具生成专属简历。',
       };
     }
 

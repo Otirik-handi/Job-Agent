@@ -25,7 +25,8 @@ export function buildResumeAnalysisSystemPrompt(): string {
 5. 严格按上述契约的 JSON 结构输出，字段名与枚举值不得更改；improvements 的 priority 只能是 high/medium/low 三者之一。
 6. ATS 视角（关键词密度）：改进建议中涉及关键词时参考密度指南——关键关键词全文出现 2-4 次、重要关键词 1-2 次、禁止堆砌；建议使用标准区块头命名（工作经历/教育/技能）与精确岗位术语（简历用"编程/做图表"，岗位要求"Python/SQL/数据可视化"时就建议用精确术语）。
 7. 特殊人群分支：转行者——聚焦可迁移技能与目标行业关键词；应届生——教育/课程/项目/实习是关键词重点；空窗期——自由职业/项目/学习经历可带关键词补位，不主动强调空窗。
-8. atsChecks（ATS 兼容性检查清单）由系统对简历文本确定性计算，你**不要**输出该字段。`;
+8. 改进建议按 X-Y-Z 三要素给可执行改写方向：指出原 bullet 缺哪个要素（成就/衡量/行动）并给出改写示例，如"缺量化指标：把『负责组件库建设』改为『主导组件库建设，覆盖 X 个项目、加载性能提升 Y%』"。
+9. atsChecks（ATS 兼容性检查清单）由系统对简历文本确定性计算，你**不要**输出该字段。`;
 }
 
 export function buildResumeAnalysisUserPrompt(resumeName: string, sourceText: string): string {
