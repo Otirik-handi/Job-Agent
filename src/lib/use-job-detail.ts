@@ -26,7 +26,8 @@ export type JobDetail = {
   } | null;
   interviewPrep: {
     schemaVersion: number; companyBrief: string; selfIntro: string;
-    questions: Array<{ id: string; question: string; intent: string; answerPoints: string[]; evidence: string | null; risk: string | null }>;
+    questions: Array<{ id: string; question: string; intent: string; answerPoints: string[]; evidence: string | null; risk: string | null; probability?: 'high' | 'medium' | 'low' }>;
+    redFlags?: string[];
     askThem: string[];
   } | null;
   appliedTailoredResume: { id: string; version: number; createdAt: string } | null;

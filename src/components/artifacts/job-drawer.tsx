@@ -45,6 +45,13 @@ const RED_FLAG_CATEGORY_LABELS: Record<string, string> = {
   workload: '工作负荷', culture: '文化', compensation: '薪酬',
 };
 
+const PROBABILITY_LABELS: Record<string, string> = { high: '高概率', medium: '中概率', low: '低概率' };
+const PROBABILITY_STYLES: Record<string, string> = {
+  high: 'bg-red-500/10 text-red-700',
+  medium: 'bg-amber-500/10 text-amber-700',
+  low: 'bg-slate-100 text-slate-500',
+};
+
 const CHANNEL_TYPE_LABELS: Record<string, string> = {
   official: '官方', job_board: '招聘平台', email: '邮箱', unknown: '未知',
 };
@@ -363,7 +370,14 @@ export function JobDrawer({ jobId, open, refreshSignal, onOpenChange, onOpenTail
                     <ul className="space-y-2.5">
                       {detail.interviewPrep.questions.map((q) => (
                         <li key={q.id} className="rounded-2xl bg-slate-50 p-3.5">
-                          <p className="font-medium">{q.id} · {q.question}</p>
+                          <div className="flex items-center justify-between gap-2">
+                            <p className="font-medium">{q.id} · {q.question}</p>
+                            {q.probability && (
+                              <span className={cn('shrink-0 rounded-full px-2 py-0.5 text-xs font-medium', PROBABILITY_STYLES[q.probability])}>
+                                {PROBABILITY_LABELS[q.probability]}
+                              </span>
+                            )}
+                          </div>
                           <p className="mt-1 text-xs text-muted-foreground">考察意图：{q.intent}</p>
                           <ul className="mt-1.5 list-disc space-y-0.5 pl-5 text-sm">
                             {q.answerPoints.map((p, i) => <li key={i}>{p}</li>)}
@@ -380,6 +394,14 @@ export function JobDrawer({ jobId, open, refreshSignal, onOpenChange, onOpenTail
                       ))}
                     </ul>
                   </div>
+                  {detail.interviewPrep.redFlags && detail.interviewPrep.redFlags.length > 0 && (
+                    <div>
+                      <p className="mb-1.5 text-xs font-medium text-slate-500">红线答案提示</p>
+                      <ul className="list-disc space-y-0.5 pl-5 text-sm text-amber-700">
+                        {detail.interviewPrep.redFlags.map((r, i) => <li key={i}>{r}</li>)}
+                      </ul>
+                    </div>
+                  )}
                   {detail.interviewPrep.askThem.length > 0 && (
                     <div>
                       <p className="mb-1.5 text-xs font-medium text-slate-500">向面试官提问</p>

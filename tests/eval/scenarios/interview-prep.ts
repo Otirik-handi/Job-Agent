@@ -32,28 +32,35 @@ export const interviewPrepScenario: Scenario = {
   userMessages: ['帮我准备这家公司的面试'],
   mockScript: [
     { type: 'tool-call', toolName: 'prepareInterview', input: { jobOpportunityId: 'job-eval-1' } },
-    // prepareInterview 内部 callStructured：符合 interviewPrepSchemaV1
+    // prepareInterview 内部 callStructured：符合 interviewPrepSchemaV2（probability/redFlags）
     {
       type: 'text',
       text: JSON.stringify({
-        schemaVersion: 1,
+        schemaVersion: 2,
         companyBrief: 'XX 科技，高级前端工程师岗，要求 5 年前端经验与 React',
         selfIntro: '我是一名有 5 年经验的前端工程师，主导过电商平台组件库建设…',
         questions: [
-          { id: 'q1', question: '请介绍一个你主导的组件库项目', intent: '考察项目深度与架构能力', answerPoints: ['背景', '方案', '结果'], evidence: '主导 XX 电商平台组件库建设', risk: null },
+          { id: 'q1', question: '请介绍一个你主导的组件库项目', intent: '考察项目深度与架构能力', answerPoints: ['背景', '方案', '结果'], evidence: '主导 XX 电商平台组件库建设', risk: null, probability: 'high' },
+          { id: 'q2', question: '为什么想加入我们', intent: '考察求职动机', answerPoints: ['岗位匹配点', '公司方向'], evidence: null, risk: null, probability: 'medium' },
         ],
+        redFlags: ['不要提上一家公司负面评价', '「你最大的缺点」不要答「我太追求完美」式话术'],
         askThem: ['团队前端技术栈演进方向？'],
       }),
     },
-    { type: 'text', text: '面试准备包已生成：1 个核心预测问题 + 提问清单，完整内容可在岗位详情查看。' },
+    { type: 'text', text: '面试准备包已生成：2 个预测问题（1 个高概率）+ 红线提示 + 提问清单，完整内容可在岗位详情查看。' },
   ],
   assertFinalState: (ctx) => {
     const job = ctx.query<{ interview_prep_json: string | null }>('SELECT interview_prep_json FROM job_opportunities WHERE id = ?', ['job-eval-1']);
     expect(job?.interview_prep_json).not.toBeNull();
     // 结构性断言：只验 schema 与 companyBrief 非空，不锁具体公司名（真实模型有自己的表述）
-    const parsed = JSON.parse(job!.interview_prep_json!) as { schemaVersion?: number; companyBrief?: unknown };
-    expect(parsed.schemaVersion).toBe(1);
+    const parsed = JSON.parse(job!.interview_prep_json!) as {
+      schemaVersion?: number; companyBrief?: unknown; questions?: Array<{ probability?: string }>; redFlags?: unknown[];
+    };
+    expect(parsed.schemaVersion).toBe(2);
     expect(typeof parsed.companyBrief).toBe('string');
     expect((parsed.companyBrief as string).length).toBeGreaterThan(0);
+    // v2 字段：probability 分级 + redFlags 红线提示
+    expect(parsed.questions?.every((q) => ['high', 'medium', 'low'].includes(q.probability ?? ''))).toBe(true);
+    expect(Array.isArray(parsed.redFlags)).toBe(true);
   },
 };
