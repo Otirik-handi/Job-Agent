@@ -1,6 +1,7 @@
 import { createDomainTool } from '../tool-factory';
 import { getJobOpportunity, updateJobApplication } from '../../db/repositories/job-opportunities';
 import { recordStatusTransition } from '../../db/repositories/status-history';
+import { listTailoredResumes } from '../../db/repositories/tailored-resumes';
 import { applyJobInputSchema } from '../schemas/apply-job';
 import { applyStateTransition } from '../apply-state';
 
@@ -22,7 +23,7 @@ function parseChannels(json: string | null): { channels: Channel[] } | null {
 
 export const applyJobTool = createDomainTool({
   name: 'applyJob',
-  description: '投递管理：将岗位投递状态向前推进（matched→applying→applied）或标记跳过（→skipped），两段式调用。参数：jobOpportunityId、action（apply 投递推进 / skip 跳过，仅 applied 已投递状态不可跳过，其余状态含终态均可跳过）、confirmed（用户确认后传 true）。第一段不带 confirmed 仅返回投递摘要（当前/目标状态、推荐渠道）不落库，须向用户呈现并请求确认；第二段携带 confirmed=true 校验前置条件后落库，其中 action=apply 须岗位已匹配（未匹配返回 JOB_MATCH_REQUIRED，先调用 matchJob），终态岗位不可重复投递。返回 ok、phase 与最新 status。',
+  description: '投递管理：将岗位投递状态向前推进（matched→applying→applied）或标记跳过（→skipped），两段式调用。参数：jobOpportunityId、action（apply 投递推进 / skip 跳过，仅 applied 已投递状态不可跳过，其余状态含终态均可跳过）、confirmed（用户确认后传 true）。第一段不带 confirmed 仅返回投递摘要（当前/目标状态、推荐渠道、该岗位已有专属简历版本）不落库，须向用户呈现并请求确认；第二段携带 confirmed=true 校验前置条件后落库（审计记录携带所用专属简历版本，可回答"投 X 用的哪个版本"），其中 action=apply 须岗位已匹配（未匹配返回 JOB_MATCH_REQUIRED，先调用 matchJob），终态岗位不可重复投递。返回 ok、phase 与最新 status。',
   inputSchema: applyJobInputSchema,
   progress: { start: '正在更新投递状态…', done: '投递状态已更新' },
   execute: async (args) => {
@@ -71,17 +72,24 @@ export const applyJobTool = createDomainTool({
     // —— 第一段：出投递摘要（不落库）——
     if (!args.confirmed) {
       const channels = parseChannels(job.channelsJson);
+      // 投递-版本关联（refine-06）：预览时提示该岗位已有专属简历版本，投递后以该版本为准
+      const latestTailored = listTailoredResumes({ jobOpportunityId: job.id })[0] ?? null;
       return {
         ok: true,
         phase: 'preview',
         jobOpportunityId: job.id,
         currentStatus: job.status,
         targetStatus: transition.next,
+        tailoredResumeId: latestTailored?.id ?? null,
+        tailoredResumeVersion: latestTailored?.version ?? null,
         channels: (channels?.channels ?? []).map((c) => ({
           id: c.id, type: c.type, label: c.label, url: c.url, email: c.email,
           verification: c.verification, riskSignals: c.riskSignals,
         })),
         hint: `请向用户呈现投递摘要：将把岗位从 ${job.status} 推进到 ${transition.next}` +
+          (latestTailored
+            ? `，投递将记录所用专属简历 v${latestTailored.version}（"我投的哪个版本"可追溯）`
+            : '') +
           (channels && channels.channels.length > 0
             ? '，推荐渠道如下（优先已核验渠道），并请求确认。'
             : '（未发现渠道，可直接确认投递）。') +
@@ -93,14 +101,20 @@ export const applyJobTool = createDomainTool({
     updateJobApplication(job.id, transition.next as 'applying' | 'applied' | 'skipped');
     // 落库成功后同步写入状态时序记录（只追加不覆盖，自动把上一条未作废记录 supersededBy 置为最新）
     recordStatusTransition(job.id, job.status, transition.next);
+    // 投递-版本关联（refine-06）：apply_job 审计携带投递时所用专属简历版本（audit-log 提取 detailsJson）
+    const latestTailored = listTailoredResumes({ jobOpportunityId: job.id })[0] ?? null;
     return {
       ok: true,
       phase: transition.next,
       jobOpportunityId: job.id,
       status: transition.next,
+      tailoredResumeId: latestTailored?.id ?? null,
+      tailoredResumeVersion: latestTailored?.version ?? null,
       hint: transition.next === 'skipped'
         ? '该岗位已标记为跳过，可继续处理其他岗位。'
-        : `该岗位已标记为${transition.next === 'applying' ? '投递中' : '已投递'}，可继续为其他岗位执行投递。`,
+        : `该岗位已标记为${transition.next === 'applying' ? '投递中' : '已投递'}` +
+          (latestTailored ? `（所用专属简历 v${latestTailored.version} 已记录，可随时查询"投的哪个版本"）` : '') +
+          '，可继续为其他岗位执行投递。',
     };
   },
 });

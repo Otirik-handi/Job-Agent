@@ -1,11 +1,32 @@
 /** 工具执行 → 审计记录映射（纯函数，可单测）：白名单动作映射 + entity 提取 + 成败判定。
- * 设计：actions 表记"动作执行与成败"，只读工具/第一段预览不记录（噪声 > 价值）。 */
-type AuditAction = { action: string; entityType: string; entityId: string; result: string };
+ * 设计：actions 表记"动作执行与成败"，只读工具/第一段预览不记录（噪声 > 价值）。
+ * details 提取（2026-08-14，吸收 refine-06 投递-版本关联）：apply_job 携带所用专属简历版本。 */
+type AuditAction = {
+  action: string; entityType: string; entityId: string; result: string;
+  detailsJson?: string;
+};
 
-const ACTION_MAP: Record<string, { action: string; entityType: string; entityIdFrom: (o: Record<string, unknown>) => string }> = {
+type AuditDef = {
+  action: string; entityType: string;
+  entityIdFrom: (o: Record<string, unknown>) => string;
+  /** 可选：从工具输出提取结构化明细（JSON 序列化后写入 actions.details_json） */
+  detailsFrom?: (o: Record<string, unknown>) => Record<string, unknown> | null;
+};
+
+const ACTION_MAP: Record<string, AuditDef> = {
   applyJob: {
     action: 'apply_job', entityType: 'job_opportunity',
     entityIdFrom: (o) => (typeof o.jobOpportunityId === 'string' ? o.jobOpportunityId : ''),
+    // 投递关联明细：投递时所用专属简历版本（applyJob 第二段落库时查最新专属简历并携带）；
+    // 无版本（未生成专属简历/存量投递）→ 不写明细
+    detailsFrom: (o) => {
+      const tailoredResumeId = typeof o.tailoredResumeId === 'string' ? o.tailoredResumeId : '';
+      if (!tailoredResumeId) return null;
+      return {
+        tailoredResumeId,
+        tailoredResumeVersion: typeof o.tailoredResumeVersion === 'number' ? o.tailoredResumeVersion : null,
+      };
+    },
   },
   recordApplicationStatus: {
     action: 'record_status', entityType: 'job_opportunity',
@@ -49,10 +70,13 @@ export function mapToolToAction(toolName: string, rawOutput: unknown): AuditActi
   const errorCode = failed && typeof output.error === 'object' && output.error !== null
     ? (output.error as { code?: unknown }).code
     : undefined;
-  return {
+  const record: AuditAction = {
     action: def.action,
     entityType: def.entityType,
     entityId: def.entityIdFrom(output),
     result: typeof errorCode === 'string' ? errorCode : 'ok',
   };
+  const details = def.detailsFrom?.(output);
+  if (details && record.result === 'ok') record.detailsJson = JSON.stringify(details);
+  return record;
 }

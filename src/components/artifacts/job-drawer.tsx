@@ -244,6 +244,17 @@ export function JobDrawer({ jobId, open, refreshSignal, onOpenChange, onOpenTail
                 {detail.status === 'rejected' && <span className="text-xs text-muted-foreground">已拒绝，可删除该岗位或匹配其他机会</span>}
                 {detail.status === 'hired' && <span className="text-xs text-muted-foreground">已入职，此岗位已完结</span>}
               </div>
+              {/* 投递-版本关联（refine-06）：最近一次成功投递所用专属简历版本；存量无记录显示"未记录" */}
+              {detail.appliedTailoredResume ? (
+                <p className="mt-1.5 text-xs text-muted-foreground">
+                  投递所用专属简历：<span className="font-medium text-violet-600">v{detail.appliedTailoredResume.version}</span>
+                  <span className="ml-1">{formatRelativeTime(detail.appliedTailoredResume.createdAt)}生成</span>
+                </p>
+              ) : (
+                detail.status !== 'matched' && detail.status !== 'saved' && (
+                  <p className="mt-1.5 text-xs text-muted-foreground">投递所用专属简历：未记录（本次投递未关联专属简历版本）</p>
+                )
+              )}
             </div>
             {/* 投递渠道 */}
             <div>

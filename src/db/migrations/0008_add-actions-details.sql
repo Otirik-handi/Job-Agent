@@ -1,0 +1,1 @@
+ALTER TABLE `actions` ADD `details_json` text;

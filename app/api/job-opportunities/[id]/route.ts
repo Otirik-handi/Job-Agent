@@ -1,5 +1,7 @@
 import { z } from 'zod';
 import { deleteJobOpportunity, getJobOpportunity, updateJobTitle } from '@/src/db/repositories/job-opportunities';
+import { getLatestApplyActionDetails } from '@/src/db/repositories/actions';
+import { getTailoredResume } from '@/src/db/repositories/tailored-resumes';
 
 // 契约性防御：strictObject 拒绝 company 等多余字段，落实「只改岗位名」约束（简历 PATCH 用 z.object，多余字段剥离无害）
 const patchSchema = z.strictObject({ title: z.string().min(1).max(100) });
@@ -20,6 +22,13 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   if (record.interviewPrepJson) {
     try { interviewPrep = JSON.parse(record.interviewPrepJson); } catch { interviewPrep = null; }
   }
+  // 投递-版本关联（refine-06）：最近一次成功投递所用专属简历版本；存量无记录 → null
+  let appliedTailoredResume = null;
+  const applyDetails = getLatestApplyActionDetails(id);
+  if (applyDetails) {
+    const tailored = getTailoredResume(applyDetails.tailoredResumeId);
+    if (tailored) appliedTailoredResume = { id: tailored.id, version: tailored.version, createdAt: tailored.createdAt };
+  }
   return Response.json({
     id: record.id,
     company: record.company,
@@ -30,6 +39,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     fitResult,
     channels,
     interviewPrep,
+    appliedTailoredResume,
     createdAt: record.createdAt,
     updatedAt: record.updatedAt,
   });

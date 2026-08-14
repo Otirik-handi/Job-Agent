@@ -29,6 +29,7 @@ export type JobDetail = {
     questions: Array<{ id: string; question: string; intent: string; answerPoints: string[]; evidence: string | null; risk: string | null }>;
     askThem: string[];
   } | null;
+  appliedTailoredResume: { id: string; version: number; createdAt: string } | null;
   createdAt: string; updatedAt: string;
 };
 

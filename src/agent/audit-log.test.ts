@@ -6,6 +6,18 @@ describe('mapToolToAction（工具输出 → 审计记录，纯函数）', () =>
     const rec = mapToolToAction('applyJob', { ok: true, phase: 'applying', jobOpportunityId: 'job-1' });
     expect(rec).toEqual({ action: 'apply_job', entityType: 'job_opportunity', entityId: 'job-1', result: 'ok' });
   });
+  it('applyJob 成功第二段携带专属简历版本明细（投递-版本关联）', () => {
+    const rec = mapToolToAction('applyJob', {
+      ok: true, phase: 'applied', jobOpportunityId: 'job-1', tailoredResumeId: 'tr-9', tailoredResumeVersion: 2,
+    });
+    expect(rec).toMatchObject({ action: 'apply_job', result: 'ok' });
+    expect(JSON.parse(rec!.detailsJson!)).toEqual({ tailoredResumeId: 'tr-9', tailoredResumeVersion: 2 });
+  });
+  it('applyJob 无专属简历版本时不写明细（存量兼容）', () => {
+    const rec = mapToolToAction('applyJob', { ok: true, phase: 'applied', jobOpportunityId: 'job-1', tailoredResumeId: null, tailoredResumeVersion: null });
+    expect(rec).toEqual({ action: 'apply_job', entityType: 'job_opportunity', entityId: 'job-1', result: 'ok' });
+    expect(rec!.detailsJson).toBeUndefined();
+  });
   it('applyJob 业务失败 → result 记错误码', () => {
     const rec = mapToolToAction('applyJob', { ok: false, error: { code: 'JOB_MATCH_REQUIRED', message: 'x', hint: 'y' } });
     expect(rec).toMatchObject({ action: 'apply_job', result: 'JOB_MATCH_REQUIRED' });

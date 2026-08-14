@@ -104,6 +104,7 @@ export const actions = sqliteTable('actions', {
   entityType: text('entity_type').notNull(), // resume / job_opportunity / tailored_resume / plan
   entityId: text('entity_id').notNull(),     // 对象 id（无对象记空串）
   result: text('result').notNull(),          // ok | 结构化错误码（如 JOB_MATCH_REQUIRED）
+  detailsJson: text('details_json'),         // 动作关联明细（JSON，如 apply_job 的 tailoredResumeId/tailoredResumeVersion）
   createdAt: text('created_at').notNull(),
 }, (t) => [
   index('actions_conversation_idx').on(t.conversationId, t.createdAt),
