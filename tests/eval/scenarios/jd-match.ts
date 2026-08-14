@@ -50,6 +50,12 @@ export const jdMatchScenario: Scenario = {
           level: '高级',
           tags: ['React', '电商'],
         },
+        keywords: [
+          { term: 'React', type: 'hard' },
+          { term: '前端', type: 'hard' },
+          { term: '电商', type: 'industry' },
+          { term: '本科', type: 'hard' },
+        ],
         fitResults: [
           { requirementId: 'r1', level: 'matched', evidence: '简历未明确学历，需确认', note: '学历未在简历中体现' },
           { requirementId: 'r2', level: 'highly-matched', evidence: '前端开发工程师，5 年经验', note: '经验与技能均匹配' },
@@ -73,6 +79,7 @@ export const jdMatchScenario: Scenario = {
     // 结构性断言：只验 schema 与分值边界，不锁具体分数（真实模型给真实分）
     const parsed = JSON.parse(job!.fit_result_json!) as {
       schemaVersion?: number; overallScore?: number; fitBand?: string; redFlags?: unknown[];
+      keywordMatchScore?: number; keywordResults?: unknown[]; missingKeywords?: unknown[];
     };
     expect(parsed.schemaVersion).toBe(2);
     expect(parsed.overallScore).toBeGreaterThanOrEqual(0);
@@ -80,6 +87,29 @@ export const jdMatchScenario: Scenario = {
     // v2 确定性字段：fitBand 由系统映射，redFlags 由系统检测（本 JD 无命中短语 → 空数组）
     expect(['overqualified', 'excellent', 'good', 'stretch', 'underqualified']).toContain(parsed.fitBand);
     expect(Array.isArray(parsed.redFlags)).toBe(true);
+    // 关键词匹配分：JD 关键词（React/前端/电商命中，本科缺失）→ 3/4 = 75
+    expect(parsed.keywordMatchScore).toBe(75);
+    expect(Array.isArray(parsed.keywordResults)).toBe(true);
+    expect(parsed.missingKeywords).toContainEqual({ term: '本科', type: 'hard' });
+    expect(ctx.allAssistantText()).not.toBe('');
+  },
+  assertFinalStateReal: (ctx) => {
+    // 真实模型提取的关键词清单不固定：关键词部分只做结构性断言，不锁具体分值
+    const job = ctx.query<{ fit_result_json: string | null }>('SELECT fit_result_json FROM job_opportunities LIMIT 1');
+    expect(job?.fit_result_json).not.toBeNull();
+    const parsed = JSON.parse(job!.fit_result_json!) as {
+      schemaVersion?: number; overallScore?: number; fitBand?: string; redFlags?: unknown[];
+      keywordMatchScore?: number; keywordResults?: unknown[]; missingKeywords?: unknown[];
+    };
+    expect(parsed.schemaVersion).toBe(2);
+    expect(parsed.overallScore).toBeGreaterThanOrEqual(0);
+    expect(parsed.overallScore).toBeLessThanOrEqual(100);
+    expect(['overqualified', 'excellent', 'good', 'stretch', 'underqualified']).toContain(parsed.fitBand);
+    expect(Array.isArray(parsed.redFlags)).toBe(true);
+    expect(parsed.keywordMatchScore).toBeGreaterThanOrEqual(0);
+    expect(parsed.keywordMatchScore).toBeLessThanOrEqual(100);
+    expect(Array.isArray(parsed.keywordResults)).toBe(true);
+    expect(Array.isArray(parsed.missingKeywords)).toBe(true);
     expect(ctx.allAssistantText()).not.toBe('');
   },
 };

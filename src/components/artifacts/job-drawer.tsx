@@ -113,6 +113,24 @@ export function JobDrawer({ jobId, open, refreshSignal, onOpenChange, onOpenTail
                 </span>
               )}
             </div>
+            {/* 关键词匹配分（schema v2 确定性字段；v1 存量无此段） */}
+            {fit.keywordMatchScore !== undefined && (
+              <div className="rounded-2xl bg-slate-50 p-3.5 text-sm">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-medium">关键词匹配分</span>
+                  <span className="text-xs text-muted-foreground">JD 关键词在简历中的命中率（机器视角，与语义匹配分互补）</span>
+                </div>
+                <p className="mt-1">
+                  <span className="text-lg font-semibold">{fit.keywordMatchScore}</span>
+                  <span className="text-muted-foreground"> / 100</span>
+                </p>
+                {fit.missingKeywords && fit.missingKeywords.length > 0 && (
+                  <p className="mt-1.5 border-t border-slate-200/60 pt-1.5 text-xs text-amber-700">
+                    简历缺失关键词：{fit.missingKeywords.map((k) => k.term).join('、')}
+                  </p>
+                )}
+              </div>
+            )}
             {/* 岗位理解 */}
             <div>
               <p className="mb-2 font-medium">岗位理解</p>

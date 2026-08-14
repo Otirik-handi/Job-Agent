@@ -6,6 +6,7 @@ import { listResumes, getResume } from '../../db/repositories/resumes';
 import { jobMatchLLMOutputSchemaV2, jobMatchResultSchemaV2 } from '../schemas/job-match';
 import { buildJobMatchSystemPrompt, buildJobMatchUserPrompt } from '../prompts/job-match';
 import { detectJdRedFlags, fitBandFromScore } from '../jd-red-flags';
+import { computeKeywordMatch } from '../keyword-match';
 
 const inputSchema = z.strictObject({
   jobOpportunityId: z.string().min(1).describe('岗位 ID（由 importJobOpportunity 返回）'),
@@ -13,7 +14,7 @@ const inputSchema = z.strictObject({
 
 export const matchJobTool = createDomainTool({
   name: 'matchJob',
-  description: '岗位匹配：将岗位 JD 与已分析的简历做三段式匹配（岗位理解 → 逐条匹配矩阵 → 投递建议），产出匹配评分与档位、JD 危险信号（red flag）检测、风险点与必备修改。参数 jobOpportunityId 为岗位 ID（importJobOpportunity 返回）。前置条件：岗位须已导入，且系统中须已有导入并分析过的简历，否则失败——未导入先 importJobOpportunity，未分析先导入并分析简历；未提供岗位 ID 时先 listJobOpportunities。返回 ok、overallScore、fitBand、redFlagsCount 与 summary 统计（要求数/风险数/必备修改数），完整匹配结果已保存，可在岗位详情查看。',
+  description: '岗位匹配：将岗位 JD 与已分析的简历做三段式匹配（岗位理解 → 逐条匹配矩阵 → 投递建议），产出匹配评分与档位、JD 危险信号（red flag）检测、关键词匹配分（JD 关键词在简历中的命中率）与缺失关键词、风险点与必备修改。参数 jobOpportunityId 为岗位 ID（importJobOpportunity 返回）。前置条件：岗位须已导入，且系统中须已有导入并分析过的简历，否则失败——未导入先 importJobOpportunity，未分析先导入并分析简历；未提供岗位 ID 时先 listJobOpportunities。返回 ok、overallScore、fitBand、redFlagsCount、keywordMatchScore、missingKeywordsCount 与 summary 统计，完整匹配结果已保存，可在岗位详情查看。',
   inputSchema,
   progress: { start: '正在匹配岗位…', done: '岗位匹配完成' },
   execute: async (args, ctx) => {
@@ -81,11 +82,15 @@ export const matchJobTool = createDomainTool({
       }
     }
 
-    // 确定性字段由系统计算后合并（LLM 不可漂移）：匹配分档位 + JD 危险信号
+    // 确定性字段由系统计算后合并（LLM 不可漂移）：匹配分档位 + JD 危险信号 + 关键词匹配分
+    const keywordMatch = computeKeywordMatch(data.keywords, resume.sourceText);
     const full = {
       ...data,
       fitBand: fitBandFromScore(data.overallScore),
       redFlags: detectJdRedFlags(job.jdText),
+      keywordMatchScore: keywordMatch.keywordMatchScore,
+      keywordResults: keywordMatch.keywordResults,
+      missingKeywords: keywordMatch.missingKeywords,
     };
     const parsed = jobMatchResultSchemaV2.safeParse(full);
     if (!parsed.success) {
@@ -112,6 +117,8 @@ export const matchJobTool = createDomainTool({
       overallScore: data.overallScore,
       fitBand: parsed.data.fitBand,
       redFlagsCount: parsed.data.redFlags.length,
+      keywordMatchScore: parsed.data.keywordMatchScore,
+      missingKeywordsCount: parsed.data.missingKeywords.length,
       summary: {
         requirementsCount: data.understanding.requirements.length,
         risksCount: data.risks.length,

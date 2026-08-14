@@ -13,11 +13,11 @@ export const resumeAnalysisScenario: Scenario = {
     { type: 'tool-call', toolName: 'importResume', input: { text: RESUME_TEXT } },
     { type: 'tool-call', toolName: 'readSkill', input: { skillName: 'resume-analysis' } },
     { type: 'tool-call', toolName: 'analyzeResume', input: { resumeId: '$importResume.resumeId' } },
-    // analyzeResume 内部 callStructured：符合 resumeAnalysisSchemaV1 的 JSON
+    // analyzeResume 内部 callStructured：符合 resumeAnalysisLLMOutputSchemaV2（atsChecks 由系统计算）
     {
       type: 'text',
       text: JSON.stringify({
-        schemaVersion: 1,
+        schemaVersion: 2,
         overallScore: 72,
         strengths: [{ point: '前端经验 5 年，技术栈匹配度高', evidence: '前端开发工程师，5 年经验' }],
         risks: [{ point: '缺少量化成果描述', evidence: '参与 XX 电商平台前端架构设计' }],
@@ -37,10 +37,16 @@ export const resumeAnalysisScenario: Scenario = {
     const resume = ctx.query<{ analysis_json: string | null }>('SELECT analysis_json FROM resumes LIMIT 1');
     expect(resume?.analysis_json).not.toBeNull();
     // 结构性断言：只验 schema 与分值边界，不锁具体分数（真实模型给真实分）
-    const parsed = JSON.parse(resume!.analysis_json!) as { schemaVersion?: number; overallScore?: number };
-    expect(parsed.schemaVersion).toBe(1);
+    const parsed = JSON.parse(resume!.analysis_json!) as {
+      schemaVersion?: number; overallScore?: number; atsChecks?: Array<{ check: string; ok: boolean }>;
+    };
+    expect(parsed.schemaVersion).toBe(2);
     expect(parsed.overallScore).toBeGreaterThanOrEqual(0);
     expect(parsed.overallScore).toBeLessThanOrEqual(100);
+    // v2 确定性字段：atsChecks 由系统对简历文本计算（数组非空）
+    expect(Array.isArray(parsed.atsChecks)).toBe(true);
+    expect(parsed.atsChecks!.length).toBeGreaterThan(0);
+    expect(parsed.atsChecks!.every((c) => typeof c.check === 'string' && typeof c.ok === 'boolean')).toBe(true);
     // 消息流非空即可（真实模型不会恰好提到 72）
     expect(ctx.allAssistantText()).not.toBe('');
     // 会话状态回写：currentResumeId 应指向导入的简历

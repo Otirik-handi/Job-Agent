@@ -11,6 +11,7 @@ export type ResumeDetail = {
     improvements: Array<{ suggestion: string; priority: 'high' | 'medium' | 'low' }>;
     profile: { skills: string[]; experienceYears: number | null; targetRoles: string[]; targetCities: string[] };
     pendingConfirmations: string[];
+    atsChecks?: Array<{ check: string; ok: boolean; issue?: string }>;
   } | null;
   createdAt: string; updatedAt: string;
 };

@@ -11,6 +11,8 @@ export type JobDetail = {
     fitResults: Array<{ requirementId: string; level: 'highly-matched' | 'matched' | 'partial' | 'mismatch'; evidence: string; note: string }>;
     fitBand?: 'overqualified' | 'excellent' | 'good' | 'stretch' | 'underqualified';
     redFlags?: Array<{ category: 'workload' | 'culture' | 'compensation'; phrase: string; label: string }>;
+    keywordMatchScore?: number;
+    missingKeywords?: Array<{ term: string; type: string }>;
     risks: Array<{ point: string; evidence?: string }>;
     advice: { mustFix: string[]; resumeAdjustments: string[]; talkingPoints: string[]; truthBoundary: string };
   } | null;

@@ -18,8 +18,8 @@ export const toolFailureRetryScenario: Scenario = {
     { type: 'tool-call', toolName: 'listResumes', input: {} },
     // 用正确 id 重试
     { type: 'tool-call', toolName: 'analyzeResume', input: { resumeId: 'resume-eval-1' } },
-    // analyzeResume 内部 callStructured
-    { type: 'text', text: JSON.stringify({ schemaVersion: 1, overallScore: 72, strengths: [{ point: '前端经验 5 年' }], risks: [], improvements: [], profile: { skills: ['React', 'TypeScript'], experienceYears: 5, targetRoles: ['前端工程师'], targetCities: [] }, pendingConfirmations: [] }) },
+    // analyzeResume 内部 callStructured（resumeAnalysisLLMOutputSchemaV2；atsChecks 由系统计算）
+    { type: 'text', text: JSON.stringify({ schemaVersion: 2, overallScore: 72, strengths: [{ point: '前端经验 5 年' }], risks: [], improvements: [], profile: { skills: ['React', 'TypeScript'], experienceYears: 5, targetRoles: ['前端工程师'], targetCities: [] }, pendingConfirmations: [] }) },
     { type: 'text', text: '简历分析完成：整体评分 72 分。' },
   ],
   assertFinalState: (ctx) => {

@@ -1,8 +1,14 @@
 import { z } from 'zod';
 
-/** 简历分析契约 v1（产物 JSON 内嵌 schemaVersion，读取按版本宽容解析） */
-export const resumeAnalysisSchemaV1 = z.object({
-  schemaVersion: z.literal(1),
+/**
+ * 简历分析契约 v2（产物 JSON 内嵌 schemaVersion，读取按版本宽容解析）。
+ * v2 增量（吸收外部 skill resume-ats-optimizer，见 docs/research/2026-08-13-refine-03）：
+ * 新增 atsChecks（ATS 兼容性确定性检查清单）——由系统对简历纯文本计算，LLM 不输出。
+ */
+
+/** LLM 结构化输出契约：分析主体（评分/优势/风险/改进/画像/待确认） */
+export const resumeAnalysisLLMOutputSchemaV2 = z.object({
+  schemaVersion: z.literal(2),
   overallScore: z.number().int().min(0).max(100).describe('简历整体评分 0-100'),
   strengths: z.array(z.object({
     point: z.string().describe('优势要点'),
@@ -25,4 +31,15 @@ export const resumeAnalysisSchemaV1 = z.object({
   pendingConfirmations: z.array(z.string()).max(10).describe('需要用户确认的推断项（如"推测 3 年前端经验，请确认"）'),
 });
 
-export type ResumeAnalysisV1 = z.infer<typeof resumeAnalysisSchemaV1>;
+export type ResumeAnalysisLLMOutputV2 = z.infer<typeof resumeAnalysisLLMOutputSchemaV2>;
+
+/** 完整落库契约：LLM 产物 + 系统确定性字段（atsChecks） */
+export const resumeAnalysisSchemaV2 = resumeAnalysisLLMOutputSchemaV2.extend({
+  atsChecks: z.array(z.object({
+    check: z.string().describe('检查项名称'),
+    ok: z.boolean().describe('是否通过'),
+    issue: z.string().optional().describe('不通过时的中文说明'),
+  })).max(8).describe('ATS 兼容性检查清单（由系统对简历纯文本确定性检查）'),
+});
+
+export type ResumeAnalysisV2 = z.infer<typeof resumeAnalysisSchemaV2>;

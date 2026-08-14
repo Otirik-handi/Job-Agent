@@ -65,6 +65,26 @@ export function ResumeDrawer({ resumeId, open, refreshSignal, onOpenChange }: {
               </ul>
             </div>
             <Separator />
+            {/* ATS 兼容检查（schema v2 确定性检查；v1 存量无此段） */}
+            {analysis.atsChecks && (
+              <div>
+                <p className="mb-1.5 font-medium">ATS 兼容检查</p>
+                <ul className="space-y-1.5">
+                  {analysis.atsChecks.map((c, i) => (
+                    <li key={i} className="flex items-start gap-2 text-sm">
+                      <span className={`mt-0.5 shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${c.ok ? 'bg-emerald-500/10 text-emerald-700' : 'bg-amber-500/10 text-amber-700'}`}>
+                        {c.ok ? '通过' : '注意'}
+                      </span>
+                      <span>
+                        <span className="font-medium">{c.check}</span>
+                        {!c.ok && c.issue && <span className="block text-muted-foreground">{c.issue}</span>}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            <Separator />
             {/* 改进建议 */}
             <div>
               <p className="mb-1.5 font-medium">改进建议</p>

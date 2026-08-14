@@ -15,9 +15,10 @@ export function buildJobMatchSystemPrompt(): string {
 5. 评分 overallScore 按加权模型计算：required 项得分率 × 70% + preferred 项得分率 × 30%（0-100 整数）。示例：required 10 项满足 8 项（80%）、preferred 5 项满足 3 项（60%）→ 总分 80%×0.7 + 60%×0.3 = 74。解释区间：90-100 过度匹配（对方可能担心留不住，须在投递建议中提示「需说明为什么愿意来」）；75-89 优秀（建议投递）；60-74 良好（建议投递并配强求职信/沟通）；50-59 挑战性（仅强烈意愿时投）；<50 不够格（除非梦想岗位否则建议跳过）。
 6. 投递建议基调（少而精，不海投）：目标 70-90% 匹配的岗位深度定制；dealbreaker 硬规则（必需执照/资质拿不到、必需保密级别无法获得、年限差 50% 以上、明确「要求」的学位缺失、地点无法满足）必须反映到 mustFix/risks 的「不建议投递」结论；否则差距仍属「可定制弥补」范围。
 7. 边界情况分支：JD 信息极少（模糊 JD）——本身可能是危险信号，提示申请前先与对方确认，以行业标准要求为基线；一个 JD 含多个角色——识别核心角色，匹配分只针对核心职责，提示职责范围蔓延风险；内部转岗——策略不同（强调内部知识与具体项目）；重新发布的岗位——提示先研究重发原因、对照要求是否有变化。
-8. 投递建议中的 mustFix 针对不匹配/部分匹配项给出可执行的简历修改建议；truthBoundary 必须提醒用户不得虚构经历、技能、雇主、证书或成果。
-9. fitBand（匹配分档位）与 redFlags（危险信号清单）由系统根据 overallScore 与 JD 文本确定性计算，你**不要**输出这两个字段。
-10. 严格按输出契约的 JSON 结构输出，字段名与枚举值不得更改。
+8. 关键词提取（keywords）：从 JD 提取 ≤20 个关键词，按三类标注——hard 硬技能（工具/语言/证书/方法论）、soft 软技能（领导力/协作/沟通等）、industry 行业术语（领域/业务/合规词汇）；关键词用于系统计算"关键词匹配分"（JD 关键词在简历中的命中率，机器视角，与语义匹配分互补对照），应覆盖 JD 中的核心要求词。
+9. 投递建议中的 mustFix 针对不匹配/部分匹配项给出可执行的简历修改建议；truthBoundary 必须提醒用户不得虚构经历、技能、雇主、证书或成果。
+10. fitBand（匹配分档位）、redFlags（危险信号清单）与 keywordMatchScore/keywordResults/missingKeywords（关键词匹配分析）由系统确定性计算，你**不要**输出这些字段。
+11. 严格按输出契约的 JSON 结构输出，字段名与枚举值不得更改。
 
 输出契约结构（字段名与枚举必须严格一致）：
 {
@@ -34,6 +35,11 @@ export function buildJobMatchSystemPrompt(): string {
     "level": "高级",
     "tags": ["React", "TypeScript"]
   },
+  "keywords": [
+    { "term": "React", "type": "hard" },
+    { "term": "TypeScript", "type": "hard" },
+    { "term": "电商", "type": "industry" }
+  ],
   "fitResults": [
     { "requirementId": "r1", "level": "matched", "evidence": "简历中写明 5 年前端开发经验", "note": "满足年限要求" },
     { "requirementId": "r2", "level": "mismatch", "evidence": "简历技能列表无 React", "note": "minor 差距：缺少关键技能，可在技能区补真实使用经历后弱化" }
